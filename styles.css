@@ -1,64 +1,59 @@
 :root {
-    /*Colores principales*/
-    --color-base: #537b50;
-    --color-fondo: #ced6c9;
-    --color-fondo-claro: #dfe7d8;
-    --color-texto: #2D3436;
+	/*Colores principales*/
+	--color-base: #537b50;
+	--color-fondo: #ced6c9;
+	--color-fondo-claro: #dfe7d8;
+	--color-texto: #2d3436;
 
-    /*Tipografía*/
-    --fuente-titulos: Georgia, serif;
-    --fuente-cuerpo: Arial, sans-serif;
-    
-    /*Espaciados*/
-    --espaciado-xs: 8px;
-    --espaciado-sm: 16px;
-    --espaciado-md: 24px;
-    --espaciado-lg: 32px;
-    --espaciado-xl: 48px;
-    --espaciado-xxl: 64px;
+	/*Tipografía*/
+	--fuente-titulos: Georgia, serif;
+	--fuente-cuerpo: Arial, sans-serif;
+
+	/*Espaciados*/
+	--espaciado-xs: 8px;
+	--espaciado-sm: 16px;
+	--espaciado-md: 24px;
+	--espaciado-lg: 32px;
+	--espaciado-xl: 48px;
+	--espaciado-xxl: 64px;
 }
 
-body{
-    background-color: var(--color-fondo)
+body {
+	background-color: var(--color-fondo);
 }
 
-header{
-    border-bottom: 2px solid var(--color-base);
-    padding: var(--espaciado-sm);
+header {
+	border-bottom: 2px solid var(--color-base);
+	padding: var(--espaciado-sm);
 }
 
-
-
-.habito{
-    display: flex;
-    gap: var(--espaciado-md);
-    border: 1px solid black;
-    background-color: var(--color-fondo-claro);
-    padding: var(--espaciado-sm);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    
+.habito {
+	display: flex;
+	gap: var(--espaciado-md);
+	border: 1px solid black;
+	background-color: var(--color-fondo-claro);
+	padding: var(--espaciado-sm);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
 }
 
-ul{
-    list-style: none;
+ul {
+	list-style: none;
 }
 
-.contenedor{
-    display: flex;
-    gap: var(--espaciado-md);
+.contenedor {
+	display: flex;
+	gap: var(--espaciado-md);
 }
 
-.habito:hover{
-    background-color: var(--color-base);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    transform: scale(1.02);
+.habito:hover {
+	background-color: var(--color-base);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+	transform: scale(1.02);
 }
-
 
 @media (max-width: 768px) {
-    .contenedor{
-        flex-direction: column;
-    }
-
+	.contenedor {
+		flex-direction: column;
+	}
 }

@@ -14,29 +14,13 @@
 			<main>
 				<section>
 					<h2>Hábitos</h2>
-					<ul>
-						<li>
-							<div class="habito">
-								<h3>Leer</h3>
-								<span>1 capítulo</span>
-								<span>conseguido</span>
-							</div>
-						</li>
-						<li>
-							<div class="habito">
-								<h3>Correr</h3>
-								<span>30 minutos</span>
-								<span>conseguido</span>
-							</div>
-						</li>
-						<li>
-							<div class="habito">
-								<h3>Tomar vitaminas</h3>
-								<span>Instantaneo</span>
-								<span>Conseguido</span>
-							</div>
-						</li>
-					</ul>
+					<input type="search" id="busqueda" placeholder="Buscar hábito" />
+					<ul></ul>
+					<form id="nuevo_habito">
+						<input type="text" id="nombre_habito" placeholder="Nombre del hábito" />
+						<input type="text" id="duracion_habito" placeholder="Tiempo que necesita" />
+						<button>Añadir Hábito</button>
+					</form>
 				</section>
 			</main>
 			<aside>
@@ -44,5 +28,6 @@
 				<p>Aqui mostraremos el porcentaje de habitos diarios cumplidos</p>
 			</aside>
 		</div>
+		<script src="app.js"></script>
 	</body>
 </html>
