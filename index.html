@@ -4,27 +4,54 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Seguidor de Hábitos</title>
-		<link rel="stylesheet" href="styles.css" />
+		<link rel="stylesheet" href="dist/styles.css" />
 	</head>
-	<body>
-		<header>
-			<h1>Seguidor de hábitos</h1>
+	<body class="bg-fondo dark:bg-gray-900 dark:text-white transition-colors duration-300">
+		<header
+			class="flex justify-between items-center border-b-2 border-base p-4 dark:bg-gray-800 dark:border-gray-600 transition-colors duration-300"
+		>
+			<h1 class="text-2xl font-bold">Seguidor de hábitos</h1>
+			<button
+				id="toggle_dark"
+				class="bg-base text-white p-2 cursor-pointer hover:bg-base-oscuro dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
+			>
+				Modo oscuro
+			</button>
 		</header>
-		<div class="contenedor">
+		<div class="flex gap-6 flex-col md:flex-row p-4">
 			<main>
 				<section>
-					<h2>Hábitos</h2>
-					<input type="search" id="busqueda" placeholder="Buscar hábito" />
-					<ul></ul>
-					<form id="nuevo_habito">
-						<input type="text" id="nombre_habito" placeholder="Nombre del hábito" />
-						<input type="text" id="duracion_habito" placeholder="Tiempo que necesita" />
-						<button>Añadir Hábito</button>
+					<h2 class="text-xl font-semibold mb-2">Hábitos</h2>
+					<input
+						type="search"
+						id="busqueda"
+						placeholder="Buscar hábito"
+						class="border border-black p-2 mb-2 w-full bg-stone-300 dark:bg-gray-700 dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+					/>
+					<ul class="list-none"></ul>
+					<form id="nuevo_habito" class="flex flex-col gap-2 mt-4">
+						<input
+							type="text"
+							id="nombre_habito"
+							placeholder="Nombre del hábito"
+							class="border border-black p-2 bg-stone-300 dark:bg-gray-700 dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+						/>
+						<input
+							type="text"
+							id="duracion_habito"
+							placeholder="Tiempo que necesita"
+							class="border border-black p-2 bg-stone-300 dark:bg-gray-700 dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+						/>
+						<button
+							class="bg-base text-white p-2 cursor-pointer hover:bg-base-oscuro dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
+						>
+							Añadir Hábito
+						</button>
 					</form>
 				</section>
 			</main>
 			<aside>
-				<h2>Resumen</h2>
+				<h2 class="text-xl font-semibold">Resumen</h2>
 				<p>Aqui mostraremos el porcentaje de habitos diarios cumplidos</p>
 			</aside>
 		</div>

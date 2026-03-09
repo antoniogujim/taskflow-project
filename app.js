@@ -17,7 +17,8 @@ function crearHabito(habito) {
 	const NUEVO_LI = document.createElement("li");
 	NUEVO_LI.dataset.id = habito.id;
 	const NUEVO_DIV = document.createElement("div");
-	NUEVO_DIV.className = "habito";
+	NUEVO_DIV.className =
+		"flex gap-6 justify-between items-center border border-black bg-base-claro p-4 shadow transition-all duration-300 hover:bg-base hover:shadow-md hover:scale-[1.02] dark:bg-gray-700 dark:border-gray-500";
 	const NUEVO_H3 = document.createElement("h3");
 	NUEVO_H3.textContent = habito.habito;
 	const NUEVO_SPAN = document.createElement("span");
@@ -29,6 +30,8 @@ function crearHabito(habito) {
 	selecionarUL.appendChild(NUEVO_LI);
 	const BUTTON = document.createElement("button");
 	BUTTON.textContent = "Eliminar hábito";
+	BUTTON.className =
+		"border border-black px-2 py-1 cursor-pointer bg-base text-white hover:bg-base-oscuro transition-all duration-300 dark:bg-gray-700 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro";
 	NUEVO_DIV.appendChild(BUTTON);
 	BUTTON.addEventListener("click", function (evento) {
 		NUEVO_LI.remove();
@@ -64,4 +67,8 @@ BUSCAR_HABITO.addEventListener("input", function (evento) {
 		let nombre = habito.querySelector("h3").textContent.toLowerCase();
 		nombre.includes(textoBuscado) ? (habito.style.display = "") : (habito.style.display = "none");
 	});
+});
+
+document.getElementById("toggle_dark").addEventListener("click", function () {
+	document.documentElement.classList.toggle("dark");
 });
