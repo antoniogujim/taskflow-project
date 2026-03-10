@@ -1,10 +1,12 @@
-const NUEVO_HABITO = document.getElementById("nuevo_habito");
+const FORM_HABITO = document.getElementById("nuevo_habito");
 
-const BUSCAR_HABITO = document.getElementById("busqueda");
+const INPUT_BUSQUEDA = document.getElementById("busqueda");
 
-const HAY_HABITOS = localStorage.getItem("Lista_de_habitos") != null;
+const TEMPLATE_HABITO = document.getElementById("habito-template");
 
-let habitos = HAY_HABITOS
+const HABITOS_EN_STORAGE = localStorage.getItem("Lista_de_habitos") != null;
+
+let habitos = HABITOS_EN_STORAGE
 	? JSON.parse(localStorage.getItem("Lista_de_habitos"))
 	: [
 			{ habito: "Habito", tiempo: "Temporalización", id: Date.now() },
@@ -14,37 +16,24 @@ let habitos = HAY_HABITOS
 		];
 
 /**
- * Crea y añade un elemento de hábito al DOM.
+ * Crea y añade un elemento de hábito al DOM usando el template definido en el HTML.
  * También registra el evento de eliminación en su botón correspondiente.
  * @param {{ habito: string, tiempo: string, id: number }} habito - Objeto con los datos del hábito.
  */
 function crearHabito(habito) {
-	const NUEVO_LI = document.createElement("li");
-	NUEVO_LI.dataset.id = habito.id;
-	const NUEVO_DIV = document.createElement("div");
-	NUEVO_DIV.className =
-		"flex gap-6 justify-between items-center border border-black bg-base-claro p-4 shadow transition-all duration-300 hover:bg-base hover:shadow-md hover:scale-[1.02] dark:bg-gray-700 dark:border-gray-500";
-	const NUEVO_H3 = document.createElement("h3");
-	NUEVO_H3.textContent = habito.habito;
-	const NUEVO_SPAN = document.createElement("span");
-	NUEVO_SPAN.textContent = habito.tiempo;
-	NUEVO_LI.appendChild(NUEVO_DIV);
-	NUEVO_DIV.appendChild(NUEVO_H3);
-	NUEVO_DIV.appendChild(NUEVO_SPAN);
-	let selecionarUL = document.querySelector("ul");
-	selecionarUL.appendChild(NUEVO_LI);
-	const BUTTON = document.createElement("button");
-	BUTTON.textContent = "Eliminar hábito";
-	BUTTON.className =
-		"border border-black px-2 py-1 cursor-pointer bg-base text-white hover:bg-base-oscuro transition-all duration-300 dark:bg-gray-700 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro";
-	NUEVO_DIV.appendChild(BUTTON);
-	BUTTON.addEventListener("click", function (evento) {
-		NUEVO_LI.remove();
-		habitos = habitos.filter(function (h) {
-			return h.id != habito.id;
+	const clon = TEMPLATE_HABITO.content.cloneNode(true);
+	const li = clon.querySelector("li");
+	li.dataset.id = habito.id;
+	clon.querySelector(".nombre").textContent = habito.habito;
+	clon.querySelector(".tiempo").textContent = habito.tiempo;
+	clon.querySelector("button").addEventListener("click", function () {
+		li.remove();
+		habitos = habitos.filter(function (habitoGuardado) {
+			return habitoGuardado.id !== habito.id;
 		});
 		localStorage.setItem("Lista_de_habitos", JSON.stringify(habitos));
 	});
+	document.querySelector("ul").appendChild(clon);
 }
 
 habitos.forEach(crearHabito);
@@ -54,15 +43,15 @@ habitos.forEach(crearHabito);
  * Crea el objeto hábito, lo añade al array, lo renderiza y lo guarda en localStorage.
  * @param {SubmitEvent} evento - Evento de envío del formulario.
  */
-NUEVO_HABITO.addEventListener("submit", function (evento) {
+FORM_HABITO.addEventListener("submit", function (evento) {
 	evento.preventDefault();
 	let nombre = document.getElementById("nombre_habito").value;
 	let duracion = document.getElementById("duracion_habito").value;
-	let identificador = Date.now();
+	let id = Date.now();
 	habitos.push({
 		habito: nombre,
 		tiempo: duracion,
-		id: identificador,
+		id: id,
 	});
 	crearHabito(habitos[habitos.length - 1]);
 	localStorage.setItem("Lista_de_habitos", JSON.stringify(habitos));
@@ -73,20 +62,32 @@ NUEVO_HABITO.addEventListener("submit", function (evento) {
 /**
  * Filtra la lista de hábitos visibles según el texto introducido en el buscador.
  * Oculta los elementos cuyo nombre no coincida con la búsqueda.
- * @param {InputEvent} evento - Evento de entrada del campo de búsqueda.
  */
-BUSCAR_HABITO.addEventListener("input", function (evento) {
-	let textoBuscado = BUSCAR_HABITO.value.toLowerCase();
-	const LISTA_HABITOS = document.querySelectorAll("ul li");
-	LISTA_HABITOS.forEach(function (habito) {
+INPUT_BUSQUEDA.addEventListener("input", function () {
+	let textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
+	const listaHabitos = document.querySelectorAll("ul li");
+	listaHabitos.forEach(function (habito) {
 		let nombre = habito.querySelector("h3").textContent.toLowerCase();
 		nombre.includes(textoBuscado) ? (habito.style.display = "") : (habito.style.display = "none");
 	});
 });
 
 /**
+ * Aplica el modo oscuro guardado en localStorage al cargar la página.
+ */
+if (localStorage.getItem("modo-oscuro") === "true") {
+	document.documentElement.classList.add("dark");
+	document.getElementById("icono-luna").classList.add("hidden");
+	document.getElementById("icono-sol").classList.remove("hidden");
+}
+
+/**
  * Alterna el modo oscuro añadiendo o eliminando la clase "dark" en el elemento raíz del documento.
+ * También intercambia los iconos de luna y sol según el modo activo, y persiste la preferencia.
  */
 document.getElementById("toggle_dark").addEventListener("click", function () {
-	document.documentElement.classList.toggle("dark");
+	const esModoOscuro = document.documentElement.classList.toggle("dark");
+	document.getElementById("icono-luna").classList.toggle("hidden");
+	document.getElementById("icono-sol").classList.toggle("hidden");
+	localStorage.setItem("modo-oscuro", esModoOscuro);
 });

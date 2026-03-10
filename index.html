@@ -8,56 +8,82 @@
 	</head>
 	<body class="bg-fondo dark:bg-gray-900 dark:text-white transition-colors duration-300">
 		<header
-			class="flex justify-between items-center border-b-2 border-base p-4 dark:bg-gray-800 dark:border-gray-600 transition-colors duration-300"
+			class="flex justify-between items-center border-b-2 border-base p-4 shadow-sm dark:bg-dark-fondo dark:border-gray-600 transition-colors duration-300"
 		>
 			<h1 class="text-2xl font-bold">Seguidor de hábitos</h1>
 			<button
 				id="toggle_dark"
-				class="bg-base text-white p-2 cursor-pointer hover:bg-base-oscuro dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
+				class="bg-base text-white p-2 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
+				aria-label="Alternar modo oscuro"
 			>
-				Modo oscuro
+				<!-- Icono luna: visible en modo claro -->
+				<svg id="icono-luna" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/>
+				</svg>
+				<!-- Icono sol: visible en modo oscuro -->
+				<svg id="icono-sol" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20" class="hidden">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/>
+				</svg>
 			</button>
 		</header>
 		<div class="flex gap-6 flex-col md:flex-row p-4">
-			<main>
+			<main class="flex-1">
 				<section>
 					<h2 class="text-xl font-semibold mb-2">Hábitos</h2>
 					<input
 						type="search"
 						id="busqueda"
 						placeholder="Buscar hábito"
-						class="border border-black p-2 mb-2 w-full bg-stone-300 dark:bg-gray-700 dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+						class="border border-black p-2 mb-2 w-full rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 					/>
-					<ul class="list-none"></ul>
+					<ul class="list-none flex flex-col gap-2"></ul>
 					<form id="nuevo_habito" class="flex flex-col gap-2 mt-4">
 						<input
 							type="text"
 							id="nombre_habito"
 							placeholder="Nombre del hábito"
-							class="border border-black p-2 bg-stone-300 dark:bg-gray-700 dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+							class="border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 						/>
 						<input
 							type="text"
 							id="duracion_habito"
 							placeholder="Tiempo que necesita"
-							class="border border-black p-2 bg-stone-300 dark:bg-gray-700 dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+							class="border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 						/>
 						<button
-							class="bg-base text-white p-2 cursor-pointer hover:bg-base-oscuro dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
+							type="submit"
+							class="bg-base text-white p-2 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
 						>
 							Añadir Hábito
 						</button>
 					</form>
 				</section>
 			</main>
-			<aside>
+			<aside class="w-full md:w-64 md:shrink-0 bg-fondo-claro rounded-lg p-4 shadow-sm dark:bg-dark-fondo transition-colors duration-300">
 				<h2 class="text-xl font-semibold">Resumen</h2>
 				<p>Aqui mostraremos el porcentaje de habitos diarios cumplidos</p>
 			</aside>
 		</div>
-		<footer class="border-t-2 border-base p-4 text-center text-sm dark:bg-gray-800 dark:border-gray-600 transition-colors duration-300">
+		<footer class="border-t-2 border-base p-4 text-center text-sm dark:bg-dark-fondo dark:border-gray-600 transition-colors duration-300">
 			<p>&copy; 2026 Seguidor de Hábitos</p>
 		</footer>
+
+		<!-- Plantilla base para cada hábito en la lista -->
+		<template id="habito-template">
+			<li>
+				<div class="flex gap-6 justify-between items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:scale-[1.02] dark:bg-dark-tarjeta dark:border-gray-500">
+					<h3 class="nombre"></h3>
+					<span class="tiempo"></span>
+					<button
+						type="button"
+						class="border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base text-white hover:bg-base-oscuro hover:shadow-md transition-all duration-300 dark:bg-dark-tarjeta dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro"
+					>
+						Eliminar hábito
+					</button>
+				</div>
+			</li>
+		</template>
+
 	<script src="app.js"></script>
 	</body>
 </html>
