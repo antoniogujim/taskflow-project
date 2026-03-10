@@ -13,6 +13,11 @@ let habitos = HAY_HABITOS
 			{ habito: "Tomar vitaminas", tiempo: "Instantáneo", id: Date.now() + 3 },
 		];
 
+/**
+ * Crea y añade un elemento de hábito al DOM.
+ * También registra el evento de eliminación en su botón correspondiente.
+ * @param {{ habito: string, tiempo: string, id: number }} habito - Objeto con los datos del hábito.
+ */
 function crearHabito(habito) {
 	const NUEVO_LI = document.createElement("li");
 	NUEVO_LI.dataset.id = habito.id;
@@ -44,6 +49,11 @@ function crearHabito(habito) {
 
 habitos.forEach(crearHabito);
 
+/**
+ * Maneja el envío del formulario para añadir un nuevo hábito.
+ * Crea el objeto hábito, lo añade al array, lo renderiza y lo guarda en localStorage.
+ * @param {SubmitEvent} evento - Evento de envío del formulario.
+ */
 NUEVO_HABITO.addEventListener("submit", function (evento) {
 	evento.preventDefault();
 	let nombre = document.getElementById("nombre_habito").value;
@@ -60,6 +70,11 @@ NUEVO_HABITO.addEventListener("submit", function (evento) {
 	document.getElementById("duracion_habito").value = "";
 });
 
+/**
+ * Filtra la lista de hábitos visibles según el texto introducido en el buscador.
+ * Oculta los elementos cuyo nombre no coincida con la búsqueda.
+ * @param {InputEvent} evento - Evento de entrada del campo de búsqueda.
+ */
 BUSCAR_HABITO.addEventListener("input", function (evento) {
 	let textoBuscado = BUSCAR_HABITO.value.toLowerCase();
 	const LISTA_HABITOS = document.querySelectorAll("ul li");
@@ -69,6 +84,9 @@ BUSCAR_HABITO.addEventListener("input", function (evento) {
 	});
 });
 
+/**
+ * Alterna el modo oscuro añadiendo o eliminando la clase "dark" en el elemento raíz del documento.
+ */
 document.getElementById("toggle_dark").addEventListener("click", function () {
 	document.documentElement.classList.toggle("dark");
 });
