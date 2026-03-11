@@ -26,6 +26,7 @@ function crearHabito(habito) {
 	li.dataset.id = habito.id;
 	clon.querySelector(".nombre").textContent = habito.habito;
 	clon.querySelector(".tiempo").textContent = habito.tiempo;
+	clon.querySelector("button").setAttribute("aria-label", "Eliminar hábito: " + habito.habito);
 	clon.querySelector("button").addEventListener("click", function () {
 		li.remove();
 		habitos = habitos.filter(function (habitoGuardado) {
