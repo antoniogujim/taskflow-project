@@ -37,22 +37,31 @@
 						class="border border-black p-2 mb-2 w-full rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 					/>
 					<ul class="list-none flex flex-col gap-2"></ul>
-					<form id="nuevo_habito" class="flex flex-col gap-2 mt-4">
-						<input
-							type="text"
-							id="nombre_habito"
-							placeholder="Nombre del hábito"
-							class="border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
-						/>
-						<input
-							type="text"
-							id="duracion_habito"
-							placeholder="Tiempo que necesita"
-							class="border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
-						/>
+					<form id="nuevo_habito" class="mt-4">
+						<fieldset class="flex flex-col gap-4 border-0 p-0 m-0">
+							<legend class="text-base font-semibold mb-2">Nuevo hábito</legend>
+							<div class="flex flex-col gap-1">
+								<label for="nombre_habito" class="text-sm font-medium">Nombre del hábito</label>
+								<input
+									type="text"
+									id="nombre_habito"
+									placeholder="Ej: Leer"
+									class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+								/>
+							</div>
+							<div class="flex flex-col gap-1">
+								<label for="duracion_habito" class="text-sm font-medium">Duración</label>
+								<input
+									type="text"
+									id="duracion_habito"
+									placeholder="Ej: 30 minutos"
+									class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+								/>
+							</div>
+						</fieldset>
 						<button
 							type="submit"
-							class="bg-base text-white p-2 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
+							class="w-full mt-4 bg-base text-white p-2 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
 						>
 							Añadir Hábito
 						</button>
@@ -71,7 +80,7 @@
 		<!-- Plantilla base para cada hábito en la lista -->
 		<template id="habito-template">
 			<li>
-				<div class="flex gap-6 justify-between items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:scale-[1.02] dark:bg-dark-tarjeta dark:border-gray-500">
+				<div class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:scale-[1.02] dark:bg-dark-tarjeta dark:border-gray-500">
 					<h3 class="nombre"></h3>
 					<span class="tiempo"></span>
 					<button

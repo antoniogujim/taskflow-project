@@ -511,10 +511,7 @@ Proporcionar un ejemplo vacío de la estructura esperada (`Código: / Problema: 
 
 ```
 Cambio: Reestructurado documento de Prompt Engineering con ejemplos reales
-Commit: Reescrito el documento de Prompt Engineering con contenido real. Añadidos cinco
-        ejemplos con prompts, respuestas de IA y conclusiones. Eliminado el esqueleto
-        inicial. Documentadas tecnicas de role prompting, restriccion de formato y
-        few-shot prompting.
+Commit: Reescrito el documento de Prompt Engineering con contenido real. Añadidos cinco ejemplos con prompts, respuestas de IA y conclusiones. Eliminado el esqueleto inicial. Documentadas tecnicas de role prompting, restriccion de formato y few-shot prompting.
 ```
 
 ---
