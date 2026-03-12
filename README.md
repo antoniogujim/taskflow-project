@@ -1,13 +1,15 @@
 # Seguidor de Hábitos
 
-Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite añadir, eliminar y buscar hábitos, con persistencia de datos en el navegador.
+Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite añadir, eliminar, buscar y marcar hábitos como completados, con persistencia de datos en el navegador.
 
 ## Características
 
 - Añadir hábitos con nombre y duración
 - Eliminar hábitos individualmente
+- Marcar hábitos como completados con checkbox y feedback visual
+- Panel lateral de resumen con contadores de total, completados y pendientes
 - Filtro de búsqueda en tiempo real
-- Persistencia de datos mediante localStorage
+- Persistencia de datos mediante localStorage (incluye estado de completado)
 - Hábitos de ejemplo al iniciar por primera vez
 - Diseño responsive para móvil y escritorio
 - Modo oscuro con botón de alternancia e iconos SVG (luna/sol)
@@ -15,6 +17,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Transiciones y efectos hover/focus en botones e inputs
 - Sombras y esquinas redondeadas en tarjetas, inputs y botones
 - Plantilla HTML (`<template>`) para renderizar hábitos desde el DOM
+- Labels accesibles en inputs y checkbox del formulario
 
 ## Estructura del proyecto
 
@@ -49,10 +52,12 @@ taskflow-project/
 
 1. Abre `index.html` en el navegador
 2. Usa el formulario para añadir un nuevo hábito con su nombre y duración
-3. Pulsa "Eliminar hábito" para borrar un hábito de la lista
-4. Usa el campo de búsqueda para filtrar hábitos por nombre
-5. Los hábitos se guardan automáticamente y persisten al recargar la página
-6. Usa el botón con icono de luna/sol para alternar entre tema claro y oscuro (la preferencia se guarda)
+3. Marca el checkbox de un hábito para marcarlo como completado
+4. Pulsa "Eliminar hábito" para borrar un hábito de la lista
+5. Usa el campo de búsqueda para filtrar hábitos por nombre
+6. Consulta el panel lateral para ver el resumen de hábitos del día
+7. Los hábitos se guardan automáticamente y persisten al recargar la página
+8. Usa el botón con icono de luna/sol para alternar entre tema claro y oscuro (la preferencia se guarda)
 
 ## Tecnologías
 
@@ -76,6 +81,5 @@ taskflow-project/
 
 ## Próximas actualizaciones
 
-- Panel de estadísticas en el aside (total, completadas, pendientes)
 - Validación del formulario
-- Labels accesibles en los inputs
+- Reset diario del estado de completado

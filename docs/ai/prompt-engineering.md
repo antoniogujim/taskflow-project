@@ -115,15 +115,15 @@ Placeholder sin implementar. Si esto es un PR real, debería estar en un issue/t
 
 ##### Resumen ejecutivo
 
-| Severidad | Problema                                        |
-|-----------|-------------------------------------------------|
-| Media     | Sin validación de inputs (bug silencioso)       |
+| Severidad | Problema                                         |
+| --------- | ------------------------------------------------ |
+| Media     | Sin validación de inputs (bug silencioso)        |
 | Media     | `localStorage.setItem` sin manejo de excepciones |
-| Baja      | IDs con `Date.now()` frágiles                   |
-| Baja      | `querySelector("ul")` demasiado genérico        |
-| Baja      | `let` donde debería ser `const`                 |
-| Info      | Propiedad `habito.habito` confusa               |
-| Info      | Aside vacío en producción                       |
+| Baja      | IDs con `Date.now()` frágiles                    |
+| Baja      | `querySelector("ul")` demasiado genérico         |
+| Baja      | `let` donde debería ser `const`                  |
+| Info      | Propiedad `habito.habito` confusa                |
+| Info      | Aside vacío en producción                        |
 
 El código es funcional y tiene buenas prácticas base (uso de `<template>`, `textContent` en lugar de `innerHTML`, JSDoc). Los problemas principales son de robustez, no de arquitectura. Con los puntos 2 y 3 resueltos, este PR estaría listo para merge.
 
@@ -219,10 +219,10 @@ Si localStorage contiene JSON corrupto, la app explota silenciosamente. Siempre 
 ```js
 let habitos;
 try {
-    habitos = raw ? JSON.parse(raw) : defaultHabitos;
+	habitos = raw ? JSON.parse(raw) : defaultHabitos;
 } catch {
-    habitos = defaultHabitos;
-    localStorage.removeItem("Lista_de_habitos");
+	habitos = defaultHabitos;
+	localStorage.removeItem("Lista_de_habitos");
 }
 ```
 
@@ -244,21 +244,21 @@ Se llama 4 veces a `getElementById` para los mismos 2 inputs. Cachéalos al inic
 
 ```js
 FORM_HABITO.addEventListener("submit", function (e) {
-    e.preventDefault();
-    const inputNombre = document.getElementById("nombre_habito");
-    const inputDuracion = document.getElementById("duracion_habito");
-    const nombre = inputNombre.value.trim();
-    const duracion = inputDuracion.value.trim();
-    // ...
-    inputNombre.value = "";
-    inputDuracion.value = "";
+	e.preventDefault();
+	const inputNombre = document.getElementById("nombre_habito");
+	const inputDuracion = document.getElementById("duracion_habito");
+	const nombre = inputNombre.value.trim();
+	const duracion = inputDuracion.value.trim();
+	// ...
+	inputNombre.value = "";
+	inputDuracion.value = "";
 });
 ```
 
 **8. Manipulación de `display` inline en lugar de clases CSS** (`app.js:71`)
 
 ```js
-habito.style.display = "none"  // MAL: mezcla lógica con presentación
+habito.style.display = "none"; // MAL: mezcla lógica con presentación
 
 // BIEN: usa una clase CSS
 habito.classList.toggle("hidden", !nombre.includes(textoBuscado));
@@ -268,14 +268,14 @@ habito.classList.toggle("hidden", !nombre.includes(textoBuscado));
 
 ##### Resumen de prioridades
 
-| Prioridad | Issue                                     |
-|-----------|-------------------------------------------|
-| Alta      | `JSON.parse` sin `try/catch` (#3)         |
-| Alta      | Validación de inputs vacíos (#6)          |
-| Media     | Doble lectura de localStorage (#1)        |
-| Media     | IDs con `Date.now()` (#2)                 |
-| Baja      | Queries al DOM sin cachear (#4, #5, #7)   |
-| Baja      | `style.display` inline (#8)              |
+| Prioridad | Issue                                   |
+| --------- | --------------------------------------- |
+| Alta      | `JSON.parse` sin `try/catch` (#3)       |
+| Alta      | Validación de inputs vacíos (#6)        |
+| Media     | Doble lectura de localStorage (#1)      |
+| Media     | IDs con `Date.now()` (#2)               |
+| Baja      | Queries al DOM sin cachear (#4, #5, #7) |
+| Baja      | `style.display` inline (#8)             |
 
 El código funciona, pero no es robusto. Los bugs críticos son el `JSON.parse` sin protección y la falta de validación en el formulario.
 
@@ -351,7 +351,7 @@ CLICK EN BOTÓN MARCAR
 
 **1. Dónde vive el estado `completado`**
 
-- **Opción A — En el objeto del array `habitos[]`** *(recomendada)*
+- **Opción A — En el objeto del array `habitos[]`** _(recomendada)_
   Añadir `completado: false` al modelo de datos existente.
   Trade-off: simple, consistente con lo que ya existe, persiste en localStorage sin cambios estructurales.
   Contra: el array mezcla datos de identidad con estado diario.
@@ -361,18 +361,18 @@ CLICK EN BOTÓN MARCAR
   Trade-off: permite resetear el estado diario sin tocar la definición de hábitos.
   Contra: requiere coordinar dos estructuras; más complejo para el nivel actual del proyecto.
 
-  **Decisión:** Opción A ahora, con la clave `completado` preparada para migrar a Opción B si se añade el reset diario.
+    **Decisión:** Opción A ahora, con la clave `completado` preparada para migrar a Opción B si se añade el reset diario.
 
 **2. Dónde registrar el listener**
 
-- **Opción A — En `crearHabito()`** *(recomendada)*
+- **Opción A — En `crearHabito()`** _(recomendada)_
   Igual que el botón eliminar ya existente en `app.js:29`. Consistencia total con el patrón ya establecido, sin dependencias nuevas.
 
 - **Opción B — Delegación de eventos en `<ul>`**
   Un solo listener en el padre, detecta clics por `closest()`.
   Trade-off: más eficiente con miles de items; innecesario aquí con <50 hábitos.
 
-  **Decisión:** Opción A. No optimizar para un problema que no existe.
+    **Decisión:** Opción A. No optimizar para un problema que no existe.
 
 **3. Persistencia del estado**
 
@@ -383,6 +383,7 @@ Riesgo de migración: los hábitos ya guardados en localStorage no tienen la pro
 **4. Sincronización con el `<aside>` de resumen**
 
 El HTML en `index.html:62-65` ya tiene el placeholder. La función de recálculo debe ejecutarse:
+
 - Al cargar la página (después del `forEach`)
 - Cada vez que cambia el estado de un hábito
 - Al añadir o eliminar un hábito
@@ -391,13 +392,13 @@ El HTML en `index.html:62-65` ya tiene el placeholder. La función de recálculo
 
 ##### Tecnologías: usar vs. evitar
 
-| Usar | Evitar |
-|------|--------|
-| Vanilla JS (ya en uso) | React/Vue — overkill para este tamaño |
-| Clases CSS de Tailwind (ya en uso) | Animaciones JS complejas — CSS `transition` es suficiente |
-| `localStorage` (ya en uso) | `indexedDB` — innecesario para datos simples |
-| `dataset` en `<li>` para el id | Buscar el hábito por texto — frágil |
-| `aria-pressed` en el botón | Solo cambios visuales sin semántica — accesibilidad importa |
+| Usar                               | Evitar                                                      |
+| ---------------------------------- | ----------------------------------------------------------- |
+| Vanilla JS (ya en uso)             | React/Vue — overkill para este tamaño                       |
+| Clases CSS de Tailwind (ya en uso) | Animaciones JS complejas — CSS `transition` es suficiente   |
+| `localStorage` (ya en uso)         | `indexedDB` — innecesario para datos simples                |
+| `dataset` en `<li>` para el id     | Buscar el hábito por texto — frágil                         |
+| `aria-pressed` en el botón         | Solo cambios visuales sin semántica — accesibilidad importa |
 
 ---
 
@@ -559,7 +560,7 @@ Al probar este prompt sobre el propio archivo en edición, el modelo genera el c
 
 ##### Razonamiento paso a paso
 
-*Voy a recorrer cada interacción con localStorage en app.js y analizar qué pasa cuando el storage está vacío.*
+_Voy a recorrer cada interacción con localStorage en app.js y analizar qué pasa cuando el storage está vacío._
 
 **Punto 1 — Carga de hábitos** (`app.js:7-16`)
 
@@ -567,8 +568,10 @@ Al probar este prompt sobre el propio archivo en edición, el modelo genera el c
 const HABITOS_EN_STORAGE = localStorage.getItem("Lista_de_habitos") != null;
 
 let habitos = HABITOS_EN_STORAGE
-    ? JSON.parse(localStorage.getItem("Lista_de_habitos"))  // ← llamada 2
-    : [ /* defaults */ ];
+	? JSON.parse(localStorage.getItem("Lista_de_habitos")) // ← llamada 2
+	: [
+			/* defaults */
+		];
 ```
 
 `getItem` sobre una clave inexistente devuelve `null` → `null != null` es `false` → `HABITOS_EN_STORAGE = false` → el ternario cae al bloque de defaults.
@@ -618,10 +621,10 @@ El código no lanza ningún error de JavaScript cuando se borra localStorage y s
 
 Sin embargo, hay dos puntos donde el comportamiento se "rompe" de forma silenciosa:
 
-| Punto | Archivo | Efecto |
-|-------|---------|--------|
-| Data loss | `app.js:9-16` | Los hábitos personalizados se pierden y se reemplazan por los defaults — el usuario pierde su historial |
-| Dark mode reset | `app.js:78-82` | La preferencia de modo oscuro se pierde; la página carga siempre en modo claro |
+| Punto           | Archivo        | Efecto                                                                                                  |
+| --------------- | -------------- | ------------------------------------------------------------------------------------------------------- |
+| Data loss       | `app.js:9-16`  | Los hábitos personalizados se pierden y se reemplazan por los defaults — el usuario pierde su historial |
+| Dark mode reset | `app.js:78-82` | La preferencia de modo oscuro se pierde; la página carga siempre en modo claro                          |
 
 El único riesgo técnico real está en el patrón de `app.js:7-10`: `getItem` se invoca dos veces (TOCTOU). En un navegador no es un problema práctico por el modelo single-threaded, pero si se refactorizara a un entorno con storage asíncrono o compartido, `JSON.parse(null)` en línea 10 lanzaría un `SyntaxError` fatal. Lo idiomático sería guardar el resultado en una variable y reutilizarlo.
 
@@ -652,6 +655,7 @@ Preguntar "¿qué pasa si el usuario borra localStorage?" es más preciso que "�
 #### Prompt
 
 > Analiza este bug siguiendo exactamente estos pasos:
+>
 > 1. Describe qué hace el código actualmente
 > 2. Identifica en qué condición falla
 > 3. Explica por qué falla (causa raíz)
@@ -805,36 +809,36 @@ Pedir "exactamente una sugerencia" obliga al modelo a priorizar en lugar de enum
 
 ```json
 [
-  {
-    "problema": "Input de duración usa type='text' en lugar de un tipo semántico apropiado, permitiendo cualquier valor sin validación nativa del navegador",
-    "linea": 48,
-    "severidad": "media",
-    "fix": "Cambiar type='text' a type='text' con pattern o usar type='number' con min/max, o un input de tiempo con type='time'"
-  },
-  {
-    "problema": "El <ul> de hábitos no tiene id ni aria-label, lo que dificulta su referencia en JS y la accesibilidad para lectores de pantalla",
-    "linea": 39,
-    "severidad": "media",
-    "fix": "Añadir id='lista-habitos' y aria-label='Lista de hábitos' al elemento <ul>"
-  },
-  {
-    "problema": "El <script> está dentro de <body> pero fuera del cierre </div> contenedor, y carece del atributo defer o type='module', bloqueando el renderizado",
-    "linea": 87,
-    "severidad": "alta",
-    "fix": "Añadir atributo defer al script: <script src='app.js' defer></script>"
-  },
-  {
-    "problema": "El input 'nombre_habito' no tiene atributo 'required', permitiendo enviar el formulario con el nombre vacío",
-    "linea": 41,
-    "severidad": "media",
-    "fix": "Añadir required y maxlength al input: <input type='text' id='nombre_habito' required maxlength='100' ...>"
-  },
-  {
-    "problema": "El botón Eliminar dentro del <template> no tiene aria-label descriptivo; 'Eliminar hábito' es genérico y no identifica qué hábito se elimina",
-    "linea": 77,
-    "severidad": "baja",
-    "fix": "Asignar dinámicamente aria-label='Eliminar hábito: [nombre]' desde JavaScript al clonar la plantilla"
-  }
+	{
+		"problema": "Input de duración usa type='text' en lugar de un tipo semántico apropiado, permitiendo cualquier valor sin validación nativa del navegador",
+		"linea": 48,
+		"severidad": "media",
+		"fix": "Cambiar type='text' a type='text' con pattern o usar type='number' con min/max, o un input de tiempo con type='time'"
+	},
+	{
+		"problema": "El <ul> de hábitos no tiene id ni aria-label, lo que dificulta su referencia en JS y la accesibilidad para lectores de pantalla",
+		"linea": 39,
+		"severidad": "media",
+		"fix": "Añadir id='lista-habitos' y aria-label='Lista de hábitos' al elemento <ul>"
+	},
+	{
+		"problema": "El <script> está dentro de <body> pero fuera del cierre </div> contenedor, y carece del atributo defer o type='module', bloqueando el renderizado",
+		"linea": 87,
+		"severidad": "alta",
+		"fix": "Añadir atributo defer al script: <script src='app.js' defer></script>"
+	},
+	{
+		"problema": "El input 'nombre_habito' no tiene atributo 'required', permitiendo enviar el formulario con el nombre vacío",
+		"linea": 41,
+		"severidad": "media",
+		"fix": "Añadir required y maxlength al input: <input type='text' id='nombre_habito' required maxlength='100' ...>"
+	},
+	{
+		"problema": "El botón Eliminar dentro del <template> no tiene aria-label descriptivo; 'Eliminar hábito' es genérico y no identifica qué hábito se elimina",
+		"linea": 77,
+		"severidad": "baja",
+		"fix": "Asignar dinámicamente aria-label='Eliminar hábito: [nombre]' desde JavaScript al clonar la plantilla"
+	}
 ]
 ```
 
@@ -857,4 +861,3 @@ Al tener que rellenar campos concretos (`problema`, `linea`, `severidad`, `fix`)
 ##### Sobre el coste: el modelo añade número de línea aproximado
 
 El campo `linea` requiere que el modelo localice el problema en el código. En algunos casos el número puede ser aproximado si el fragmento es largo o el modelo no tiene acceso al archivo completo. Es un punto de verificación manual obligatorio antes de confiar en los datos para automatización.
-
