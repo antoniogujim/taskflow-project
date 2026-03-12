@@ -10,6 +10,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Panel lateral de resumen con contadores de total, completados y pendientes
 - Filtro de búsqueda en tiempo real
 - Persistencia de datos mediante localStorage (incluye estado de completado)
+- Recuperación robusta de datos corruptos en localStorage con avisos al usuario
 - Hábitos de ejemplo al iniciar por primera vez
 - Diseño responsive para móvil y escritorio
 - Modo oscuro con botón de alternancia e iconos SVG (luna/sol)
@@ -73,6 +74,22 @@ El formulario valida los campos antes de añadir un hábito:
 - Si ambos campos están vacíos, ambos errores se muestran simultáneamente.
 - El error de cada campo desaparece en cuanto el usuario empieza a escribir en él.
 - Los campos solo aceptan texto con contenido real (espacios en blanco no son válidos).
+
+## Robustez de localStorage
+
+La aplicación gestiona todos los posibles estados de los datos guardados:
+
+| Estado de localStorage | Comportamiento |
+|---|---|
+| No existe | Primera visita: se cargan los hábitos de ejemplo |
+| Array vacío `[]` | El usuario eliminó todos sus hábitos: se respeta la lista vacía |
+| JSON inválido | Se eliminan los datos corruptos y se cargan los ejemplos |
+| JSON válido pero no es array | Se trata como corrupción total |
+| Array con todos los elementos inválidos | Se trata como corrupción total |
+| Array con algunos elementos inválidos | Se conservan los válidos y se informa de cuántos se perdieron |
+| `setItem` falla (modo privado, storage lleno) | Se avisa de que los datos no se guardarán durante la sesión |
+
+Los avisos se muestran en una barra desplegable bajo la cabecera, con un botón para cerrarla. Los errores recuperables se muestran en ámbar; los problemas persistentes de guardado, en rojo.
 
 ## Tecnologías
 

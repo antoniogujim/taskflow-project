@@ -75,6 +75,40 @@
 		</header>
 
 		<!-- ═══════════════════════════════════════════════════════════════════
+		     BANNER DE AVISOS Y ERRORES
+		     Oculto por defecto. app.js lo muestra cuando detecta un problema
+		     con localStorage (datos corruptos o imposibilidad de guardar).
+		     Las clases de color se asignan dinámicamente desde app.js según
+		     el tipo de error: "aviso" (ámbar) o "error" (rojo).
+		     role="alert": los lectores de pantalla anuncian el contenido
+		     automáticamente en cuanto el elemento se hace visible.
+		     ═══════════════════════════════════════════════════════════════════ -->
+		<!--
+			overflow-hidden + max-h-0: oculta el banner sin usar display:none,
+			lo que permite animar la altura con CSS. La transición de max-h-0
+			a max-h-32 produce el efecto de despliegue de arriba a abajo.
+			app.js gestiona las clases max-h-0/max-h-32 y opacity-0/opacity-100.
+		-->
+		<div
+			id="banner-aviso"
+			class="overflow-hidden max-h-0 opacity-0 w-full border-b-2 transition-all duration-300 ease-out"
+			role="alert"
+		>
+			<!-- Contenedor interior con el layout flex y el padding -->
+			<div class="px-4 py-3 flex justify-between items-center">
+				<p id="banner-mensaje" class="text-sm font-medium"></p>
+				<button
+					id="banner-cerrar"
+					type="button"
+					aria-label="Cerrar aviso"
+					class="ml-4 shrink-0 font-bold text-base leading-none cursor-pointer focus:outline-none focus:ring-2 rounded-sm"
+				>
+					&#x2715;
+				</button>
+			</div>
+		</div>
+
+		<!-- ═══════════════════════════════════════════════════════════════════
 		     LAYOUT PRINCIPAL
 		     Columna única en móvil (flex-col), fila en escritorio (md:flex-row).
 		     Contiene el área de contenido principal y el panel lateral de resumen.

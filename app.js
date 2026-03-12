@@ -15,50 +15,241 @@ const INPUT_DURACION = document.getElementById("duracion_habito");
 const ERROR_NOMBRE   = document.getElementById("error-nombre");
 const ERROR_DURACION = document.getElementById("error-duracion");
 
+// Elementos del banner de avisos del sistema
+const BANNER        = document.getElementById("banner-aviso");
+const BANNER_TEXTO  = document.getElementById("banner-mensaje");
+const BANNER_CERRAR = document.getElementById("banner-cerrar");
+
+// ─── Banner de avisos ─────────────────────────────────────────────────────────
+
+/*
+ * Clases de estilo por tipo de aviso.
+ * "aviso" (ámbar): situación recuperable, la app sigue funcionando con datos de ejemplo.
+ * "error" (rojo):  problema persistente, los datos no se guardarán durante la sesión.
+ */
+const ESTILOS_BANNER = {
+	aviso: {
+		fondo:  "bg-amber-50 dark:bg-amber-900/20",
+		borde:  "border-amber-400 dark:border-amber-600",
+		texto:  "text-amber-800 dark:text-amber-300",
+		ring:   "focus:ring-amber-500",
+	},
+	error: {
+		fondo:  "bg-red-50 dark:bg-red-900/20",
+		borde:  "border-red-400 dark:border-red-600",
+		texto:  "text-red-700 dark:text-red-400",
+		ring:   "focus:ring-red-500",
+	},
+};
+
+// Referencia a los estilos del tipo activo, necesaria para limpiarlos al cerrar
+let estilosActivosBanner = null;
+
+/**
+ * Muestra la barra de aviso debajo del header con el mensaje y el estilo
+ * correspondiente al tipo de error producido.
+ * La animación de despliegue se consigue transitando max-h-0 → max-h-32
+ * y opacity-0 → opacity-100, evitando así el uso de display:none que bloquea CSS transitions.
+ *
+ * @param {string} mensaje        - Texto descriptivo del problema ocurrido.
+ * @param {"aviso"|"error"} tipo  - "aviso" para problemas recuperables (ámbar),
+ *                                  "error" para problemas persistentes (rojo).
+ */
+function mostrarBanner(mensaje, tipo) {
+	// Si había un tipo anterior activo, limpia sus clases de color antes de aplicar las nuevas
+	if (estilosActivosBanner) {
+		BANNER.classList.remove(...estilosActivosBanner.fondo.split(" "), ...estilosActivosBanner.borde.split(" "));
+	}
+
+	estilosActivosBanner = ESTILOS_BANNER[tipo];
+
+	/*
+	 * classList.add/remove no acepta strings con espacios como un único token:
+	 * lanzaría InvalidCharacterError. Se divide cada string en clases individuales
+	 * con split(" ") y se pasan como argumentos separados con spread (...).
+	 */
+	BANNER.classList.add(...estilosActivosBanner.fondo.split(" "), ...estilosActivosBanner.borde.split(" "));
+	BANNER.classList.remove("max-h-0", "opacity-0");
+	BANNER.classList.add("max-h-32", "opacity-100");
+
+	BANNER_TEXTO.className = "text-sm font-medium " + estilosActivosBanner.texto;
+	BANNER_CERRAR.className = [
+		"ml-4 shrink-0 font-bold text-base leading-none cursor-pointer focus:outline-none focus:ring-2 rounded-sm",
+		estilosActivosBanner.texto,
+		estilosActivosBanner.ring,
+	].join(" ");
+
+	BANNER_TEXTO.textContent = mensaje;
+}
+
+/*
+ * Cierra el banner al pulsar el botón ✕:
+ * Invierte la animación (max-h-32 → max-h-0, opacity-100 → opacity-0).
+ * Una vez completada la transición (300 ms), limpia las clases de color
+ * para dejar el elemento en su estado inicial limpio.
+ */
+BANNER_CERRAR.addEventListener("click", function () {
+	BANNER.classList.remove("max-h-32", "opacity-100");
+	BANNER.classList.add("max-h-0", "opacity-0");
+	avisoPersistenciaVisible = false;
+
+	// Espera a que la transición de cierre termine antes de limpiar los colores
+	setTimeout(function () {
+		if (estilosActivosBanner) {
+			BANNER.classList.remove(...estilosActivosBanner.fondo.split(" "), ...estilosActivosBanner.borde.split(" "));
+			estilosActivosBanner = null;
+		}
+		BANNER_TEXTO.textContent = "";
+	}, 300);
+});
+
 // ─── Datos ────────────────────────────────────────────────────────────────────
 
-// Comprueba si ya existen hábitos guardados en localStorage antes de leer el valor
-const HABITOS_EN_STORAGE = localStorage.getItem("Lista_de_habitos") != null;
+/*
+ * Hábitos de ejemplo usados en la primera visita o cuando los datos
+ * guardados están corruptos y no se pueden recuperar.
+ */
+const HABITOS_EJEMPLO = [
+	{
+		habito: "Habito",
+		tiempo: "Temporalización",
+		completado: false,
+		id: Date.now(),
+		createdAt: new Date().toISOString(),
+	},
+	{
+		habito: "Leer",
+		tiempo: "1 capítulo",
+		completado: false,
+		id: Date.now() + 1,
+		createdAt: new Date().toISOString(),
+	},
+	{
+		habito: "Correr",
+		tiempo: "30 minutos",
+		completado: false,
+		id: Date.now() + 2,
+		createdAt: new Date().toISOString(),
+	},
+	{
+		habito: "Tomar vitaminas",
+		tiempo: "Instantáneo",
+		completado: false,
+		id: Date.now() + 3,
+		createdAt: new Date().toISOString(),
+	},
+];
+
+/**
+ * Comprueba que un elemento del array tenga los campos mínimos necesarios
+ * para ser renderizado correctamente por crearHabito().
+ * Los campos obligatorios son: habito (string no vacío), tiempo (string no vacío) e id.
+ *
+ * @param {*} h - Elemento a validar.
+ * @returns {boolean} true si el elemento es un hábito válido.
+ */
+function esHabitoValido(h) {
+	return (
+		h !== null &&
+		typeof h === "object" &&
+		!Array.isArray(h) &&
+		typeof h.habito === "string" && h.habito.trim() !== "" &&
+		typeof h.tiempo === "string" && h.tiempo.trim() !== "" &&
+		h.id !== undefined && h.id !== null
+	);
+}
+
+/**
+ * Carga los hábitos desde localStorage de forma segura.
+ * Lee el valor una sola vez para evitar lecturas redundantes.
+ *
+ * - Si no hay datos guardados, devuelve null (primera visita → se usarán los hábitos de ejemplo).
+ * - Si el array está vacío, lo devuelve tal cual (el usuario eliminó todos sus hábitos intencionalmente).
+ * - Si el JSON es inválido o no es un array, muestra el banner de corrupción total y devuelve null.
+ * - Si el array tiene elementos inválidos, los descarta y muestra un aviso con cuántos se perdieron.
+ * - Si todos los elementos son inválidos, trata el caso como corrupción total y devuelve null.
+ *
+ * @returns {Array|null} Array de hábitos válidos, o null si no hay datos recuperables.
+ */
+function cargarHabitos() {
+	const datos = localStorage.getItem("Lista_de_habitos");
+	if (datos === null) return null;
+
+	try {
+		const parsed = JSON.parse(datos);
+		// JSON válido pero no es un array: tratar igual que dato corrupto
+		if (!Array.isArray(parsed)) {
+			throw new TypeError("El dato guardado no es un array de hábitos.");
+		}
+
+		// Array vacío: el usuario eliminó todos sus hábitos intencionalmente
+		if (parsed.length === 0) return [];
+
+		const validos = parsed.filter(esHabitoValido);
+		const perdidos = parsed.length - validos.length;
+
+		// Ningún elemento es válido: corrupción total, cargar ejemplos
+		if (validos.length === 0) {
+			localStorage.removeItem("Lista_de_habitos");
+			mostrarBanner(
+				"Los datos guardados estaban corruptos y han sido eliminados. Se han cargado los hábitos de ejemplo.",
+				"aviso"
+			);
+			return null;
+		}
+
+		// Algunos elementos son inválidos: conservar los válidos y avisar de los perdidos
+		if (perdidos > 0) {
+			mostrarBanner(
+				perdidos + " hábito" + (perdidos > 1 ? "s no pudieron" : " no pudo") +
+				" recuperarse por estar corrupto" + (perdidos > 1 ? "s" : "") +
+				". El resto se ha cargado correctamente.",
+				"aviso"
+			);
+		}
+
+		return validos;
+
+	} catch (e) {
+		// JSON malformado o con formato inesperado: se elimina y se avisa al usuario
+		localStorage.removeItem("Lista_de_habitos");
+		mostrarBanner(
+			"Los datos guardados estaban corruptos y han sido eliminados. Se han cargado los hábitos de ejemplo.",
+			"aviso"
+		);
+		return null;
+	}
+}
 
 /*
  * Fuente de datos principal de la aplicación.
- * Si localStorage contiene datos previos, los recupera y parsea.
- * Si no, inicializa la lista con cuatro hábitos de ejemplo para la primera visita.
- * Los IDs de ejemplo usan Date.now() + offset para garantizar valores distintos
- * dentro de la misma ejecución.
+ * Usa los datos de localStorage si son válidos; en caso contrario, los hábitos de ejemplo.
+ * Al usar los de ejemplo tras un fallo, se sobreescribirá localStorage en el primer
+ * guardado, eliminando definitivamente el dato corrupto.
  */
-let habitos = HABITOS_EN_STORAGE
-	? JSON.parse(localStorage.getItem("Lista_de_habitos"))
-	: [
-			{
-				habito: "Habito",
-				tiempo: "Temporalización",
-				completado: false,
-				id: Date.now(),
-				createdAt: new Date().toISOString(),
-			},
-			{
-				habito: "Leer",
-				tiempo: "1 capítulo",
-				completado: false,
-				id: Date.now() + 1,
-				createdAt: new Date().toISOString(),
-			},
-			{
-				habito: "Correr",
-				tiempo: "30 minutos",
-				completado: false,
-				id: Date.now() + 2,
-				createdAt: new Date().toISOString(),
-			},
-			{
-				habito: "Tomar vitaminas",
-				tiempo: "Instantáneo",
-				completado: false,
-				id: Date.now() + 3,
-				createdAt: new Date().toISOString(),
-			},
-		];
+let habitos = cargarHabitos() ?? HABITOS_EJEMPLO;
+
+/**
+ * Persiste el array de hábitos en localStorage de forma segura.
+ * Si el guardado falla (modo privado, almacenamiento lleno, etc.),
+ * muestra un aviso rojo informando de que los cambios no se guardarán.
+ * El aviso solo se muestra la primera vez que falla para no repetirse.
+ */
+let avisoPersistenciaVisible = false;
+
+function guardarHabitos() {
+	try {
+		localStorage.setItem("Lista_de_habitos", JSON.stringify(habitos));
+	} catch (e) {
+		if (!avisoPersistenciaVisible) {
+			mostrarBanner(
+				"No es posible guardar los datos en este navegador. Los cambios se perderán al recargar la página.",
+				"error"
+			);
+			avisoPersistenciaVisible = true;
+		}
+	}
+}
 
 // ─── Validación ───────────────────────────────────────────────────────────────
 
@@ -186,7 +377,7 @@ function crearHabito(habito) {
 	checkbox.addEventListener("change", function () {
 		habito.completado = checkbox.checked;
 		li.querySelector(".nombre").classList.toggle("opacity-50", checkbox.checked);
-		localStorage.setItem("Lista_de_habitos", JSON.stringify(habitos));
+		guardarHabitos();
 		actualizarResumen();
 	});
 
@@ -200,7 +391,7 @@ function crearHabito(habito) {
 		habitos = habitos.filter(function (habitoGuardado) {
 			return habitoGuardado.id !== habito.id;
 		});
-		localStorage.setItem("Lista_de_habitos", JSON.stringify(habitos));
+		guardarHabitos();
 		actualizarResumen();
 	});
 
@@ -242,7 +433,7 @@ FORM_HABITO.addEventListener("submit", function (evento) {
 	});
 
 	crearHabito(habitos[habitos.length - 1]);
-	localStorage.setItem("Lista_de_habitos", JSON.stringify(habitos));
+	guardarHabitos();
 	actualizarResumen();
 
 	// Limpia todos los campos del formulario de una sola vez
@@ -258,7 +449,7 @@ FORM_HABITO.addEventListener("submit", function (evento) {
  * no contenga el texto introducido (búsqueda sin distinción de mayúsculas).
  */
 INPUT_BUSQUEDA.addEventListener("input", function () {
-	const textoBuscado  = INPUT_BUSQUEDA.value.toLowerCase();
+	const textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
 	const listaHabitos = document.querySelectorAll("ul li");
 	listaHabitos.forEach(function (habito) {
 		const nombre = habito.querySelector("h3").textContent.toLowerCase();
