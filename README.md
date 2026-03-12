@@ -18,6 +18,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Sombras y esquinas redondeadas en tarjetas, inputs y botones
 - Plantilla HTML (`<template>`) para renderizar hábitos desde el DOM
 - Labels accesibles en inputs y checkbox del formulario
+- Validación de formulario con mensajes de error por campo
 
 ## Estructura del proyecto
 
@@ -59,6 +60,20 @@ taskflow-project/
 7. Los hábitos se guardan automáticamente y persisten al recargar la página
 8. Usa el botón con icono de luna/sol para alternar entre tema claro y oscuro (la preferencia se guarda)
 
+## Validación del formulario
+
+El formulario valida los campos antes de añadir un hábito:
+
+| Campo | Regla |
+|---|---|
+| Nombre del hábito | Obligatorio, máximo 50 caracteres |
+| Duración | Obligatoria, máximo 30 caracteres |
+
+- Si un campo está vacío al enviar, se muestra un mensaje de error debajo del campo.
+- Si ambos campos están vacíos, ambos errores se muestran simultáneamente.
+- El error de cada campo desaparece en cuanto el usuario empieza a escribir en él.
+- Los campos solo aceptan texto con contenido real (espacios en blanco no son válidos).
+
 ## Tecnologías
 
 - HTML5 semántico (`header`, `main`, `aside`, `footer`, `template`)
@@ -81,5 +96,4 @@ taskflow-project/
 
 ## Próximas actualizaciones
 
-- Validación del formulario
 - Reset diario del estado de completado

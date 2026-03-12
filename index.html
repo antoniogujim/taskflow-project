@@ -4,23 +4,38 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Seguidor de Hábitos</title>
-		<!-- Estilos compilados por Tailwind CSS -->
+		<!-- Hoja de estilos generada por Tailwind CSS v4 a partir de styles.css -->
 		<link rel="stylesheet" href="dist/styles.css" />
 	</head>
+
+	<!--
+		bg-fondo: fondo verde grisáceo claro definido en @theme (styles.css)
+		dark:bg-gray-900: fondo oscuro estándar de Tailwind en modo oscuro
+		transition-colors duration-300: transición suave al alternar temas
+	-->
 	<body class="bg-fondo dark:bg-gray-900 dark:text-white transition-colors duration-300">
-		<!-- Cabecera: título y botón de modo oscuro -->
+
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     CABECERA
+		     Contiene el título de la aplicación y el botón de modo oscuro.
+		     ═══════════════════════════════════════════════════════════════════ -->
 		<header
 			class="flex justify-between items-center border-b-2 border-base p-4 shadow-sm dark:bg-dark-fondo dark:border-gray-600 transition-colors duration-300"
 		>
 			<h1 class="text-2xl font-bold">Seguidor de hábitos</h1>
 
-			<!-- Botón para alternar entre modo claro y oscuro -->
+			<!--
+				Botón de alternancia de tema claro/oscuro.
+				Al hacer clic, app.js añade o elimina la clase "dark" en <html>
+				y persiste la preferencia en localStorage bajo la clave "modo-oscuro".
+				aria-label describe la acción para lectores de pantalla.
+			-->
 			<button
 				id="toggle_dark"
 				class="bg-base text-white p-2 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
 				aria-label="Alternar modo oscuro"
 			>
-				<!-- Icono luna: visible en modo claro -->
+				<!-- Icono de luna: visible en modo claro. app.js lo oculta al activar el modo oscuro. -->
 				<svg
 					id="icono-luna"
 					xmlns="http://www.w3.org/2000/svg"
@@ -37,7 +52,8 @@
 						d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
 					/>
 				</svg>
-				<!-- Icono sol: visible en modo oscuro -->
+
+				<!-- Icono de sol: oculto por defecto (clase "hidden"). app.js lo muestra en modo oscuro. -->
 				<svg
 					id="icono-sol"
 					xmlns="http://www.w3.org/2000/svg"
@@ -58,14 +74,27 @@
 			</button>
 		</header>
 
-		<!-- Layout principal: columna en móvil, fila en escritorio -->
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     LAYOUT PRINCIPAL
+		     Columna única en móvil (flex-col), fila en escritorio (md:flex-row).
+		     Contiene el área de contenido principal y el panel lateral de resumen.
+		     ═══════════════════════════════════════════════════════════════════ -->
 		<div class="flex gap-6 flex-col md:flex-row p-4">
-			<!-- Contenido principal: lista de hábitos y formulario -->
+
+			<!-- ───────────────────────────────────────────────────────────────
+			     CONTENIDO PRINCIPAL
+			     Ocupa el espacio disponible (flex-1).
+			     Contiene el buscador, la lista de hábitos y el formulario.
+			     ─────────────────────────────────────────────────────────────── -->
 			<main class="flex-1">
 				<section>
 					<h2 class="text-xl font-semibold mb-2">Hábitos</h2>
 
-					<!-- Buscador para filtrar hábitos por nombre -->
+					<!--
+						Campo de búsqueda en tiempo real.
+						app.js escucha el evento "input" y muestra u oculta los <li>
+						cuyo nombre no coincida con el texto introducido.
+					-->
 					<input
 						type="search"
 						id="busqueda"
@@ -73,32 +102,77 @@
 						class="border border-black p-2 mb-2 w-full rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 					/>
 
-					<!-- Lista de hábitos generada dinámicamente por JavaScript -->
+					<!--
+						Lista de hábitos generada dinámicamente por app.js.
+						Cada elemento <li> se crea clonando el <template id="habito-template">
+						que se encuentra al final del <body>.
+					-->
 					<ul class="list-none flex flex-col gap-2"></ul>
 
-					<!-- Formulario para añadir un nuevo hábito -->
-					<form id="nuevo_habito" class="mt-4">
+					<!-- ───────────────────────────────────────────────────────
+					     FORMULARIO DE NUEVO HÁBITO
+					     novalidate: desactiva la validación nativa del navegador
+					     para controlar los mensajes de error desde app.js.
+					     ─────────────────────────────────────────────────────── -->
+					<form id="nuevo_habito" class="mt-4" novalidate>
 						<fieldset class="flex flex-col gap-4 border-0 p-0 m-0">
 							<legend class="text-base font-semibold mb-2">Nuevo hábito</legend>
+
+							<!-- Campo: nombre del hábito -->
 							<div class="flex flex-col gap-1">
 								<label for="nombre_habito" class="text-sm font-medium">Nombre del hábito</label>
+								<!--
+									maxlength="50": límite de caracteres aplicado en HTML y validado en JS.
+									autocomplete="off": evita sugerencias del navegador en este campo.
+									aria-describedby="error-nombre": enlaza el input con su mensaje de error
+									para que los lectores de pantalla lo anuncien al detectar el error.
+								-->
 								<input
 									type="text"
 									id="nombre_habito"
+									name="nombre"
 									placeholder="Ej: Leer"
+									maxlength="50"
+									autocomplete="off"
+									aria-describedby="error-nombre"
 									class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 								/>
+								<!--
+									Mensaje de error del campo nombre.
+									Permanece oculto (clase "hidden") hasta que app.js detecta
+									que el campo está vacío al enviar el formulario.
+									role="alert": anuncia el mensaje automáticamente a lectores de pantalla.
+								-->
+								<p id="error-nombre" class="hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
 							</div>
+
+							<!-- Campo: duración del hábito -->
 							<div class="flex flex-col gap-1">
 								<label for="duracion_habito" class="text-sm font-medium">Duración</label>
+								<!--
+									maxlength="30": límite de caracteres aplicado en HTML y validado en JS.
+									autocomplete="off": evita sugerencias del navegador en este campo.
+									aria-describedby="error-duracion": enlaza el input con su mensaje de error.
+								-->
 								<input
 									type="text"
 									id="duracion_habito"
+									name="duracion"
 									placeholder="Ej: 30 minutos"
+									maxlength="30"
+									autocomplete="off"
+									aria-describedby="error-duracion"
 									class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 								/>
+								<!--
+									Mensaje de error del campo duración.
+									Mismo comportamiento que #error-nombre.
+								-->
+								<p id="error-duracion" class="hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
 							</div>
 						</fieldset>
+
+						<!-- Botón de envío. Dispara el evento "submit" que gestiona app.js. -->
 						<button
 							type="submit"
 							class="w-full mt-4 bg-base text-white p-2 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
@@ -109,24 +183,30 @@
 				</section>
 			</main>
 
-			<!-- Panel lateral: estadísticas de hábitos -->
+			<!-- ───────────────────────────────────────────────────────────────
+			     PANEL LATERAL DE RESUMEN
+			     Ancho fijo en escritorio (md:w-64), ancho completo en móvil.
+			     app.js actualiza los tres contadores tras cada cambio en la lista.
+			     ─────────────────────────────────────────────────────────────── -->
 			<aside
 				class="w-full md:w-64 md:shrink-0 bg-fondo-claro rounded-lg p-4 shadow-sm dark:bg-dark-fondo transition-colors duration-300"
 			>
 				<h2 class="text-xl font-semibold mb-4">Resumen</h2>
 
-				<!-- Lista de definiciones: término (etiqueta) + descripción (valor) -->
+				<!--
+					<dl> (definition list): estructura semántica adecuada para pares etiqueta/valor.
+					Cada <dt> es la etiqueta del contador y cada <dd> el valor numérico.
+				-->
 				<dl class="flex flex-col gap-3">
-					<!-- Total de hábitos -->
+
+					<!-- Contador: total de hábitos en la lista -->
 					<div class="bg-white dark:bg-dark-tarjeta rounded-lg p-3 shadow-sm transition-colors duration-300">
 						<dt class="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">Total</dt>
 						<dd id="resumen-total" class="text-3xl font-bold m-0">0</dd>
 					</div>
 
-					<!-- Hábitos completados -->
-					<div
-						class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 shadow-sm transition-colors duration-300"
-					>
+					<!-- Contador: hábitos marcados como completados -->
+					<div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 shadow-sm transition-colors duration-300">
 						<dt class="text-sm text-green-800 dark:text-green-400 transition-colors duration-300">
 							Completados
 						</dt>
@@ -138,10 +218,8 @@
 						</dd>
 					</div>
 
-					<!-- Hábitos pendientes -->
-					<div
-						class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 shadow-sm transition-colors duration-300"
-					>
+					<!-- Contador: hábitos pendientes (total - completados) -->
+					<div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 shadow-sm transition-colors duration-300">
 						<dt class="text-sm text-yellow-800 dark:text-yellow-400 transition-colors duration-300">
 							Pendientes
 						</dt>
@@ -156,32 +234,59 @@
 			</aside>
 		</div>
 
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     PIE DE PÁGINA
+		     ═══════════════════════════════════════════════════════════════════ -->
 		<footer
 			class="border-t-2 border-base p-4 text-center text-sm dark:bg-dark-fondo dark:border-gray-600 transition-colors duration-300"
 		>
 			<p>&copy; 2026 Seguidor de Hábitos</p>
 		</footer>
 
-		<!-- Plantilla base para cada hábito de la lista.
-		     JavaScript la clona y rellena con los datos de cada hábito. -->
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     PLANTILLA DE TARJETA DE HÁBITO
+		     El contenido de <template> no se renderiza en la página.
+		     app.js la clona con cloneNode(true) y la rellena con los datos
+		     de cada hábito antes de insertarla en el <ul>.
+		     ═══════════════════════════════════════════════════════════════════ -->
 		<template id="habito-template">
 			<li>
+				<!--
+					Tarjeta del hábito.
+					hover:-translate-y-0.5: ligero desplazamiento vertical al pasar el cursor.
+					dark:bg-dark-tarjeta: fondo verde oscuro personalizado en modo oscuro.
+				-->
 				<div
 					class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:-translate-y-0.5 dark:bg-dark-tarjeta dark:border-gray-500"
 				>
-					<!-- Label que envuelve el checkbox y el nombre para hacerlo clicable -->
+					<!--
+						El <label> envuelve el checkbox y el nombre del hábito para ampliar
+						el área clicable: hacer clic en el nombre también activa el checkbox.
+					-->
 					<label class="flex items-center gap-3 cursor-pointer">
+						<!--
+							Checkbox de completado.
+							app.js lee y escribe su estado en el array de hábitos
+							y lo persiste en localStorage al cambiar.
+							accent-green-600: colorea el tick con el verde del tema.
+						-->
 						<input
 							type="checkbox"
 							class="completado w-5 h-5 cursor-pointer accent-green-600 shrink-0 focus:outline-none focus:ring-2 focus:ring-green-600 rounded-sm"
 						/>
+						<!-- Nombre del hábito. app.js asigna su textContent al clonar la plantilla. -->
 						<h3 class="nombre font-semibold"></h3>
 					</label>
 
-					<!-- Duración del hábito -->
+					<!-- Duración del hábito. app.js asigna su textContent al clonar la plantilla. -->
 					<span class="tiempo font-semibold"></span>
 
-					<!-- Botón para eliminar el hábito (aria-label se asigna desde JS) -->
+					<!--
+						Botón de eliminación.
+						app.js le asigna un aria-label con el nombre del hábito
+						("Eliminar hábito: Leer") para que los lectores de pantalla
+						identifiquen qué hábito se elimina.
+					-->
 					<button
 						type="button"
 						class="border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base text-white hover:bg-base-oscuro hover:shadow-md transition-all duration-300 dark:bg-dark-tarjeta dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro"
@@ -192,6 +297,8 @@
 			</li>
 		</template>
 
+		<!-- Lógica de la aplicación. Se carga al final del body para garantizar
+		     que el DOM esté disponible antes de que el script se ejecute. -->
 		<script src="app.js"></script>
 	</body>
 </html>
