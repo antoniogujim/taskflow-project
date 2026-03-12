@@ -9,6 +9,9 @@ const INPUT_BUSQUEDA = document.getElementById("busqueda");
 // Plantilla HTML clonada por crearHabito() para generar cada tarjeta de hábito
 const TEMPLATE_HABITO = document.getElementById("habito-template");
 
+// Lista <ul> donde se insertan las tarjetas de hábitos
+const LISTA_HABITOS = document.getElementById("lista-habitos");
+
 // Campos del formulario y sus párrafos de error asociados
 const INPUT_NOMBRE   = document.getElementById("nombre_habito");
 const INPUT_DURACION = document.getElementById("duracion_habito");
@@ -108,34 +111,37 @@ BANNER_CERRAR.addEventListener("click", function () {
 /*
  * Hábitos de ejemplo usados en la primera visita o cuando los datos
  * guardados están corruptos y no se pueden recuperar.
+ * Cada hábito recibe un UUID único generado con crypto.randomUUID() para
+ * garantizar que no colisione con IDs de hábitos reales del usuario,
+ * ya que todos los hábitos de la aplicación usan el mismo formato de ID.
  */
 const HABITOS_EJEMPLO = [
 	{
 		habito: "Habito",
 		tiempo: "Temporalización",
 		completado: false,
-		id: Date.now(),
+		id: crypto.randomUUID(),
 		createdAt: new Date().toISOString(),
 	},
 	{
 		habito: "Leer",
 		tiempo: "1 capítulo",
 		completado: false,
-		id: Date.now() + 1,
+		id: crypto.randomUUID(),
 		createdAt: new Date().toISOString(),
 	},
 	{
 		habito: "Correr",
 		tiempo: "30 minutos",
 		completado: false,
-		id: Date.now() + 2,
+		id: crypto.randomUUID(),
 		createdAt: new Date().toISOString(),
 	},
 	{
 		habito: "Tomar vitaminas",
 		tiempo: "Instantáneo",
 		completado: false,
-		id: Date.now() + 3,
+		id: crypto.randomUUID(),
 		createdAt: new Date().toISOString(),
 	},
 ];
@@ -395,7 +401,7 @@ function crearHabito(habito) {
 		actualizarResumen();
 	});
 
-	document.querySelector("ul").appendChild(clon);
+	LISTA_HABITOS.appendChild(clon);
 }
 
 // ─── Inicialización ───────────────────────────────────────────────────────────
@@ -422,7 +428,7 @@ FORM_HABITO.addEventListener("submit", function (evento) {
 
 	const nombre   = INPUT_NOMBRE.value.trim();
 	const duracion = INPUT_DURACION.value.trim();
-	const id       = Date.now(); // Identificador único basado en el timestamp actual
+	const id       = crypto.randomUUID(); // Identificador único e irrepetible
 
 	habitos.push({
 		habito: nombre,
@@ -450,7 +456,7 @@ FORM_HABITO.addEventListener("submit", function (evento) {
  */
 INPUT_BUSQUEDA.addEventListener("input", function () {
 	const textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
-	const listaHabitos = document.querySelectorAll("ul li");
+	const listaHabitos = LISTA_HABITOS.querySelectorAll("li");
 	listaHabitos.forEach(function (habito) {
 		const nombre = habito.querySelector("h3").textContent.toLowerCase();
 		nombre.includes(textoBuscado)

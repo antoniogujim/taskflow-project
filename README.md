@@ -15,11 +15,12 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Diseño responsive para móvil y escritorio
 - Modo oscuro con botón de alternancia e iconos SVG (luna/sol)
 - Persistencia del modo oscuro entre sesiones
-- Transiciones y efectos hover/focus en botones e inputs
+- Efectos hover con contraste garantizado en tarjetas y botones en ambos modos de color
 - Sombras y esquinas redondeadas en tarjetas, inputs y botones
 - Plantilla HTML (`<template>`) para renderizar hábitos desde el DOM
 - Labels accesibles en inputs y checkbox del formulario
 - Validación de formulario con mensajes de error por campo
+- Identificadores únicos generados con `crypto.randomUUID()` para evitar colisiones
 
 ## Estructura del proyecto
 
@@ -91,18 +92,29 @@ La aplicación gestiona todos los posibles estados de los datos guardados:
 
 Los avisos se muestran en una barra desplegable bajo la cabecera, con un botón para cerrarla. Los errores recuperables se muestran en ámbar; los problemas persistentes de guardado, en rojo.
 
+## Sistema de colores (hover)
+
+Las tarjetas y el botón de eliminar usan una lógica de hover con contraste garantizado en ambos modos:
+
+| Modo | Tarjeta (default → hover) | Botón (default → hover) |
+|---|---|---|
+| Claro | `base-claro` → `base` | `base-oscuro` → `dark-tarjeta` |
+| Oscuro | `dark-tarjeta` → `base-oscuro` | `base` → `base-claro` |
+
+El botón siempre contrasta con la tarjeta independientemente del estado de hover de cada elemento.
+
 ## Tecnologías
 
 - HTML5 semántico (`header`, `main`, `aside`, `footer`, `template`)
 - Tailwind CSS v4 (utility classes, dark mode, tema personalizado con variables `@theme`)
-- JavaScript vanilla (manipulación del DOM, localStorage, template cloning)
+- JavaScript vanilla (manipulación del DOM, localStorage, template cloning, `crypto.randomUUID`)
 
 ## Variables de tema (styles.css)
 
 | Variable | Valor | Uso |
 |---|---|---|
 | `--color-base` | `#537b50` | Color principal verde |
-| `--color-base-oscuro` | `#3d5c3a` | Verde oscuro (hover) |
+| `--color-base-oscuro` | `#3d5c3a` | Verde oscuro |
 | `--color-base-claro` | `#6a9e66` | Verde claro (tarjetas) |
 | `--color-fondo` | `#ced6c9` | Fondo general claro |
 | `--color-fondo-claro` | `#dfe7d8` | Fondo aside claro |

@@ -347,6 +347,9 @@
   .bg-base-claro {
     background-color: var(--color-base-claro);
   }
+  .bg-base-oscuro {
+    background-color: var(--color-base-oscuro);
+  }
   .bg-fondo {
     background-color: var(--color-fondo);
   }
@@ -532,10 +535,24 @@
       }
     }
   }
+  .hover\:bg-base-claro {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-base-claro);
+      }
+    }
+  }
   .hover\:bg-base-oscuro {
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-base-oscuro);
+      }
+    }
+  }
+  .hover\:bg-dark-tarjeta {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-dark-tarjeta);
       }
     }
   }
@@ -647,6 +664,11 @@
       }
     }
   }
+  .dark\:bg-base {
+    &:where(.dark, .dark *) {
+      background-color: var(--color-base);
+    }
+  }
   .dark\:bg-base-oscuro {
     &:where(.dark, .dark *) {
       background-color: var(--color-base-oscuro);
@@ -731,6 +753,33 @@
       &:hover {
         @media (hover: hover) {
           background-color: var(--color-base);
+        }
+      }
+    }
+  }
+  .dark\:hover\:bg-base-claro {
+    &:where(.dark, .dark *) {
+      &:hover {
+        @media (hover: hover) {
+          background-color: var(--color-base-claro);
+        }
+      }
+    }
+  }
+  .dark\:hover\:bg-base-oscuro {
+    &:where(.dark, .dark *) {
+      &:hover {
+        @media (hover: hover) {
+          background-color: var(--color-base-oscuro);
+        }
+      }
+    }
+  }
+  .dark\:hover\:bg-dark-superficie {
+    &:where(.dark, .dark *) {
+      &:hover {
+        @media (hover: hover) {
+          background-color: var(--color-dark-superficie);
         }
       }
     }

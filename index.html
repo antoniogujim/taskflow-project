@@ -141,7 +141,7 @@
 						Cada elemento <li> se crea clonando el <template id="habito-template">
 						que se encuentra al final del <body>.
 					-->
-					<ul class="list-none flex flex-col gap-2"></ul>
+					<ul id="lista-habitos" class="list-none flex flex-col gap-2"></ul>
 
 					<!-- ───────────────────────────────────────────────────────
 					     FORMULARIO DE NUEVO HÁBITO
@@ -291,7 +291,7 @@
 					dark:bg-dark-tarjeta: fondo verde oscuro personalizado en modo oscuro.
 				-->
 				<div
-					class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:-translate-y-0.5 dark:bg-dark-tarjeta dark:border-gray-500"
+					class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:-translate-y-0.5 dark:bg-dark-tarjeta dark:border-gray-500 dark:hover:bg-base-oscuro"
 				>
 					<!--
 						El <label> envuelve el checkbox y el nombre del hábito para ampliar
@@ -323,7 +323,7 @@
 					-->
 					<button
 						type="button"
-						class="border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base text-white hover:bg-base-oscuro hover:shadow-md transition-all duration-300 dark:bg-dark-tarjeta dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro"
+						class="border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base-oscuro text-white hover:bg-dark-tarjeta hover:shadow-md transition-all duration-300 dark:bg-base dark:hover:bg-base-claro dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro"
 					>
 						Eliminar hábito
 					</button>
