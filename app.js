@@ -12,8 +12,11 @@ const TEMPLATE_HABITO = document.getElementById("habito-template");
 // Lista <ul> donde se insertan las tarjetas de hábitos
 const LISTA_HABITOS = document.getElementById("lista-habitos");
 
-// Párrafo de estado vacío: visible cuando no hay hábitos en la lista
+// Párrafo de estado vacío: visible cuando no hay hábitos o la búsqueda no da resultados
 const LISTA_VACIA = document.getElementById("lista-vacia");
+
+// Texto original del mensaje de lista vacía, usado para restaurarlo al limpiar la búsqueda
+const MENSAJE_LISTA_VACIA_DEFAULT = LISTA_VACIA.textContent;
 
 // Campos del formulario y sus párrafos de error asociados
 const INPUT_NOMBRE = document.getElementById("nombre_habito");
@@ -359,9 +362,12 @@ function actualizarResumen() {
 
 /**
  * Muestra u oculta el mensaje de estado vacío según haya hábitos en la lista.
+ * También restaura el texto original del mensaje (puede haber sido cambiado
+ * por el buscador cuando no hay resultados de búsqueda).
  * Se llama tras cualquier operación que modifique el número de hábitos.
  */
 function actualizarEstadoVacio() {
+	LISTA_VACIA.textContent = MENSAJE_LISTA_VACIA_DEFAULT;
 	LISTA_VACIA.hidden = habitos.length > 0;
 }
 
@@ -436,7 +442,8 @@ actualizarEstadoVacio();
  * Evento "submit" del formulario:
  * Valida los campos antes de proceder. Si alguno está vacío, muestra el error
  * correspondiente y cancela la operación.
- * Si la validación pasa, crea el hábito, lo guarda y limpia el formulario.
+ * Si la validación pasa, comprueba que no exista ya un hábito con el mismo nombre
+ * (sin distinción de mayúsculas/minúsculas) antes de añadirlo.
  *
  * @param {SubmitEvent} evento - Evento de envío del formulario.
  */
@@ -448,6 +455,17 @@ FORM_HABITO.addEventListener("submit", function (evento) {
 
 	const nombre = INPUT_NOMBRE.value.trim();
 	const duracion = INPUT_DURACION.value.trim();
+
+	// Comprueba que no exista ya un hábito con el mismo nombre (case-insensitive).
+	// Evita duplicados que confundirían al usuario y ensuciarían la lista.
+	const yaExiste = habitos.some(function (h) {
+		return h.habito.toLowerCase() === nombre.toLowerCase();
+	});
+	if (yaExiste) {
+		mostrarError(INPUT_NOMBRE, ERROR_NOMBRE, "Ya existe un hábito con este nombre.");
+		return;
+	}
+
 	const id = crypto.randomUUID(); // Identificador único e irrepetible
 
 	habitos.push({
@@ -474,27 +492,54 @@ FORM_HABITO.addEventListener("submit", function (evento) {
  * Evento "input" del buscador:
  * Recorre todos los <li> de la lista y oculta aquellos cuyo nombre
  * no contenga el texto introducido (búsqueda sin distinción de mayúsculas).
+ *
+ * Cuando la búsqueda no produce resultados pero sí hay hábitos en la lista,
+ * muestra el mensaje de estado vacío con un texto específico de "sin resultados",
+ * distinto del mensaje de lista completamente vacía.
+ * Al limpiar la búsqueda, restaura el comportamiento normal del estado vacío.
  */
 INPUT_BUSQUEDA.addEventListener("input", function () {
 	const textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
-	const listaHabitos = LISTA_HABITOS.querySelectorAll("li");
-	listaHabitos.forEach(function (habito) {
-		const nombre = habito.querySelector("h3").textContent.toLowerCase();
+	const items = LISTA_HABITOS.querySelectorAll("li");
+
+	items.forEach(function (item) {
+		const nombreItem = item.querySelector("h3").textContent.toLowerCase();
 		// Usar `hidden` en lugar de style.display para excluir el elemento
 		// del árbol de accesibilidad y evitar que lectores de pantalla lo lean
-		habito.hidden = !nombre.includes(textoBuscado);
+		item.hidden = !nombreItem.includes(textoBuscado);
 	});
+
+	if (textoBuscado === "") {
+		// Sin búsqueda activa: restaura el mensaje original y el comportamiento normal
+		actualizarEstadoVacio();
+	} else {
+		// Con búsqueda activa: muestra feedback si ningún hábito coincide
+		const hayVisibles = Array.from(items).some(function (item) {
+			return !item.hidden;
+		});
+		if (!hayVisibles && habitos.length > 0) {
+			LISTA_VACIA.textContent = "No se encontraron hábitos que coincidan con la búsqueda.";
+			LISTA_VACIA.hidden = false;
+		} else {
+			LISTA_VACIA.hidden = true;
+		}
+	}
 });
 
 // ─── Modo oscuro ──────────────────────────────────────────────────────────────
 
 /*
- * Al cargar la página, comprueba si el usuario activó el modo oscuro
- * en una sesión anterior (valor "true" en localStorage bajo la clave "modo-oscuro").
- * Si es así, añade la clase "dark" al elemento raíz e intercambia los iconos.
+ * Nota: la inicialización del modo oscuro al cargar (aplicar la clase "dark" si
+ * estaba activo) se realiza mediante un <script> inline en el <head> de index.html,
+ * ANTES de que el CSS se aplique. Esto elimina el parpadeo (FOUC) que ocurría
+ * cuando esta lógica estaba aquí, al final del body.
+ *
+ * Este listener solo gestiona el intercambio de iconos al cargar, ya que la
+ * clase "dark" puede haber sido añadida por el script del <head>.
  */
-if (localStorage.getItem("modo-oscuro") === "true") {
-	document.documentElement.classList.add("dark");
+
+// Sincroniza los iconos con el estado del modo oscuro ya aplicado por el <head>
+if (document.documentElement.classList.contains("dark")) {
 	document.getElementById("icono-luna").classList.add("hidden");
 	document.getElementById("icono-sol").classList.remove("hidden");
 }

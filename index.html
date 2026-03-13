@@ -4,6 +4,17 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Seguidor de Hábitos</title>
+		<!--
+			FOUC prevention: se ejecuta antes de que el navegador pinte nada.
+			Al estar en el <head> y antes del CSS, garantiza que la clase "dark"
+			esté aplicada en <html> desde el primer frame, eliminando el parpadeo
+			blanco que ocurría cuando el script estaba al final del <body>.
+		-->
+		<script>
+			if (localStorage.getItem("modo-oscuro") === "true") {
+				document.documentElement.classList.add("dark");
+			}
+		</script>
 		<!-- Hoja de estilos generada por Tailwind CSS v4 a partir de styles.css -->
 		<link rel="stylesheet" href="dist/styles.css" />
 	</head>
@@ -143,8 +154,9 @@
 
 					<!--
 						Mensaje de estado vacío.
-						Visible únicamente cuando no hay hábitos en la lista.
-						app.js lo controla con el atributo hidden mediante actualizarEstadoVacio().
+						Visible cuando no hay hábitos en la lista o cuando la búsqueda
+						no produce resultados. app.js controla su visibilidad y texto
+						mediante actualizarEstadoVacio() y el listener del buscador.
 						Tarjeta con fondo del tema: mismo estilo que el panel lateral para coherencia visual.
 					-->
 					<p
@@ -185,7 +197,7 @@
 								<!--
 									Mensaje de error del campo nombre.
 									Permanece oculto (clase "hidden") hasta que app.js detecta
-									que el campo está vacío al enviar el formulario.
+									que el campo está vacío o duplicado al enviar el formulario.
 									role="alert": anuncia el mensaje automáticamente a lectores de pantalla.
 								-->
 								<p
