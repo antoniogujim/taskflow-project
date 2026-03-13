@@ -323,6 +323,8 @@
 					Tarjeta del hábito.
 					hover:-translate-y-0.5: ligero desplazamiento vertical al pasar el cursor.
 					dark:bg-dark-tarjeta: fondo verde oscuro personalizado en modo oscuro.
+					app.js cambia el fondo a amarillo (bg-yellow-100) cuando el usuario
+					pulsa "Eliminar" y la tarjeta entra en modo de confirmación.
 				-->
 				<div
 					class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:-translate-y-0.5 dark:bg-dark-tarjeta dark:border-gray-500 dark:hover:bg-base-oscuro"
@@ -350,17 +352,59 @@
 					<span class="tiempo font-semibold"></span>
 
 					<!--
-						Botón de eliminación.
-						app.js le asigna un aria-label con el nombre del hábito
-						("Eliminar hábito: Leer") para que los lectores de pantalla
-						identifiquen qué hábito se elimina.
+						Área de acciones: agrupa el botón eliminar y los botones de confirmación.
+						Solo uno de los dos grupos es visible en cada momento; app.js los
+						anima intercambiándolos con transiciones de max-width y opacity
+						mediante inline styles, lo que garantiza que el CSS de Tailwind
+						no necesita recompilarse para los valores de animación.
 					-->
-					<button
-						type="button"
-						class="border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base-oscuro text-white hover:bg-dark-tarjeta hover:shadow-md transition-all duration-300 dark:bg-base dark:hover:bg-base-claro dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro"
-					>
-						Eliminar hábito
-					</button>
+					<div class="flex items-center shrink-0">
+						<!--
+							Wrapper del botón eliminar.
+							Visible por defecto (max-width: 160px, opacity: 1).
+							app.js lo contrae a max-width: 0 al entrar en modo confirmación.
+						-->
+						<div class="btn-eliminar-wrap overflow-hidden transition-all duration-300" style="max-width: 160px; opacity: 1;">
+							<button
+								type="button"
+								class="eliminar border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base-oscuro text-white hover:bg-dark-tarjeta hover:shadow-md transition-all duration-300 dark:bg-base dark:hover:bg-base-claro dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro whitespace-nowrap"
+							>
+								Eliminar hábito
+							</button>
+						</div>
+
+						<!--
+							Wrapper de los botones de confirmación.
+							Oculto por defecto (max-width: 0, opacity: 0).
+							app.js lo expande a max-width: 200px al entrar en modo confirmación.
+							El div interior mantiene el gap entre los dos botones sin afectar
+							a la animación del wrapper exterior.
+						-->
+						<div class="btn-confirmacion-wrap overflow-hidden transition-all duration-300" style="max-width: 0; opacity: 0;">
+							<div class="flex gap-2">
+								<!--
+									Botón Confirmar: rojo, indica acción destructiva.
+									Misma estructura base que el botón Eliminar original.
+								-->
+								<button
+									type="button"
+									class="btn-confirmar border border-red-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-red-600 text-white hover:bg-red-700 hover:shadow-md transition-all duration-300 dark:bg-red-700 dark:border-red-800 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 whitespace-nowrap"
+								>
+									Confirmar
+								</button>
+								<!--
+									Botón Cancelar: gris neutro, indica acción segura.
+									Misma estructura base que el botón Eliminar original.
+								-->
+								<button
+									type="button"
+									class="btn-cancelar border border-gray-500 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap"
+								>
+									Cancelar
+								</button>
+							</div>
+						</div>
+					</div>
 				</div>
 			</li>
 		</template>

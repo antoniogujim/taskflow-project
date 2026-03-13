@@ -5,21 +5,21 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 ## Características
 
 - Añadir hábitos con nombre y duración
-- Eliminar hábitos individualmente
+- Eliminar hábitos con confirmación en dos pasos (sin borrados accidentales)
 - Marcar hábitos como completados con checkbox y feedback visual
 - Panel lateral de resumen con contadores de total, completados y pendientes
-- Filtro de búsqueda en tiempo real
+- Filtro de búsqueda en tiempo real con mensaje de "sin resultados" cuando no hay coincidencias
+- Validación de formulario con mensajes de error por campo, incluyendo detección de nombres duplicados
 - Persistencia de datos mediante localStorage (incluye estado de completado)
 - Recuperación robusta de datos corruptos en localStorage con avisos al usuario
 - Hábitos de ejemplo al iniciar por primera vez
 - Diseño responsive para móvil y escritorio
-- Modo oscuro con botón de alternancia e iconos SVG (luna/sol)
+- Modo oscuro con botón de alternancia e iconos SVG (luna/sol), sin parpadeo al cargar
 - Persistencia del modo oscuro entre sesiones
 - Efectos hover con contraste garantizado en tarjetas y botones en ambos modos de color
 - Sombras y esquinas redondeadas en tarjetas, inputs y botones
 - Plantilla HTML (`<template>`) para renderizar hábitos desde el DOM
 - Labels accesibles en inputs y checkbox del formulario
-- Validación de formulario con mensajes de error por campo
 - Identificadores únicos generados con `crypto.randomUUID()` para evitar colisiones
 
 ## Estructura del proyecto
@@ -56,7 +56,7 @@ taskflow-project/
 1. Abre `index.html` en el navegador
 2. Usa el formulario para añadir un nuevo hábito con su nombre y duración
 3. Marca el checkbox de un hábito para marcarlo como completado
-4. Pulsa "Eliminar hábito" para borrar un hábito de la lista
+4. Pulsa "Eliminar hábito" para iniciar la eliminación — la tarjeta cambia a amarillo y aparecen los botones "Confirmar" y "Cancelar". Si no decides en 10 segundos, el hábito permanece
 5. Usa el campo de búsqueda para filtrar hábitos por nombre
 6. Consulta el panel lateral para ver el resumen de hábitos del día
 7. Los hábitos se guardan automáticamente y persisten al recargar la página
@@ -75,6 +75,19 @@ El formulario valida los campos antes de añadir un hábito:
 - Si ambos campos están vacíos, ambos errores se muestran simultáneamente.
 - El error de cada campo desaparece en cuanto el usuario empieza a escribir en él.
 - Los campos solo aceptan texto con contenido real (espacios en blanco no son válidos).
+- No se pueden añadir dos hábitos con el mismo nombre (la comparación ignora mayúsculas y minúsculas).
+
+## Sistema de eliminación con confirmación
+
+Al pulsar "Eliminar hábito" la tarjeta no se borra directamente. En su lugar:
+
+1. El fondo de la tarjeta cambia a amarillo mediante una transición animada.
+2. El botón "Eliminar hábito" se oculta con animación y aparecen dos botones nuevos:
+   - **Confirmar** (rojo, izquierda): borra el hábito de forma definitiva.
+   - **Cancelar** (gris, derecha): descarta la acción y restaura la tarjeta.
+3. Si el usuario no pulsa ninguno en **10 segundos**, la tarjeta vuelve sola a su estado normal.
+
+El nombre y la duración del hábito permanecen visibles durante todo el proceso para que el usuario pueda verificar que está eliminando el hábito correcto.
 
 ## Robustez de localStorage
 
@@ -92,9 +105,9 @@ La aplicación gestiona todos los posibles estados de los datos guardados:
 
 Los avisos se muestran en una barra desplegable bajo la cabecera, con un botón para cerrarla. Los errores recuperables se muestran en ámbar; los problemas persistentes de guardado, en rojo.
 
-## Sistema de colores (hover)
+## Sistema de colores
 
-Las tarjetas y el botón de eliminar usan una lógica de hover con contraste garantizado en ambos modos:
+### Tarjetas en estado normal (hover)
 
 | Modo   | Tarjeta (default → hover)      | Botón (default → hover)        |
 | ------ | ------------------------------ | ------------------------------ |
@@ -102,6 +115,15 @@ Las tarjetas y el botón de eliminar usan una lógica de hover con contraste gar
 | Oscuro | `dark-tarjeta` → `base-oscuro` | `base` → `base-claro`          |
 
 El botón siempre contrasta con la tarjeta independientemente del estado de hover de cada elemento.
+
+### Tarjetas en modo confirmación
+
+| Modo   | Tarjeta                  | Borde              |
+| ------ | ------------------------ | ------------------ |
+| Claro  | `bg-yellow-100`          | `border-yellow-400`|
+| Oscuro | `bg-yellow-900/20`       | `border-yellow-600`|
+
+Los efectos hover de color verde se desactivan mientras la tarjeta está en modo confirmación para no generar confusión visual.
 
 ## Tecnologías
 

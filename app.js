@@ -376,6 +376,11 @@ function actualizarEstadoVacio() {
  * rellena sus campos con los datos del hábito recibido, registra los eventos
  * de completar y eliminar, y añade el elemento al <ul> de la página.
  *
+ * El botón "Eliminar hábito" no borra directamente: primero entra en un modo
+ * de confirmación que cambia el color de la tarjeta a amarillo y muestra dos
+ * botones ("Confirmar" y "Cancelar"). Si el usuario no decide en 10 segundos,
+ * la tarjeta vuelve a su estado normal automáticamente.
+ *
  * @param {{ habito: string, tiempo: string, completado: boolean, id: string, createdAt: string }} habito
  *   Objeto con los datos del hábito a renderizar.
  */
@@ -383,21 +388,109 @@ function crearHabito(habito) {
 	// Clona el template con todos sus nodos hijo (true = clonado profundo)
 	const clon = TEMPLATE_HABITO.content.cloneNode(true);
 	const li = clon.querySelector("li");
-	const nombre = clon.querySelector(".nombre");
+	const cardDiv = li.querySelector("div");
+	const nombreEl = clon.querySelector(".nombre");
 	const checkbox = clon.querySelector(".completado");
+
+	// Referencias a los wrappers animados y a los tres botones de acción
+	const wrapEliminar = clon.querySelector(".btn-eliminar-wrap");
+	const wrapConfirmacion = clon.querySelector(".btn-confirmacion-wrap");
+	const btnEliminar = clon.querySelector(".eliminar");
+	const btnConfirmar = clon.querySelector(".btn-confirmar");
+	const btnCancelar = clon.querySelector(".btn-cancelar");
 
 	// Asigna los datos del hábito a los elementos del clon
 	li.dataset.id = habito.id;
-	nombre.textContent = habito.habito;
+	nombreEl.textContent = habito.habito;
 	clon.querySelector(".tiempo").textContent = habito.tiempo;
-	// El aria-label incluye el nombre para que los lectores de pantalla identifiquen qué se elimina
-	clon.querySelector("button").setAttribute("aria-label", "Eliminar hábito: " + habito.habito);
+
+	// aria-label descriptivos para que los lectores de pantalla identifiquen el hábito afectado
+	btnEliminar.setAttribute("aria-label", "Eliminar hábito: " + habito.habito);
+	btnConfirmar.setAttribute("aria-label", "Confirmar eliminación de: " + habito.habito);
+	btnCancelar.setAttribute("aria-label", "Cancelar eliminación de: " + habito.habito);
 
 	// Restaura el estado visual del checkbox si el hábito ya estaba completado al cargar
 	checkbox.checked = habito.completado || false;
 	if (habito.completado) {
-		nombre.classList.add("opacity-50");
+		nombreEl.classList.add("opacity-50");
 	}
+
+	// Timeout activo durante el modo de confirmación (se cancela al decidir o al expirar)
+	let timeoutConfirmacion = null;
+
+	/*
+	 * Entra en modo de confirmación:
+	 * - Cambia el fondo de la tarjeta a amarillo de alerta (con transición CSS).
+	 * - Anima la salida del botón "Eliminar" y la entrada de "Confirmar" y "Cancelar".
+	 * - Arranca un timeout de 10 segundos tras el que vuelve al estado normal.
+	 *
+	 * La animación usa inline styles sobre max-width y opacity porque los valores
+	 * de animación (160px → 0, 0 → 200px) no son clases de Tailwind estándar
+	 * y así evitamos depender de la recompilación del CSS.
+	 */
+	function entrarModoConfirmacion() {
+		// Cambiar colores de la tarjeta
+		cardDiv.classList.add("bg-yellow-100", "border-yellow-400", "dark:bg-yellow-900/20", "dark:border-yellow-600");
+		cardDiv.classList.remove(
+			"bg-base-claro", "border-black", "dark:bg-dark-tarjeta", "dark:border-gray-500",
+			"hover:bg-base", "hover:-translate-y-0.5", "dark:hover:bg-base-oscuro",
+		);
+
+		// Animar salida del botón eliminar
+		wrapEliminar.style.maxWidth = "0";
+		wrapEliminar.style.opacity = "0";
+
+		// Animar entrada de los botones de confirmación
+		wrapConfirmacion.style.maxWidth = "200px";
+		wrapConfirmacion.style.opacity = "1";
+
+		// Vuelve solo al estado normal si el usuario no decide en 10 segundos
+		timeoutConfirmacion = setTimeout(salirModoConfirmacion, 10000);
+	}
+
+	/*
+	 * Sale del modo de confirmación sin eliminar:
+	 * Revierte todos los cambios visuales y cancela el timeout pendiente.
+	 * Se llama desde el botón "Cancelar" y también desde el propio timeout.
+	 */
+	function salirModoConfirmacion() {
+		clearTimeout(timeoutConfirmacion);
+
+		// Restaurar colores de la tarjeta
+		cardDiv.classList.remove("bg-yellow-100", "border-yellow-400", "dark:bg-yellow-900/20", "dark:border-yellow-600");
+		cardDiv.classList.add(
+			"bg-base-claro", "border-black", "dark:bg-dark-tarjeta", "dark:border-gray-500",
+			"hover:bg-base", "hover:-translate-y-0.5", "dark:hover:bg-base-oscuro",
+		);
+
+		// Animar vuelta al botón eliminar
+		wrapConfirmacion.style.maxWidth = "0";
+		wrapConfirmacion.style.opacity = "0";
+		wrapEliminar.style.maxWidth = "160px";
+		wrapEliminar.style.opacity = "1";
+	}
+
+	// El botón "Eliminar" activa el modo de confirmación, no borra directamente
+	btnEliminar.addEventListener("click", entrarModoConfirmacion);
+
+	// El botón "Cancelar" revierte al estado normal
+	btnCancelar.addEventListener("click", salirModoConfirmacion);
+
+	/*
+	 * El botón "Confirmar" ejecuta el borrado definitivo:
+	 * Cancela el timeout, elimina el <li> del DOM y filtra el hábito
+	 * del array, luego persiste y recalcula el resumen.
+	 */
+	btnConfirmar.addEventListener("click", function () {
+		clearTimeout(timeoutConfirmacion);
+		li.remove();
+		habitos = habitos.filter(function (h) {
+			return h.id !== habito.id;
+		});
+		guardarHabitos();
+		actualizarResumen();
+		actualizarEstadoVacio();
+	});
 
 	/*
 	 * Evento "change" del checkbox:
@@ -406,24 +499,9 @@ function crearHabito(habito) {
 	 */
 	checkbox.addEventListener("change", function () {
 		habito.completado = checkbox.checked;
-		li.querySelector(".nombre").classList.toggle("opacity-50", checkbox.checked);
+		nombreEl.classList.toggle("opacity-50", checkbox.checked);
 		guardarHabitos();
 		actualizarResumen();
-	});
-
-	/*
-	 * Evento "click" del botón Eliminar:
-	 * Elimina el <li> del DOM y filtra el hábito fuera del array,
-	 * luego persiste el array actualizado y recalcula el resumen.
-	 */
-	clon.querySelector("button").addEventListener("click", function () {
-		li.remove();
-		habitos = habitos.filter(function (habitoGuardado) {
-			return habitoGuardado.id !== habito.id;
-		});
-		guardarHabitos();
-		actualizarResumen();
-		actualizarEstadoVacio();
 	});
 
 	LISTA_HABITOS.appendChild(clon);
