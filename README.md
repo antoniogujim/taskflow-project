@@ -7,9 +7,10 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Añadir hábitos con nombre y duración
 - Eliminar hábitos con confirmación en dos pasos (sin borrados accidentales)
 - Marcar hábitos como completados con checkbox y feedback visual
-- Panel lateral de resumen con contadores de total, completados y pendientes
-- Filtro de búsqueda en tiempo real con mensaje de "sin resultados" cuando no hay coincidencias
+- Panel lateral de resumen con contadores de total, completados y pendientes, accesible mediante `aria-live`
+- Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Validación de formulario con mensajes de error por campo, incluyendo detección de nombres duplicados
+- Foco automático en el campo nombre tras añadir un hábito, para facilitar añadir varios seguidos
 - Persistencia de datos mediante localStorage (incluye estado de completado)
 - Recuperación robusta de datos corruptos en localStorage con avisos al usuario
 - Hábitos de ejemplo al iniciar por primera vez
@@ -21,6 +22,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Plantilla HTML (`<template>`) para renderizar hábitos desde el DOM
 - Labels accesibles en inputs y checkbox del formulario
 - Identificadores únicos generados con `crypto.randomUUID()` para evitar colisiones
+- Claves de localStorage centralizadas en constantes para evitar errores de tipeo silenciosos
 
 ## Estructura del proyecto
 
@@ -54,7 +56,7 @@ taskflow-project/
 ## Uso
 
 1. Abre `index.html` en el navegador
-2. Usa el formulario para añadir un nuevo hábito con su nombre y duración
+2. Usa el formulario para añadir un nuevo hábito con su nombre y duración. Al añadirlo el foco vuelve al campo nombre automáticamente
 3. Marca el checkbox de un hábito para marcarlo como completado
 4. Pulsa "Eliminar hábito" para iniciar la eliminación — la tarjeta cambia a amarillo y aparecen los botones "Confirmar" y "Cancelar". Si no decides en 10 segundos, el hábito permanece
 5. Usa el campo de búsqueda para filtrar hábitos por nombre
@@ -83,8 +85,8 @@ Al pulsar "Eliminar hábito" la tarjeta no se borra directamente. En su lugar:
 
 1. El fondo de la tarjeta cambia a amarillo mediante una transición animada.
 2. El botón "Eliminar hábito" se oculta con animación y aparecen dos botones nuevos:
-   - **Confirmar** (rojo, izquierda): borra el hábito de forma definitiva.
-   - **Cancelar** (gris, derecha): descarta la acción y restaura la tarjeta.
+    - **Confirmar** (rojo, izquierda): borra el hábito de forma definitiva.
+    - **Cancelar** (gris, derecha): descarta la acción y restaura la tarjeta.
 3. Si el usuario no pulsa ninguno en **10 segundos**, la tarjeta vuelve sola a su estado normal.
 
 El nombre y la duración del hábito permanecen visibles durante todo el proceso para que el usuario pueda verificar que está eliminando el hábito correcto.
@@ -118,10 +120,10 @@ El botón siempre contrasta con la tarjeta independientemente del estado de hove
 
 ### Tarjetas en modo confirmación
 
-| Modo   | Tarjeta                  | Borde              |
-| ------ | ------------------------ | ------------------ |
-| Claro  | `bg-yellow-100`          | `border-yellow-400`|
-| Oscuro | `bg-yellow-900/20`       | `border-yellow-600`|
+| Modo   | Tarjeta            | Borde               |
+| ------ | ------------------ | ------------------- |
+| Claro  | `bg-yellow-100`    | `border-yellow-400` |
+| Oscuro | `bg-yellow-900/20` | `border-yellow-600` |
 
 Los efectos hover de color verde se desactivan mientras la tarjeta está en modo confirmación para no generar confusión visual.
 

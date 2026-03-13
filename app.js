@@ -24,6 +24,10 @@ const INPUT_DURACION = document.getElementById("duracion_habito");
 const ERROR_NOMBRE = document.getElementById("error-nombre");
 const ERROR_DURACION = document.getElementById("error-duracion");
 
+// Claves de localStorage: definidas una sola vez para evitar errores de tipeo silenciosos
+const STORAGE_KEY_HABITOS = "Lista_de_habitos";
+const STORAGE_KEY_DARK = "modo-oscuro";
+
 // Elementos del banner de avisos del sistema
 const BANNER = document.getElementById("banner-aviso");
 const BANNER_TEXTO = document.getElementById("banner-mensaje");
@@ -189,7 +193,7 @@ function esHabitoValido(h) {
  * @returns {Array|null} Array de hábitos válidos, o null si no hay datos recuperables.
  */
 function cargarHabitos() {
-	const datos = localStorage.getItem("Lista_de_habitos");
+	const datos = localStorage.getItem(STORAGE_KEY_HABITOS);
 	if (datos === null) return null;
 
 	try {
@@ -207,7 +211,7 @@ function cargarHabitos() {
 
 		// Ningún elemento es válido: corrupción total, cargar ejemplos
 		if (validos.length === 0) {
-			localStorage.removeItem("Lista_de_habitos");
+			localStorage.removeItem(STORAGE_KEY_HABITOS);
 			mostrarBanner(
 				"Los datos guardados estaban corruptos y han sido eliminados. Se han cargado los hábitos de ejemplo.",
 				"aviso",
@@ -231,7 +235,7 @@ function cargarHabitos() {
 		return validos;
 	} catch (e) {
 		// JSON malformado o con formato inesperado: se elimina y se avisa al usuario
-		localStorage.removeItem("Lista_de_habitos");
+		localStorage.removeItem(STORAGE_KEY_HABITOS);
 		mostrarBanner(
 			"Los datos guardados estaban corruptos y han sido eliminados. Se han cargado los hábitos de ejemplo.",
 			"aviso",
@@ -258,7 +262,7 @@ let avisoPersistenciaVisible = false;
 
 function guardarHabitos() {
 	try {
-		localStorage.setItem("Lista_de_habitos", JSON.stringify(habitos));
+		localStorage.setItem(STORAGE_KEY_HABITOS, JSON.stringify(habitos));
 	} catch (e) {
 		if (!avisoPersistenciaVisible) {
 			mostrarBanner(
@@ -432,8 +436,13 @@ function crearHabito(habito) {
 		// Cambiar colores de la tarjeta
 		cardDiv.classList.add("bg-yellow-100", "border-yellow-400", "dark:bg-yellow-900/20", "dark:border-yellow-600");
 		cardDiv.classList.remove(
-			"bg-base-claro", "border-black", "dark:bg-dark-tarjeta", "dark:border-gray-500",
-			"hover:bg-base", "hover:-translate-y-0.5", "dark:hover:bg-base-oscuro",
+			"bg-base-claro",
+			"border-black",
+			"dark:bg-dark-tarjeta",
+			"dark:border-gray-500",
+			"hover:bg-base",
+			"hover:-translate-y-0.5",
+			"dark:hover:bg-base-oscuro",
 		);
 
 		// Animar salida del botón eliminar
@@ -457,10 +466,20 @@ function crearHabito(habito) {
 		clearTimeout(timeoutConfirmacion);
 
 		// Restaurar colores de la tarjeta
-		cardDiv.classList.remove("bg-yellow-100", "border-yellow-400", "dark:bg-yellow-900/20", "dark:border-yellow-600");
+		cardDiv.classList.remove(
+			"bg-yellow-100",
+			"border-yellow-400",
+			"dark:bg-yellow-900/20",
+			"dark:border-yellow-600",
+		);
 		cardDiv.classList.add(
-			"bg-base-claro", "border-black", "dark:bg-dark-tarjeta", "dark:border-gray-500",
-			"hover:bg-base", "hover:-translate-y-0.5", "dark:hover:bg-base-oscuro",
+			"bg-base-claro",
+			"border-black",
+			"dark:bg-dark-tarjeta",
+			"dark:border-gray-500",
+			"hover:bg-base",
+			"hover:-translate-y-0.5",
+			"dark:hover:bg-base-oscuro",
 		);
 
 		// Animar vuelta al botón eliminar
@@ -564,6 +583,9 @@ FORM_HABITO.addEventListener("submit", function (evento) {
 	// Elimina los posibles estados de error visuales que pudieran quedar tras el reset
 	limpiarError(INPUT_NOMBRE, ERROR_NOMBRE);
 	limpiarError(INPUT_DURACION, ERROR_DURACION);
+
+	// Devuelve el foco al primer campo para facilitar añadir varios hábitos seguidos
+	INPUT_NOMBRE.focus();
 });
 
 /**
@@ -575,33 +597,41 @@ FORM_HABITO.addEventListener("submit", function (evento) {
  * muestra el mensaje de estado vacío con un texto específico de "sin resultados",
  * distinto del mensaje de lista completamente vacía.
  * Al limpiar la búsqueda, restaura el comportamiento normal del estado vacío.
+ *
+ * Usa debounce de 200ms: en lugar de filtrar en cada tecla, espera a que el
+ * usuario pause antes de ejecutar la búsqueda, evitando consultas innecesarias al DOM.
  */
+let timeoutBusqueda = null;
+
 INPUT_BUSQUEDA.addEventListener("input", function () {
-	const textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
-	const items = LISTA_HABITOS.querySelectorAll("li");
+	clearTimeout(timeoutBusqueda);
+	timeoutBusqueda = setTimeout(function () {
+		const textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
+		const items = LISTA_HABITOS.querySelectorAll("li");
 
-	items.forEach(function (item) {
-		const nombreItem = item.querySelector("h3").textContent.toLowerCase();
-		// Usar `hidden` en lugar de style.display para excluir el elemento
-		// del árbol de accesibilidad y evitar que lectores de pantalla lo lean
-		item.hidden = !nombreItem.includes(textoBuscado);
-	});
-
-	if (textoBuscado === "") {
-		// Sin búsqueda activa: restaura el mensaje original y el comportamiento normal
-		actualizarEstadoVacio();
-	} else {
-		// Con búsqueda activa: muestra feedback si ningún hábito coincide
-		const hayVisibles = Array.from(items).some(function (item) {
-			return !item.hidden;
+		items.forEach(function (item) {
+			const nombreItem = item.querySelector("h3").textContent.toLowerCase();
+			// Usar `hidden` en lugar de style.display para excluir el elemento
+			// del árbol de accesibilidad y evitar que lectores de pantalla lo lean
+			item.hidden = !nombreItem.includes(textoBuscado);
 		});
-		if (!hayVisibles && habitos.length > 0) {
-			LISTA_VACIA.textContent = "No se encontraron hábitos que coincidan con la búsqueda.";
-			LISTA_VACIA.hidden = false;
+
+		if (textoBuscado === "") {
+			// Sin búsqueda activa: restaura el mensaje original y el comportamiento normal
+			actualizarEstadoVacio();
 		} else {
-			LISTA_VACIA.hidden = true;
+			// Con búsqueda activa: muestra feedback si ningún hábito coincide
+			const hayVisibles = Array.from(items).some(function (item) {
+				return !item.hidden;
+			});
+			if (!hayVisibles && habitos.length > 0) {
+				LISTA_VACIA.textContent = "No se encontraron hábitos que coincidan con la búsqueda.";
+				LISTA_VACIA.hidden = false;
+			} else {
+				LISTA_VACIA.hidden = true;
+			}
 		}
-	}
+	}, 200);
 });
 
 // ─── Modo oscuro ──────────────────────────────────────────────────────────────
@@ -631,5 +661,5 @@ document.getElementById("toggle_dark").addEventListener("click", function () {
 	const esModoOscuro = document.documentElement.classList.toggle("dark");
 	document.getElementById("icono-luna").classList.toggle("hidden");
 	document.getElementById("icono-sol").classList.toggle("hidden");
-	localStorage.setItem("modo-oscuro", esModoOscuro);
+	localStorage.setItem(STORAGE_KEY_DARK, esModoOscuro);
 });

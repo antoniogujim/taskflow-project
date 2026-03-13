@@ -142,6 +142,7 @@
 						type="search"
 						id="busqueda"
 						placeholder="Buscar hábito"
+						autocomplete="off"
 						class="border border-black p-2 mb-2 w-full rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 					/>
 
@@ -262,7 +263,7 @@
 					<dl> (definition list): estructura semántica adecuada para pares etiqueta/valor.
 					Cada <dt> es la etiqueta del contador y cada <dd> el valor numérico.
 				-->
-				<dl class="flex flex-col gap-3">
+				<dl aria-live="polite" aria-atomic="true" class="flex flex-col gap-3">
 					<!-- Contador: total de hábitos en la lista -->
 					<div class="bg-white dark:bg-dark-tarjeta rounded-lg p-3 shadow-sm transition-colors duration-300">
 						<dt class="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">Total</dt>
@@ -364,7 +365,10 @@
 							Visible por defecto (max-width: 160px, opacity: 1).
 							app.js lo contrae a max-width: 0 al entrar en modo confirmación.
 						-->
-						<div class="btn-eliminar-wrap overflow-hidden transition-all duration-300" style="max-width: 160px; opacity: 1;">
+						<div
+							class="btn-eliminar-wrap overflow-hidden transition-all duration-300"
+							style="max-width: 160px; opacity: 1"
+						>
 							<button
 								type="button"
 								class="eliminar border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base-oscuro text-white hover:bg-dark-tarjeta hover:shadow-md transition-all duration-300 dark:bg-base dark:hover:bg-base-claro dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro whitespace-nowrap"
@@ -380,7 +384,10 @@
 							El div interior mantiene el gap entre los dos botones sin afectar
 							a la animación del wrapper exterior.
 						-->
-						<div class="btn-confirmacion-wrap overflow-hidden transition-all duration-300" style="max-width: 0; opacity: 0;">
+						<div
+							class="btn-confirmacion-wrap overflow-hidden transition-all duration-300"
+							style="max-width: 0; opacity: 0"
+						>
 							<div class="flex gap-2">
 								<!--
 									Botón Confirmar: rojo, indica acción destructiva.
