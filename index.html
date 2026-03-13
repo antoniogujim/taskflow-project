@@ -14,7 +14,6 @@
 		transition-colors duration-300: transición suave al alternar temas
 	-->
 	<body class="bg-fondo dark:bg-gray-900 dark:text-white transition-colors duration-300">
-
 		<!-- ═══════════════════════════════════════════════════════════════════
 		     CABECERA
 		     Contiene el título de la aplicación y el botón de modo oscuro.
@@ -114,7 +113,6 @@
 		     Contiene el área de contenido principal y el panel lateral de resumen.
 		     ═══════════════════════════════════════════════════════════════════ -->
 		<div class="flex gap-6 flex-col md:flex-row p-4">
-
 			<!-- ───────────────────────────────────────────────────────────────
 			     CONTENIDO PRINCIPAL
 			     Ocupa el espacio disponible (flex-1).
@@ -142,6 +140,19 @@
 						que se encuentra al final del <body>.
 					-->
 					<ul id="lista-habitos" class="list-none flex flex-col gap-2"></ul>
+
+					<!--
+						Mensaje de estado vacío.
+						Visible únicamente cuando no hay hábitos en la lista.
+						app.js lo controla con el atributo hidden mediante actualizarEstadoVacio().
+						Tarjeta con fondo del tema: mismo estilo que el panel lateral para coherencia visual.
+					-->
+					<p
+						id="lista-vacia"
+						class="text-center text-gray-500 bg-fondo-claro rounded-lg shadow-sm p-6 my-2 dark:bg-dark-tarjeta dark:text-gray-400 transition-colors duration-300"
+					>
+						Aún no tienes hábitos. ¡Empieza a añadirlos con el formulario de abajo!
+					</p>
 
 					<!-- ───────────────────────────────────────────────────────
 					     FORMULARIO DE NUEVO HÁBITO
@@ -177,7 +188,11 @@
 									que el campo está vacío al enviar el formulario.
 									role="alert": anuncia el mensaje automáticamente a lectores de pantalla.
 								-->
-								<p id="error-nombre" class="hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
+								<p
+									id="error-nombre"
+									class="hidden text-sm text-red-700 dark:text-red-400"
+									role="alert"
+								></p>
 							</div>
 
 							<!-- Campo: duración del hábito -->
@@ -202,7 +217,11 @@
 									Mensaje de error del campo duración.
 									Mismo comportamiento que #error-nombre.
 								-->
-								<p id="error-duracion" class="hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
+								<p
+									id="error-duracion"
+									class="hidden text-sm text-red-700 dark:text-red-400"
+									role="alert"
+								></p>
 							</div>
 						</fieldset>
 
@@ -232,7 +251,6 @@
 					Cada <dt> es la etiqueta del contador y cada <dd> el valor numérico.
 				-->
 				<dl class="flex flex-col gap-3">
-
 					<!-- Contador: total de hábitos en la lista -->
 					<div class="bg-white dark:bg-dark-tarjeta rounded-lg p-3 shadow-sm transition-colors duration-300">
 						<dt class="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">Total</dt>
@@ -240,7 +258,9 @@
 					</div>
 
 					<!-- Contador: hábitos marcados como completados -->
-					<div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 shadow-sm transition-colors duration-300">
+					<div
+						class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 shadow-sm transition-colors duration-300"
+					>
 						<dt class="text-sm text-green-800 dark:text-green-400 transition-colors duration-300">
 							Completados
 						</dt>
@@ -253,7 +273,9 @@
 					</div>
 
 					<!-- Contador: hábitos pendientes (total - completados) -->
-					<div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 shadow-sm transition-colors duration-300">
+					<div
+						class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 shadow-sm transition-colors duration-300"
+					>
 						<dt class="text-sm text-yellow-800 dark:text-yellow-400 transition-colors duration-300">
 							Pendientes
 						</dt>
@@ -332,7 +354,7 @@
 		</template>
 
 		<!-- Lógica de la aplicación. Se carga al final del body para garantizar
-		     que el DOM esté disponible antes de que el script se ejecute. -->
+		    que el DOM esté disponible antes de que el script se ejecute. -->
 		<script src="app.js"></script>
 	</body>
 </html>

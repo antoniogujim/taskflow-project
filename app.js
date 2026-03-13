@@ -12,15 +12,18 @@ const TEMPLATE_HABITO = document.getElementById("habito-template");
 // Lista <ul> donde se insertan las tarjetas de hábitos
 const LISTA_HABITOS = document.getElementById("lista-habitos");
 
+// Párrafo de estado vacío: visible cuando no hay hábitos en la lista
+const LISTA_VACIA = document.getElementById("lista-vacia");
+
 // Campos del formulario y sus párrafos de error asociados
-const INPUT_NOMBRE   = document.getElementById("nombre_habito");
+const INPUT_NOMBRE = document.getElementById("nombre_habito");
 const INPUT_DURACION = document.getElementById("duracion_habito");
-const ERROR_NOMBRE   = document.getElementById("error-nombre");
+const ERROR_NOMBRE = document.getElementById("error-nombre");
 const ERROR_DURACION = document.getElementById("error-duracion");
 
 // Elementos del banner de avisos del sistema
-const BANNER        = document.getElementById("banner-aviso");
-const BANNER_TEXTO  = document.getElementById("banner-mensaje");
+const BANNER = document.getElementById("banner-aviso");
+const BANNER_TEXTO = document.getElementById("banner-mensaje");
 const BANNER_CERRAR = document.getElementById("banner-cerrar");
 
 // ─── Banner de avisos ─────────────────────────────────────────────────────────
@@ -32,16 +35,16 @@ const BANNER_CERRAR = document.getElementById("banner-cerrar");
  */
 const ESTILOS_BANNER = {
 	aviso: {
-		fondo:  "bg-amber-50 dark:bg-amber-900/20",
-		borde:  "border-amber-400 dark:border-amber-600",
-		texto:  "text-amber-800 dark:text-amber-300",
-		ring:   "focus:ring-amber-500",
+		fondo: "bg-amber-50 dark:bg-amber-900/20",
+		borde: "border-amber-400 dark:border-amber-600",
+		texto: "text-amber-800 dark:text-amber-300",
+		ring: "focus:ring-amber-500",
 	},
 	error: {
-		fondo:  "bg-red-50 dark:bg-red-900/20",
-		borde:  "border-red-400 dark:border-red-600",
-		texto:  "text-red-700 dark:text-red-400",
-		ring:   "focus:ring-red-500",
+		fondo: "bg-red-50 dark:bg-red-900/20",
+		borde: "border-red-400 dark:border-red-600",
+		texto: "text-red-700 dark:text-red-400",
+		ring: "focus:ring-red-500",
 	},
 };
 
@@ -159,9 +162,14 @@ function esHabitoValido(h) {
 		h !== null &&
 		typeof h === "object" &&
 		!Array.isArray(h) &&
-		typeof h.habito === "string" && h.habito.trim() !== "" &&
-		typeof h.tiempo === "string" && h.tiempo.trim() !== "" &&
-		h.id !== undefined && h.id !== null
+		typeof h.habito === "string" &&
+		h.habito.trim() !== "" &&
+		typeof h.tiempo === "string" &&
+		h.tiempo.trim() !== "" &&
+		// Desde la migración a crypto.randomUUID(), los IDs son siempre strings.
+		// Se rechaza cualquier valor que no sea un string no vacío (0, false, "", NaN, etc.)
+		typeof h.id === "string" &&
+		h.id.trim() !== ""
 	);
 }
 
@@ -199,7 +207,7 @@ function cargarHabitos() {
 			localStorage.removeItem("Lista_de_habitos");
 			mostrarBanner(
 				"Los datos guardados estaban corruptos y han sido eliminados. Se han cargado los hábitos de ejemplo.",
-				"aviso"
+				"aviso",
 			);
 			return null;
 		}
@@ -207,21 +215,23 @@ function cargarHabitos() {
 		// Algunos elementos son inválidos: conservar los válidos y avisar de los perdidos
 		if (perdidos > 0) {
 			mostrarBanner(
-				perdidos + " hábito" + (perdidos > 1 ? "s no pudieron" : " no pudo") +
-				" recuperarse por estar corrupto" + (perdidos > 1 ? "s" : "") +
-				". El resto se ha cargado correctamente.",
-				"aviso"
+				perdidos +
+					" hábito" +
+					(perdidos > 1 ? "s no pudieron" : " no pudo") +
+					" recuperarse por estar corrupto" +
+					(perdidos > 1 ? "s" : "") +
+					". El resto se ha cargado correctamente.",
+				"aviso",
 			);
 		}
 
 		return validos;
-
 	} catch (e) {
 		// JSON malformado o con formato inesperado: se elimina y se avisa al usuario
 		localStorage.removeItem("Lista_de_habitos");
 		mostrarBanner(
 			"Los datos guardados estaban corruptos y han sido eliminados. Se han cargado los hábitos de ejemplo.",
-			"aviso"
+			"aviso",
 		);
 		return null;
 	}
@@ -250,7 +260,7 @@ function guardarHabitos() {
 		if (!avisoPersistenciaVisible) {
 			mostrarBanner(
 				"No es posible guardar los datos en este navegador. Los cambios se perderán al recargar la página.",
-				"error"
+				"error",
 			);
 			avisoPersistenciaVisible = true;
 		}
@@ -299,9 +309,9 @@ function limpiarError(input, errorEl) {
  * @returns {boolean} true si todos los campos son válidos; false si alguno falla.
  */
 function validarFormulario() {
-	const nombre   = INPUT_NOMBRE.value.trim();
+	const nombre = INPUT_NOMBRE.value.trim();
 	const duracion = INPUT_DURACION.value.trim();
-	let esValido   = true;
+	let esValido = true;
 
 	if (!nombre) {
 		mostrarError(INPUT_NOMBRE, ERROR_NOMBRE, "El nombre del hábito es obligatorio.");
@@ -338,13 +348,21 @@ INPUT_DURACION.addEventListener("input", function () {
  * Se llama tras cualquier operación que modifique la lista (añadir, eliminar, completar).
  */
 function actualizarResumen() {
-	const total       = habitos.length;
+	const total = habitos.length;
 	const completados = habitos.filter(function (h) {
 		return h.completado;
 	}).length;
-	document.getElementById("resumen-total").textContent      = total;
+	document.getElementById("resumen-total").textContent = total;
 	document.getElementById("resumen-completados").textContent = completados;
-	document.getElementById("resumen-pendientes").textContent  = total - completados;
+	document.getElementById("resumen-pendientes").textContent = total - completados;
+}
+
+/**
+ * Muestra u oculta el mensaje de estado vacío según haya hábitos en la lista.
+ * Se llama tras cualquier operación que modifique el número de hábitos.
+ */
+function actualizarEstadoVacio() {
+	LISTA_VACIA.hidden = habitos.length > 0;
 }
 
 /**
@@ -352,14 +370,14 @@ function actualizarResumen() {
  * rellena sus campos con los datos del hábito recibido, registra los eventos
  * de completar y eliminar, y añade el elemento al <ul> de la página.
  *
- * @param {{ habito: string, tiempo: string, completado: boolean, id: number, createdAt: string }} habito
+ * @param {{ habito: string, tiempo: string, completado: boolean, id: string, createdAt: string }} habito
  *   Objeto con los datos del hábito a renderizar.
  */
 function crearHabito(habito) {
 	// Clona el template con todos sus nodos hijo (true = clonado profundo)
-	const clon     = TEMPLATE_HABITO.content.cloneNode(true);
-	const li       = clon.querySelector("li");
-	const nombre   = clon.querySelector(".nombre");
+	const clon = TEMPLATE_HABITO.content.cloneNode(true);
+	const li = clon.querySelector("li");
+	const nombre = clon.querySelector(".nombre");
 	const checkbox = clon.querySelector(".completado");
 
 	// Asigna los datos del hábito a los elementos del clon
@@ -399,6 +417,7 @@ function crearHabito(habito) {
 		});
 		guardarHabitos();
 		actualizarResumen();
+		actualizarEstadoVacio();
 	});
 
 	LISTA_HABITOS.appendChild(clon);
@@ -409,6 +428,7 @@ function crearHabito(habito) {
 // Renderiza todos los hábitos cargados (de localStorage o de ejemplo) y actualiza el resumen
 habitos.forEach(crearHabito);
 actualizarResumen();
+actualizarEstadoVacio();
 
 // ─── Eventos ──────────────────────────────────────────────────────────────────
 
@@ -426,9 +446,9 @@ FORM_HABITO.addEventListener("submit", function (evento) {
 	// Detiene la ejecución si algún campo no supera la validación
 	if (!validarFormulario()) return;
 
-	const nombre   = INPUT_NOMBRE.value.trim();
+	const nombre = INPUT_NOMBRE.value.trim();
 	const duracion = INPUT_DURACION.value.trim();
-	const id       = crypto.randomUUID(); // Identificador único e irrepetible
+	const id = crypto.randomUUID(); // Identificador único e irrepetible
 
 	habitos.push({
 		habito: nombre,
@@ -441,6 +461,7 @@ FORM_HABITO.addEventListener("submit", function (evento) {
 	crearHabito(habitos[habitos.length - 1]);
 	guardarHabitos();
 	actualizarResumen();
+	actualizarEstadoVacio();
 
 	// Limpia todos los campos del formulario de una sola vez
 	FORM_HABITO.reset();
@@ -459,9 +480,9 @@ INPUT_BUSQUEDA.addEventListener("input", function () {
 	const listaHabitos = LISTA_HABITOS.querySelectorAll("li");
 	listaHabitos.forEach(function (habito) {
 		const nombre = habito.querySelector("h3").textContent.toLowerCase();
-		nombre.includes(textoBuscado)
-			? (habito.style.display = "")
-			: (habito.style.display = "none");
+		// Usar `hidden` en lugar de style.display para excluir el elemento
+		// del árbol de accesibilidad y evitar que lectores de pantalla lo lean
+		habito.hidden = !nombre.includes(textoBuscado);
 	});
 });
 

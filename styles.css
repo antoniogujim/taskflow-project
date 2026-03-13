@@ -22,8 +22,8 @@
 	/*Tipografía*/
 	--fuente-titulos: Georgia, serif;
 	--fuente-cuerpo: Arial, sans-serif;
-	--fuente-size-base: 1rem;      /* 16px — tamaño mínimo para inputs */
-	--fuente-size-sm: 0.875rem;    /* 14px — labels, texto secundario */
+	--fuente-size-base: 1rem; /* 16px — tamaño mínimo para inputs */
+	--fuente-size-sm: 0.875rem; /* 14px — labels, texto secundario */
 
 	/*Espaciados*/
 	--espaciado-xs: 8px;

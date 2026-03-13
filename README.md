@@ -39,17 +39,17 @@ taskflow-project/
 ## Instalación
 
 1. Instala las dependencias:
-   ```bash
-   npm install
-   ```
+    ```bash
+    npm install
+    ```
 2. Compila los estilos:
-   ```bash
-   npm run build
-   ```
-   O en modo watch para desarrollo:
-   ```bash
-   npm run watch
-   ```
+    ```bash
+    npm run build
+    ```
+    O en modo watch para desarrollo:
+    ```bash
+    npm run watch
+    ```
 
 ## Uso
 
@@ -66,10 +66,10 @@ taskflow-project/
 
 El formulario valida los campos antes de añadir un hábito:
 
-| Campo | Regla |
-|---|---|
+| Campo             | Regla                             |
+| ----------------- | --------------------------------- |
 | Nombre del hábito | Obligatorio, máximo 50 caracteres |
-| Duración | Obligatoria, máximo 30 caracteres |
+| Duración          | Obligatoria, máximo 30 caracteres |
 
 - Si un campo está vacío al enviar, se muestra un mensaje de error debajo del campo.
 - Si ambos campos están vacíos, ambos errores se muestran simultáneamente.
@@ -80,15 +80,15 @@ El formulario valida los campos antes de añadir un hábito:
 
 La aplicación gestiona todos los posibles estados de los datos guardados:
 
-| Estado de localStorage | Comportamiento |
-|---|---|
-| No existe | Primera visita: se cargan los hábitos de ejemplo |
-| Array vacío `[]` | El usuario eliminó todos sus hábitos: se respeta la lista vacía |
-| JSON inválido | Se eliminan los datos corruptos y se cargan los ejemplos |
-| JSON válido pero no es array | Se trata como corrupción total |
-| Array con todos los elementos inválidos | Se trata como corrupción total |
-| Array con algunos elementos inválidos | Se conservan los válidos y se informa de cuántos se perdieron |
-| `setItem` falla (modo privado, storage lleno) | Se avisa de que los datos no se guardarán durante la sesión |
+| Estado de localStorage                        | Comportamiento                                                  |
+| --------------------------------------------- | --------------------------------------------------------------- |
+| No existe                                     | Primera visita: se cargan los hábitos de ejemplo                |
+| Array vacío `[]`                              | El usuario eliminó todos sus hábitos: se respeta la lista vacía |
+| JSON inválido                                 | Se eliminan los datos corruptos y se cargan los ejemplos        |
+| JSON válido pero no es array                  | Se trata como corrupción total                                  |
+| Array con todos los elementos inválidos       | Se trata como corrupción total                                  |
+| Array con algunos elementos inválidos         | Se conservan los válidos y se informa de cuántos se perdieron   |
+| `setItem` falla (modo privado, storage lleno) | Se avisa de que los datos no se guardarán durante la sesión     |
 
 Los avisos se muestran en una barra desplegable bajo la cabecera, con un botón para cerrarla. Los errores recuperables se muestran en ámbar; los problemas persistentes de guardado, en rojo.
 
@@ -96,10 +96,10 @@ Los avisos se muestran en una barra desplegable bajo la cabecera, con un botón 
 
 Las tarjetas y el botón de eliminar usan una lógica de hover con contraste garantizado en ambos modos:
 
-| Modo | Tarjeta (default → hover) | Botón (default → hover) |
-|---|---|---|
-| Claro | `base-claro` → `base` | `base-oscuro` → `dark-tarjeta` |
-| Oscuro | `dark-tarjeta` → `base-oscuro` | `base` → `base-claro` |
+| Modo   | Tarjeta (default → hover)      | Botón (default → hover)        |
+| ------ | ------------------------------ | ------------------------------ |
+| Claro  | `base-claro` → `base`          | `base-oscuro` → `dark-tarjeta` |
+| Oscuro | `dark-tarjeta` → `base-oscuro` | `base` → `base-claro`          |
 
 El botón siempre contrasta con la tarjeta independientemente del estado de hover de cada elemento.
 
@@ -111,17 +111,17 @@ El botón siempre contrasta con la tarjeta independientemente del estado de hove
 
 ## Variables de tema (styles.css)
 
-| Variable | Valor | Uso |
-|---|---|---|
-| `--color-base` | `#537b50` | Color principal verde |
-| `--color-base-oscuro` | `#3d5c3a` | Verde oscuro |
-| `--color-base-claro` | `#6a9e66` | Verde claro (tarjetas) |
-| `--color-fondo` | `#ced6c9` | Fondo general claro |
-| `--color-fondo-claro` | `#dfe7d8` | Fondo aside claro |
-| `--color-input` | `#d6d3d1` | Fondo de inputs |
-| `--color-dark-superficie` | `#374151` | Superficie modo oscuro (inputs) |
-| `--color-dark-fondo` | `#1f2937` | Fondo modo oscuro (header, aside, footer) |
-| `--color-dark-tarjeta` | `#2d3d2b` | Fondo tarjetas modo oscuro |
+| Variable                  | Valor     | Uso                                       |
+| ------------------------- | --------- | ----------------------------------------- |
+| `--color-base`            | `#537b50` | Color principal verde                     |
+| `--color-base-oscuro`     | `#3d5c3a` | Verde oscuro                              |
+| `--color-base-claro`      | `#6a9e66` | Verde claro (tarjetas)                    |
+| `--color-fondo`           | `#ced6c9` | Fondo general claro                       |
+| `--color-fondo-claro`     | `#dfe7d8` | Fondo aside claro                         |
+| `--color-input`           | `#d6d3d1` | Fondo de inputs                           |
+| `--color-dark-superficie` | `#374151` | Superficie modo oscuro (inputs)           |
+| `--color-dark-fondo`      | `#1f2937` | Fondo modo oscuro (header, aside, footer) |
+| `--color-dark-tarjeta`    | `#2d3d2b` | Fondo tarjetas modo oscuro                |
 
 ## Próximas actualizaciones
 
