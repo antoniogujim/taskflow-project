@@ -1,25 +1,23 @@
 # Reflexión sobre el uso de IA
 
-Este documento recoge una reflexión personal sobre el papel que ha tenido la inteligencia artificial en el desarrollo del proyecto TaskFlow.
-
-No es un análisis técnico sino una valoración honesta: qué ha aportado la IA al proceso, en qué momentos ha sido realmente útil, cuándo ha generado más trabajo del que ha ahorrado, cómo ha afectado al aprendizaje y qué implicaciones tiene depender de estas herramientas en el desarrollo de software.
+En el documento, voy a reflejar mi opinion personal, sin uso de IA para mejorar lo escrito, para dejar constancia de mis descubrimientos y lo que he aprendido a lo largo de la semana en cuanto al uso de IA enfocada a la programación.
 
 ## ¿Qué ha aportado la IA al proyecto?
 
-<!-- Velocidad, ideas, código repetitivo, explicaciones... -->
+La IA ha aportado muchisimo al proyecto. Me ha dado visiones que yo solo no habria podido encontrar, me ha ayudado en cuanto al diseño de nuevas funcionalidades, e incluso, a traves de prompts refinados, me ha ayudado a leer y encontrar bugs que poco a poco he ido solucionando, aunque aun estoy lejos de corregirlo todo. Se ha percatado de problemas de repeticion en ciertos lugares que hemos ido solventando, y gracias a ser especifico, todo lo añadido por ella ha sido bajo mi revision de cada uno de las caracteristicas desglosadas. Además, cuando no entendia algo, he pedido que me explicara la logica dentro de las nuevas funciones para ir entendiendo paso a paso, ademas de que me ha ayudado a colocar comentarios para encontrar las utilidades rápidamente cuando quiero leer una funcion o seguir el codigo explicado. Pero donde mas lo he notado es en la velocidad. donde yo tardaba minutos, la IA en segundos tenia un codigo generado, lo que me permitia revisarlo, e ir especificando para refinar ese codigo mejor.
 
 ## ¿En qué ha fallado o dificultado el trabajo?
 
-<!-- Errores, falta de contexto, sobreconfianza en el código generado... -->
+En algunas ocasiones, me ha reportado bugs o errores inexistentes, ya que no habia leido el codigo real, sino realizado una vista por encima de él. A la hora de pedirle explicaciones de porque me lo habia marcado como bug, por ejemplo, me ha especificado ese mismo motivo. Con lo cual he visto que cuando pedimos algo, debemos ser muy especificos antes de permitir modificar los archivos. No debemos permitir que se cambie sin que la IA tenga el contexto especifico. En otras ocasiones, por usar comandos generales, me ha cambiado asignaciones y roto un poco el codigo, pero gracias a que tras cada cambio revisaba codigo, y comprobaba su uso en web, creo que todo ha seguido un buen planning de creación.
 
 ## Impacto en el aprendizaje
 
-<!-- ¿Has aprendido más o menos por usar IA? ¿Ha cambiado cómo entiendes el código? -->
+Me ha ayudado, sobre todo a entender que la IA mejora el flujo de trabajo. Donde antes debia estar consultando como escribir una funcion por olvidarme de la semantica, ahora me ofrece velocidad, y gracais a insistir en que me explique que hace paso a paso, puedo ir comprobando que todo hace lo que yo quiero. Ademas, si olvido que hacia cierta funcion, o necesito saber como modificar algo (visual o de funcion), no tengo que estar buscando en lugares diferentes. Pregunto directamente a la IA sobre que debo usar, o que opciones tengo, y tras observar, decido, o incluso pido que lo implemente. Con lo cual, funciones que no entendia, he empezado a ver como funcionan, pero sobre todo, he podido crear ciertas utilidades que de otro modo no habría sabido como empezar. Al pedir que me explique como implemento cierta funcionalidad, me especificaba donde cambiarlo, o si queria cambiar por ejemplo un color concreto, o un espaciado general, podia preguntar donde necesitaba cambiarlo, que opciones tenia, y me daba y explicaba como hacerlo.
 
 ## Reflexión ética y profesional
 
-<!-- Dependencia, autoría, habilidades que se pueden atrofiar... -->
+Creo que es una de las mejores herramientas existentes a dia de hoy para la programación, pero también creo que es importante tener criterio propio. No creo que sea muy util pedirle que te genere X cosa, o que haga cierta web. Creo que debemos pensar en el flujo de trabajo, y usarla con cabeza. Primero, si tienes dudas o no sabes como afrontar un proyecto, empezar por ahi, pedirle ideas, no codigo generado, tras analizar eso, empezar a implementar funciones, pero no todas. Una a una, revisando el codigo generado, y siempre ante cada nueva implementacion, probar los casos, incluso forzando los errores. Eso me ha ayudado a descubrir campos donde podria añadir elementos corruptos, pero que la ia en un primer momento no habia detectado. Creo que su verdadera utilidad reside en el uso especifico. Validar y comprobar que hace, revisar por nosotros mismos el codigo es fundamental, ya que en los casos de error tambien comprobamos detalles que la ia podria haber pasado por alto a la hora de su uso. Tiene un peligro, que es el querer las cosas pronto y rapido. Al tener la capacidad de que una IA te genere una pagina web en cuestion de minutos, nos perdemos de refinar y de ser profesionales. Si vas creando todo paso a paso, tendras un codigo mucho mas robusto, probado, y sobre todo con un toque personal, que si te dejas llevar por ser general, nunca vas a tener en tus proyectos.
 
 ## Conclusión personal
 
-<!-- ¿Cómo usarías la IA de forma más consciente en el futuro? -->
+Creo que estoy aprendiendo cada vez mas a integrar la IA en mi flujo de trabajo, y creo que es de las mejores opciones que podría haber encontrado. Voy a seguir usandola, pero no sin control, siempre de manera concisa, para funciones precisas, no para paginas en general, y revisando que todo tenga un orden. Para alguien como yo, que nunca habia trabajado de manera real con codigo, me ha permitido crear esta web en cuestion de dias, aunque vaya paso a paso, mientras que sin usala, no habria podido implementar la mitad de las funciones que tiene en este tiempo. Me habria llevado semanas quiza saber que datos usar, como implementar ciertas funciones por mi cuenta, y escribir de manera correcta el código.

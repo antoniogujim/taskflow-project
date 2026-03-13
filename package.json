@@ -1,4 +1,8 @@
 {
+
+	"name": "taskflow-project",
+	"version": "1.0.0",
+	"description": "Seguidor de hábitos en HTML, JS y Tailwind CSS",
 	"scripts": {
 		"build": "postcss styles.css -o dist/styles.css",
 		"watch": "postcss styles.css -o dist/styles.css --watch"
