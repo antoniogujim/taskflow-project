@@ -33,6 +33,11 @@ const BANNER = document.getElementById("banner-aviso");
 const BANNER_TEXTO = document.getElementById("banner-mensaje");
 const BANNER_CERRAR = document.getElementById("banner-cerrar");
 
+// Contadores del panel lateral de resumen
+const RESUMEN_TOTAL = document.getElementById("resumen-total");
+const RESUMEN_COMPLETADOS = document.getElementById("resumen-completados");
+const RESUMEN_PENDIENTES = document.getElementById("resumen-pendientes");
+
 // ─── Banner de avisos ─────────────────────────────────────────────────────────
 
 /*
@@ -359,9 +364,9 @@ function actualizarResumen() {
 	const completados = habitos.filter(function (h) {
 		return h.completado;
 	}).length;
-	document.getElementById("resumen-total").textContent = total;
-	document.getElementById("resumen-completados").textContent = completados;
-	document.getElementById("resumen-pendientes").textContent = total - completados;
+	RESUMEN_TOTAL.textContent = total;
+	RESUMEN_COMPLETADOS.textContent = completados;
+	RESUMEN_PENDIENTES.textContent = total - completados;
 }
 
 /**
@@ -574,6 +579,16 @@ FORM_HABITO.addEventListener("submit", function (evento) {
 	});
 
 	crearHabito(habitos[habitos.length - 1]);
+
+	// Si hay una búsqueda activa, aplica el filtro al nuevo hábito recién insertado.
+	// Sin esto, el nuevo <li> aparecería siempre visible aunque no coincida con la búsqueda,
+	// ya que el listener del buscador no se dispara al añadir un hábito desde el formulario.
+	const textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
+	if (textoBuscado) {
+		const nuevoLi = LISTA_HABITOS.lastElementChild;
+		nuevoLi.hidden = !nuevoLi.querySelector("h3").textContent.toLowerCase().includes(textoBuscado);
+	}
+
 	guardarHabitos();
 	actualizarResumen();
 	actualizarEstadoVacio();
@@ -646,10 +661,11 @@ INPUT_BUSQUEDA.addEventListener("input", function () {
  * clase "dark" puede haber sido añadida por el script del <head>.
  */
 
-// Sincroniza los iconos con el estado del modo oscuro ya aplicado por el <head>
+// Sincroniza los iconos y el aria-pressed con el estado del modo oscuro ya aplicado por el <head>
 if (document.documentElement.classList.contains("dark")) {
 	document.getElementById("icono-luna").classList.add("hidden");
 	document.getElementById("icono-sol").classList.remove("hidden");
+	document.getElementById("toggle_dark").setAttribute("aria-pressed", "true");
 }
 
 /**
@@ -661,5 +677,6 @@ document.getElementById("toggle_dark").addEventListener("click", function () {
 	const esModoOscuro = document.documentElement.classList.toggle("dark");
 	document.getElementById("icono-luna").classList.toggle("hidden");
 	document.getElementById("icono-sol").classList.toggle("hidden");
+	this.setAttribute("aria-pressed", esModoOscuro);
 	localStorage.setItem(STORAGE_KEY_DARK, esModoOscuro);
 });

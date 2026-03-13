@@ -9,8 +9,6 @@
 	--color-base-claro: #6a9e66;
 	--color-fondo: #ced6c9;
 	--color-fondo-claro: #dfe7d8;
-	--color-texto: #2d3436;
-
 	/*Colores de inputs*/
 	--color-input: #d6d3d1;
 
@@ -19,17 +17,4 @@
 	--color-dark-fondo: #1f2937;
 	--color-dark-tarjeta: #2d3d2b;
 
-	/*Tipografía*/
-	--fuente-titulos: Georgia, serif;
-	--fuente-cuerpo: Arial, sans-serif;
-	--fuente-size-base: 1rem; /* 16px — tamaño mínimo para inputs */
-	--fuente-size-sm: 0.875rem; /* 14px — labels, texto secundario */
-
-	/*Espaciados*/
-	--espaciado-xs: 8px;
-	--espaciado-sm: 16px;
-	--espaciado-md: 24px;
-	--espaciado-lg: 32px;
-	--espaciado-xl: 48px;
-	--espaciado-xxl: 64px;
 }

@@ -44,6 +44,7 @@
 				id="toggle_dark"
 				class="bg-base text-white p-2 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
 				aria-label="Alternar modo oscuro"
+				aria-pressed="false"
 			>
 				<!-- Icono de luna: visible en modo claro. app.js lo oculta al activar el modo oscuro. -->
 				<svg
@@ -256,6 +257,7 @@
 			     ─────────────────────────────────────────────────────────────── -->
 			<aside
 				class="w-full md:w-64 md:shrink-0 bg-fondo-claro rounded-lg p-4 shadow-sm dark:bg-dark-fondo transition-colors duration-300"
+				aria-label="Resumen"
 			>
 				<h2 class="text-xl font-semibold mb-4">Resumen</h2>
 
@@ -350,7 +352,7 @@
 					</label>
 
 					<!-- Duración del hábito. app.js asigna su textContent al clonar la plantilla. -->
-					<span class="tiempo font-semibold"></span>
+					<span class="tiempo font-semibold" aria-label="Duración:"></span>
 
 					<!--
 						Área de acciones: agrupa el botón eliminar y los botones de confirmación.
