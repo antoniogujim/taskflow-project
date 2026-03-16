@@ -266,6 +266,21 @@
 			>
 				<h2 class="text-xl font-semibold mb-4">Resumen</h2>
 
+				<!-- Barra de progreso diaria -->
+				<div class="mb-4">
+					<div class="flex justify-between text-sm mb-1">
+						<span class="font-medium">Progreso del día</span>
+						<span id="resumen-progreso-texto" class="font-medium">0 / 0</span>
+					</div>
+					<div class="w-full bg-gray-400 dark:bg-gray-700 rounded-full h-3 overflow-hidden transition-colors duration-300">
+						<div
+							id="resumen-barra"
+							class="h-3 rounded-full transition-all duration-500"
+							style="width: 0%"
+						></div>
+					</div>
+				</div>
+
 				<!--
 					<dl> (definition list): estructura semántica adecuada para pares etiqueta/valor.
 					Cada <dt> es la etiqueta del contador y cada <dd> el valor numérico.

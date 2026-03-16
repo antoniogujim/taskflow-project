@@ -38,6 +38,8 @@ const BANNER_CERRAR = document.getElementById("banner-cerrar");
 const RESUMEN_TOTAL = document.getElementById("resumen-total");
 const RESUMEN_COMPLETADOS = document.getElementById("resumen-completados");
 const RESUMEN_PENDIENTES = document.getElementById("resumen-pendientes");
+const RESUMEN_BARRA = document.getElementById("resumen-barra");
+const RESUMEN_PROGRESO_TEXTO = document.getElementById("resumen-progreso-texto");
 
 // ─── Banner de avisos ─────────────────────────────────────────────────────────
 
@@ -408,6 +410,19 @@ function actualizarResumen() {
 	RESUMEN_TOTAL.textContent = total;
 	RESUMEN_COMPLETADOS.textContent = completados;
 	RESUMEN_PENDIENTES.textContent = total - completados;
+
+	// Barra de progreso
+	const porcentaje = total === 0 ? 0 : Math.round((completados / total) * 100);
+	RESUMEN_BARRA.style.width = porcentaje + "%";
+	RESUMEN_PROGRESO_TEXTO.textContent = completados + " / " + total;
+
+	// Color progresivo: gris (sin hábitos) → rojo → amarillo → verde
+	RESUMEN_BARRA.className = "h-3 rounded-full transition-all duration-300 " + (
+		total === 0        ? "bg-gray-400" :
+		porcentaje === 100 ? "bg-green-500" :
+		porcentaje >= 50   ? "bg-yellow-400" :
+		                     "bg-red-400"
+	);
 }
 
 /**
