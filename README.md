@@ -7,13 +7,14 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Añadir hábitos con nombre y duración
 - Eliminar hábitos con confirmación en dos pasos (sin borrados accidentales)
 - Marcar hábitos como completados con checkbox y feedback visual
+- **Reset diario automático**: al abrir la app en un nuevo día, todos los hábitos vuelven a pendiente automáticamente
 - Panel lateral de resumen con contadores de total, completados y pendientes, accesible mediante `aria-live`
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Al añadir un hábito con búsqueda activa, el filtro se limpia automáticamente para que el nuevo hábito sea visible
 - Validación de formulario con mensajes de error por campo, incluyendo detección de nombres duplicados
 - Validación de longitud máxima en JS como segunda barrera (independiente del `maxlength` del HTML)
 - Foco automático en el campo nombre tras añadir un hábito, para facilitar añadir varios seguidos
-- Persistencia de datos mediante localStorage (incluye estado de completado)
+- Persistencia de datos mediante localStorage (incluye estado de completado y fecha del último reset)
 - Recuperación robusta de datos corruptos en localStorage con avisos al usuario
 - Hábitos de ejemplo al iniciar por primera vez
 - Diseño responsive para móvil y escritorio
@@ -71,7 +72,8 @@ taskflow-project/
 5. Usa el campo de búsqueda para filtrar hábitos por nombre
 6. Consulta el panel lateral para ver el resumen de hábitos del día
 7. Los hábitos se guardan automáticamente y persisten al recargar la página
-8. Usa el botón con icono de luna/sol para alternar entre tema claro y oscuro (la preferencia se guarda)
+8. Al abrir la app en un nuevo día, los hábitos se resetean automáticamente a pendiente
+9. Usa el botón con icono de luna/sol para alternar entre tema claro y oscuro (la preferencia se guarda)
 
 ## Validación del formulario
 
@@ -100,6 +102,14 @@ Al pulsar "Eliminar hábito" la tarjeta no se borra directamente. En su lugar:
 3. Si el usuario no pulsa ninguno en **10 segundos**, la tarjeta vuelve sola a su estado normal.
 
 El nombre y la duración del hábito permanecen visibles durante todo el proceso para que el usuario pueda verificar que está eliminando el hábito correcto.
+
+## Reset diario automático
+
+Al abrir la app, se comprueba si el día actual (en hora local del usuario) es distinto al del último uso registrado. Si lo es, todos los hábitos vuelven a `completado: false` antes de renderizarse, garantizando que cada día comienza con la lista en blanco.
+
+- La fecha se calcula en **hora local** para evitar resets prematuros en zonas horarias con UTC+.
+- La fecha del último reset se guarda en localStorage bajo la clave `ultimo-reset`.
+- El reset ocurre antes del renderizado, por lo que el usuario nunca ve el estado del día anterior.
 
 ## Robustez de localStorage
 
@@ -159,4 +169,6 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 
 ## Próximas actualizaciones
 
-- Reset diario del estado de completado
+- Editar hábito existente sin necesidad de eliminarlo y volver a añadirlo
+- Barra de progreso diaria en el panel de resumen
+- Contador de racha (días consecutivos completando cada hábito)

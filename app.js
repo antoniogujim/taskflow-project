@@ -27,6 +27,7 @@ const ERROR_DURACION = document.getElementById("error-duracion");
 // Claves de localStorage: definidas una sola vez para evitar errores de tipeo silenciosos
 const STORAGE_KEY_HABITOS = "Lista_de_habitos";
 const STORAGE_KEY_DARK = "modo-oscuro";
+const STORAGE_KEY_RESET = "ultimo-reset";
 
 // Elementos del banner de avisos del sistema
 const BANNER = document.getElementById("banner-aviso");
@@ -272,6 +273,30 @@ function guardarHabitos() {
 			avisoPersistenciaVisible = true;
 		}
 	}
+}
+
+/**
+ * Comprueba si el día actual (en hora local) es distinto al del último reset registrado.
+ * Si lo es, pone todos los hábitos a completado: false, persiste el cambio y
+ * actualiza la fecha del último reset.
+ *
+ * Usa toLocaleDateString('sv') para obtener la fecha en hora local del usuario
+ * en formato YYYY-MM-DD. Esto evita el problema de toISOString(), que devuelve
+ * la fecha en UTC y puede adelantar el día a partir de las 23:00 en España.
+ */
+function comprobarResetDiario() {
+	const hoy = new Date().toLocaleDateString("sv");
+	const ultimoReset = localStorage.getItem(STORAGE_KEY_RESET);
+
+	if (ultimoReset === hoy) return;
+
+	// Es un día nuevo: resetear todos los hábitos y guardar la fecha de hoy
+	habitos.forEach(function (h) {
+		h.completado = false;
+	});
+
+	guardarHabitos();
+	localStorage.setItem(STORAGE_KEY_RESET, hoy);
 }
 
 // ─── Validación ───────────────────────────────────────────────────────────────
@@ -572,6 +597,9 @@ function crearHabito(habito) {
 }
 
 // ─── Inicialización ───────────────────────────────────────────────────────────
+
+// Resetea los hábitos si es un día nuevo (hora local) antes de renderizar
+comprobarResetDiario();
 
 // Renderiza todos los hábitos cargados (de localStorage o de ejemplo) y actualiza el resumen
 habitos.forEach(crearHabito);
