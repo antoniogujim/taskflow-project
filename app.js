@@ -491,6 +491,7 @@ function crearHabito(habito) {
 	const nombreEl = clon.querySelector(".nombre");
 	const checkbox = clon.querySelector(".completado");
 	const tiempoEl = clon.querySelector(".tiempo");
+	const streakBadge = clon.querySelector(".streak-badge");
 
 	// ─ Elementos de estado edición ─────────────────────────────────────────────
 	const nombreEdicion = clon.querySelector(".nombre-edicion");
@@ -533,14 +534,30 @@ function crearHabito(habito) {
 	// Restaura el estado visual del checkbox si el hábito ya estaba completado al cargar
 	checkbox.checked = habito.completado || false;
 	if (habito.completado) {
-		nombreEl.classList.add("opacity-50");
+		nombreEl.classList.add("opacity-50", "line-through");
 	}
+
+	// Muestra el badge de racha si ya tiene una al cargar
+	actualizarStreakBadge();
 
 	// Timeout activo durante el modo de confirmación de borrado
 	let timeoutConfirmacion = null;
 
 	// Timeout de inactividad en modo edición: se reinicia con cada tecla en los inputs
 	let timeoutEdicion = null;
+
+	/*
+	 * Actualiza el badge de racha: lo muestra con el texto correcto si streakActual > 0,
+	 * o lo oculta si no hay racha activa.
+	 */
+	function actualizarStreakBadge() {
+		if ((habito.streakActual || 0) > 0) {
+			streakBadge.textContent = "Racha: " + habito.streakActual + (habito.streakActual === 1 ? " día" : " días");
+			streakBadge.classList.remove("hidden");
+		} else {
+			streakBadge.classList.add("hidden");
+		}
+	}
 
 	// ─── Modo edición ──────────────────────────────────────────────────────────
 
@@ -572,6 +589,7 @@ function crearHabito(habito) {
 
 		// Ocultar elementos de texto, mostrar inputs
 		nombreLabel.classList.add("hidden");
+		streakBadge.classList.add("hidden");
 		nombreEdicion.classList.remove("hidden");
 		nombreEdicion.classList.add("flex");
 		tiempoEl.classList.add("hidden");
@@ -618,6 +636,7 @@ function crearHabito(habito) {
 
 		// Restaurar elementos de texto, ocultar inputs
 		nombreLabel.classList.remove("hidden");
+		actualizarStreakBadge();
 		nombreEdicion.classList.add("hidden");
 		nombreEdicion.classList.remove("flex");
 		tiempoEl.classList.remove("hidden");
@@ -727,6 +746,7 @@ function crearHabito(habito) {
 		);
 
 		nombreLabel.classList.add("hidden");
+		streakBadge.classList.add("hidden");
 
 		wrapAcciones.style.maxWidth = "0";
 		wrapAcciones.style.opacity = "0";
@@ -748,6 +768,7 @@ function crearHabito(habito) {
 		cerrarEstadoActivo = null;
 
 		nombreLabel.classList.remove("hidden");
+		actualizarStreakBadge();
 
 		cardDiv.classList.remove(
 			"bg-yellow-100",
@@ -821,11 +842,45 @@ function crearHabito(habito) {
 	/*
 	 * Evento "change" del checkbox:
 	 * Actualiza el estado "completado" en el array, aplica u elimina la opacidad
-	 * sobre el nombre del hábito y persiste el cambio en localStorage.
+	 * sobre el nombre del hábito, actualiza la racha y persiste el cambio.
+	 *
+	 * Al marcar:
+	 *   - Si fechaUltimaCompletacion es ayer → incrementa la racha.
+	 *   - Si es hoy → ya contó, no cambia nada (doble click accidental).
+	 *   - Si es más antigua o null → reinicia la racha a 1.
+	 *
+	 * Al desmarcar:
+	 *   - Decrementa la racha en 1 (mínimo 0).
+	 *   - Deja fechaUltimaCompletacion en ayer para que, si se vuelve a marcar
+	 *     hoy, la racha se recupere correctamente. Si no se vuelve a marcar,
+	 *     el día siguiente la racha se romperá al verificar la fecha.
 	 */
 	checkbox.addEventListener("change", function () {
+		const hoy = new Date().toLocaleDateString("sv");
+		const ayer = new Date();
+		ayer.setDate(ayer.getDate() - 1);
+		const fechaAyer = ayer.toLocaleDateString("sv");
+
+		if (checkbox.checked) {
+			if (habito.fechaUltimaCompletacion !== hoy) {
+				if (habito.fechaUltimaCompletacion === fechaAyer) {
+					habito.streakActual = (habito.streakActual || 0) + 1;
+				} else {
+					habito.streakActual = 1;
+				}
+				habito.fechaUltimaCompletacion = hoy;
+			}
+		} else {
+			if (habito.fechaUltimaCompletacion === hoy) {
+				habito.streakActual = Math.max(0, (habito.streakActual || 0) - 1);
+				habito.fechaUltimaCompletacion = habito.streakActual === 0 ? null : fechaAyer;
+			}
+		}
+
 		habito.completado = checkbox.checked;
 		nombreEl.classList.toggle("opacity-50", checkbox.checked);
+		nombreEl.classList.toggle("line-through", checkbox.checked);
+		actualizarStreakBadge();
 		guardarHabitos();
 		actualizarResumen();
 	});

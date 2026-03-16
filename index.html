@@ -275,7 +275,7 @@
 					<div class="w-full bg-gray-400 dark:bg-gray-700 rounded-full h-3 overflow-hidden transition-colors duration-300">
 						<div
 							id="resumen-barra"
-							class="h-3 rounded-full transition-all duration-500"
+							class="h-3 rounded-full transition-all duration-300"
 							style="width: 0%"
 						></div>
 					</div>
@@ -369,8 +369,20 @@
 							type="checkbox"
 							class="completado w-5 h-5 cursor-pointer accent-green-600 shrink-0 focus:outline-none focus:ring-2 focus:ring-green-600 rounded-sm"
 						/>
-						<!-- Nombre del hábito. app.js asigna su textContent al clonar la plantilla. -->
-						<h3 class="nombre font-semibold"></h3>
+						<!--
+							Wrapper del nombre y el badge de racha.
+							En móvil: columna (badge debajo del nombre).
+							En sm+: fila (badge a la derecha del nombre).
+						-->
+						<div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+							<!-- Nombre del hábito. app.js asigna su textContent al clonar la plantilla. -->
+							<h3 class="nombre font-semibold"></h3>
+							<!--
+								Badge de racha. Oculto por defecto.
+								app.js lo muestra y actualiza cuando streakActual > 0.
+							-->
+							<span class="streak-badge hidden text-xs font-medium px-2 py-0.5 rounded-full bg-base dark:bg-base-oscuro text-orange-200 self-start sm:self-auto transition-colors duration-300"></span>
+						</div>
 					</label>
 
 					<!--

@@ -11,6 +11,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - **Reset diario automático**: al abrir la app en un nuevo día, todos los hábitos vuelven a pendiente automáticamente
 - **Un solo estado activo por tarjeta**: si una tarjeta está en modo edición o confirmación y se abre otra, la primera se cierra automáticamente
 - **Barra de progreso diaria** en el panel lateral: muestra visualmente los hábitos completados sobre el total, con color progresivo (rojo → amarillo → verde) y contador numérico `X / Y`
+- **Contador de racha por hábito**: badge junto al nombre que muestra los días consecutivos completando ese hábito. Se incrementa al marcar, se decrementa al desmarcar y se rompe si no se completa el día
 - Panel lateral de resumen con contadores de total, completados y pendientes, accesible mediante `aria-live`
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Al añadir o renombrar un hábito con búsqueda activa, el filtro se limpia automáticamente para que el hábito sea visible
@@ -202,6 +203,3 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 | `--color-dark-fondo`      | `#1f2937` | Fondo modo oscuro (header, aside, footer) |
 | `--color-dark-tarjeta`    | `#2d3d2b` | Fondo tarjetas modo oscuro                |
 
-## Próximas actualizaciones
-
-- Contador de racha (días consecutivos completando cada hábito)
