@@ -11,7 +11,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - **Reset diario automático**: al abrir la app en un nuevo día, todos los hábitos vuelven a pendiente automáticamente
 - **Un solo estado activo por tarjeta**: si una tarjeta está en modo edición o confirmación y se abre otra, la primera se cierra automáticamente
 - **Barra de progreso diaria** en el panel lateral: muestra visualmente los hábitos completados sobre el total, con color progresivo (rojo → amarillo → verde) y contador numérico `X / Y`
-- **Contador de racha por hábito**: badge junto al nombre que muestra los días consecutivos completando ese hábito. Se incrementa al marcar, se decrementa al desmarcar y se rompe si no se completa el día
+- **Contador de racha por hábito**: badge junto al nombre en escritorio (debajo en móvil) que muestra los días consecutivos completando ese hábito. Se incrementa al marcar, se decrementa al desmarcar y se rompe si no se completa el día
 - Panel lateral de resumen con contadores de total, completados y pendientes, accesible mediante `aria-live`
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Al añadir o renombrar un hábito con búsqueda activa, el filtro se limpia automáticamente para que el hábito sea visible
@@ -21,6 +21,8 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Persistencia de datos mediante localStorage (incluye estado de completado y fecha del último reset)
 - Recuperación robusta de datos corruptos en localStorage con avisos al usuario
 - Hábitos de ejemplo al iniciar por primera vez
+- Duración centrada horizontalmente en la tarjeta en escritorio mediante posicionamiento absoluto respecto al card
+- Footer fijo al fondo de la página aunque el contenido sea escaso
 - Diseño responsive para móvil y escritorio
 - Modo oscuro con botón de alternancia e iconos SVG (luna/sol), sin parpadeo al cargar
 - Iconos de modo oscuro gestionados con clases de Tailwind (`dark:hidden` / `hidden dark:block`) sin manipulación desde JS
@@ -142,9 +144,9 @@ La validación al guardar sigue las mismas reglas que el formulario de creación
 Al pulsar "Eliminar hábito" la tarjeta no se borra directamente. En su lugar:
 
 1. El fondo de la tarjeta cambia a **amarillo** mediante una transición animada.
-2. El botón "Eliminar hábito" se oculta con animación y aparecen dos botones nuevos:
-    - **Confirmar** (rojo, izquierda): borra el hábito de forma definitiva.
-    - **Cancelar** (gris, derecha): descarta la acción y restaura la tarjeta.
+2. Los botones de acción cambian con transición de opacidad y aparecen dos botones nuevos en fila:
+    - **Confirmar** (rojo): borra el hábito de forma definitiva.
+    - **Cancelar** (gris): descarta la acción y restaura la tarjeta.
 3. Si el usuario no pulsa ninguno en **10 segundos**, la tarjeta vuelve sola a su estado normal.
 
 El nombre y la duración del hábito permanecen visibles durante todo el proceso para que el usuario pueda verificar que está eliminando el hábito correcto.

@@ -474,8 +474,10 @@ function actualizarEstadoVacio() {
  *   Edición      → fondo azul, inputs pre-rellenos, botones Guardar + Cancelar.
  *   Confirmación → fondo amarillo, botones Confirmar + Cancelar para borrado.
  *
- * Las transiciones entre estados se realizan animando max-width y opacity
- * sobre los wrappers de botones mediante inline styles.
+ * Las transiciones entre estados se realizan animando opacity y pointer-events
+ * sobre los wrappers de botones, que están superpuestos en posición absoluta
+ * dentro de un contenedor de tamaño fijo. Esto evita cualquier desplazamiento
+ * del layout al cambiar de estado.
  *
  * @param {{ habito: string, tiempo: string, completado: boolean, id: string, createdAt: string }} habito
  *   Objeto con los datos del hábito a renderizar.
@@ -601,10 +603,10 @@ function crearHabito(habito) {
 		tiempoInput.value = habito.tiempo;
 
 		// Animar botones
-		wrapAcciones.style.maxWidth = "0";
 		wrapAcciones.style.opacity = "0";
-		wrapEdicion.style.maxWidth = "200px";
+		wrapAcciones.style.pointerEvents = "none";
 		wrapEdicion.style.opacity = "1";
+		wrapEdicion.style.pointerEvents = "auto";
 
 		nombreInput.focus();
 
@@ -648,10 +650,10 @@ function crearHabito(habito) {
 		limpiarError(tiempoInput, errorTiempoEdicion);
 
 		// Animar botones
-		wrapEdicion.style.maxWidth = "0";
 		wrapEdicion.style.opacity = "0";
-		wrapAcciones.style.maxWidth = "160px";
+		wrapEdicion.style.pointerEvents = "none";
 		wrapAcciones.style.opacity = "1";
+		wrapAcciones.style.pointerEvents = "auto";
 	}
 
 	/*
@@ -745,13 +747,11 @@ function crearHabito(habito) {
 			"dark:hover:bg-base-oscuro",
 		);
 
-		nombreLabel.classList.add("hidden");
-		streakBadge.classList.add("hidden");
-
-		wrapAcciones.style.maxWidth = "0";
+		// Animar botones
 		wrapAcciones.style.opacity = "0";
-		wrapConfirmacion.style.maxWidth = "200px";
+		wrapAcciones.style.pointerEvents = "none";
 		wrapConfirmacion.style.opacity = "1";
+		wrapConfirmacion.style.pointerEvents = "auto";
 
 		timeoutConfirmacion = setTimeout(salirModoConfirmacion, 10000);
 
@@ -766,9 +766,6 @@ function crearHabito(habito) {
 	function salirModoConfirmacion() {
 		clearTimeout(timeoutConfirmacion);
 		cerrarEstadoActivo = null;
-
-		nombreLabel.classList.remove("hidden");
-		actualizarStreakBadge();
 
 		cardDiv.classList.remove(
 			"bg-yellow-100",
@@ -786,10 +783,11 @@ function crearHabito(habito) {
 			"dark:hover:bg-base-oscuro",
 		);
 
-		wrapConfirmacion.style.maxWidth = "0";
+		// Animar botones
 		wrapConfirmacion.style.opacity = "0";
-		wrapAcciones.style.maxWidth = "160px";
+		wrapConfirmacion.style.pointerEvents = "none";
 		wrapAcciones.style.opacity = "1";
+		wrapAcciones.style.pointerEvents = "auto";
 	}
 
 	// ─── Eventos de la tarjeta ─────────────────────────────────────────────────

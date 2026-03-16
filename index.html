@@ -26,7 +26,7 @@
 		dark:bg-gray-900: fondo oscuro estándar de Tailwind en modo oscuro
 		transition-colors duration-300: transición suave al alternar temas
 	-->
-	<body class="bg-fondo dark:bg-gray-900 dark:text-white transition-colors duration-300">
+	<body class="bg-fondo dark:bg-gray-900 dark:text-white transition-colors duration-300 min-h-screen flex flex-col">
 		<!-- ═══════════════════════════════════════════════════════════════════
 		     CABECERA
 		     Contiene el título de la aplicación y el botón de modo oscuro.
@@ -127,7 +127,7 @@
 		     Columna única en móvil (flex-col), fila en escritorio (md:flex-row).
 		     Contiene el área de contenido principal y el panel lateral de resumen.
 		     ═══════════════════════════════════════════════════════════════════ -->
-		<div class="flex gap-6 flex-col md:flex-row p-4">
+		<div class="flex gap-6 flex-col md:flex-row p-4 flex-1">
 			<!-- ───────────────────────────────────────────────────────────────
 			     CONTENIDO PRINCIPAL
 			     Ocupa el espacio disponible (flex-1).
@@ -272,7 +272,9 @@
 						<span class="font-medium">Progreso del día</span>
 						<span id="resumen-progreso-texto" class="font-medium">0 / 0</span>
 					</div>
-					<div class="w-full bg-gray-400 dark:bg-gray-700 rounded-full h-3 overflow-hidden transition-colors duration-300">
+					<div
+						class="w-full bg-gray-400 dark:bg-gray-700 rounded-full h-3 overflow-hidden transition-colors duration-300"
+					>
 						<div
 							id="resumen-barra"
 							class="h-3 rounded-full transition-all duration-300"
@@ -344,6 +346,8 @@
 			<li role="listitem">
 				<!--
 					Tarjeta del hábito.
+					relative: necesario para que el span .tiempo con sm:absolute
+					se posicione correctamente dentro de la tarjeta.
 					hover:-translate-y-0.5: ligero desplazamiento vertical al pasar el cursor.
 					dark:bg-dark-tarjeta: fondo verde oscuro personalizado en modo oscuro.
 					app.js cambia el fondo según el estado activo:
@@ -351,14 +355,14 @@
 					  - Azul (bg-blue-100) al entrar en modo de edición.
 				-->
 				<div
-					class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:-translate-y-0.5 dark:bg-dark-tarjeta dark:border-gray-500 dark:hover:bg-base-oscuro"
+					class="relative flex flex-col sm:flex-row gap-4 justify-between sm:items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:-translate-y-0.5 dark:bg-dark-tarjeta dark:border-gray-500 dark:hover:bg-base-oscuro"
 				>
 					<!--
 						Estado normal: label que envuelve el checkbox y el nombre del hábito
 						para ampliar el área clicable: hacer clic en el nombre activa el checkbox.
 						app.js oculta este elemento al entrar en modo edición y lo restaura al salir.
 					-->
-					<label class="nombre-label flex items-center gap-3 cursor-pointer">
+					<label class="nombre-label flex items-center gap-3 cursor-pointer min-w-0">
 						<!--
 							Checkbox de completado.
 							app.js lee y escribe su estado en el array de hábitos
@@ -381,7 +385,9 @@
 								Badge de racha. Oculto por defecto.
 								app.js lo muestra y actualiza cuando streakActual > 0.
 							-->
-							<span class="streak-badge hidden text-xs font-medium px-2 py-0.5 rounded-full bg-base dark:bg-base-oscuro text-orange-200 self-start sm:self-auto transition-colors duration-300"></span>
+							<span
+								class="streak-badge hidden text-xs font-medium px-2 py-0.5 rounded-full bg-base dark:bg-base-oscuro text-orange-200 self-start sm:self-auto transition-colors duration-300"
+							></span>
 						</div>
 					</label>
 
@@ -405,9 +411,11 @@
 						app.js asigna su textContent y su aria-label al clonar la plantilla.
 						El aria-label se genera dinámicamente con el valor real ("Duración: 30 minutos")
 						para que los lectores de pantalla anuncien el dato completo y no solo la etiqueta.
+						sm:absolute sm:left-1/2 sm:-translate-x-1/2: centrado absoluto en escritorio
+						respecto al card div (que tiene position: relative).
 						app.js oculta este elemento al entrar en modo edición y lo restaura al salir.
 					-->
-					<span class="tiempo font-semibold"></span>
+					<span class="tiempo font-semibold sm:absolute sm:left-1/2 sm:-translate-x-1/2"></span>
 
 					<!--
 						Estado edición: input para modificar la duración del hábito.
@@ -424,92 +432,82 @@
 					</div>
 
 					<!--
-						Área de acciones: agrupa los tres estados de botones posibles.
-						Solo uno de los tres grupos es visible en cada momento; app.js los
-						anima intercambiándolos con transiciones de max-width y opacity.
+						Área de acciones: los tres grupos de botones se superponen en la misma
+						celda de un grid (col-start-1 row-start-1). Solo uno es visible en cada
+						momento; app.js alterna opacity y pointer-events para mostrar u ocultar
+						cada grupo sin modificar el layout de la tarjeta.
+						Al usar grid en lugar de absolute, los botones no escapan al card div
+						(que tiene position: relative para el tiempo centrado).
 					-->
-					<div class="flex items-center shrink-0">
+					<div class="relative shrink-0 h-9 min-w-55">
 						<!--
-							Estado normal: botones Editar y Eliminar apilados en columna.
-							Visible por defecto (max-width: 160px, opacity: 1).
-							app.js lo contrae a max-width: 0 al entrar en cualquier otro modo.
+							Los tres grupos de botones se superponen usando position:absolute
+							con inset:0 dentro del contenedor, que tiene position:relative
+							como inline style para garantizar que sea el ancestro posicionado
+							más cercano independientemente de la compilación de Tailwind.
 						-->
 						<div
-							class="btn-acciones-wrap overflow-hidden transition-all duration-300"
-							style="max-width: 160px; opacity: 1"
+							class="btn-acciones-wrap absolute inset-0 flex items-center justify-end gap-2 transition-opacity duration-300"
+							style="opacity: 1; pointer-events: auto"
 						>
-							<div class="flex flex-col gap-2">
-								<button
-									type="button"
-									class="editar border border-blue-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:hover:bg-blue-800 dark:border-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
-								>
-									Editar
-								</button>
-								<button
-									type="button"
-									class="eliminar border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base-oscuro text-white hover:bg-dark-tarjeta hover:shadow-md transition-all duration-300 dark:bg-base dark:hover:bg-base-claro dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro whitespace-nowrap"
-								>
-									Eliminar hábito
-								</button>
-							</div>
+							<button
+								type="button"
+								class="editar border border-blue-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:hover:bg-blue-800 dark:border-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
+							>
+								Editar
+							</button>
+							<button
+								type="button"
+								class="eliminar border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base-oscuro text-white hover:bg-dark-tarjeta hover:shadow-md transition-all duration-300 dark:bg-base dark:hover:bg-base-claro dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro whitespace-nowrap"
+							>
+								Eliminar hábito
+							</button>
 						</div>
 
 						<!--
 							Estado edición: botones Guardar y Cancelar.
-							Oculto por defecto (max-width: 0, opacity: 0).
-							app.js lo expande al entrar en modo edición.
-							Mismos colores que el estado de confirmación de borrado
-							para coherencia visual: azul (acción principal) y gris (cancelar).
+							Oculto por defecto (opacity: 0, pointer-events: none).
+							app.js lo muestra al entrar en modo edición.
 						-->
 						<div
-							class="btn-edicion-wrap overflow-hidden transition-all duration-300"
-							style="max-width: 0; opacity: 0"
+							class="btn-edicion-wrap absolute inset-0 flex items-center justify-end gap-2 transition-opacity duration-300"
+							style="opacity: 0; pointer-events: none"
 						>
-							<div class="flex gap-2">
-								<button
-									type="button"
-									class="btn-guardar border border-blue-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:border-blue-800 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
-								>
-									Guardar
-								</button>
-								<button
-									type="button"
-									class="btn-cancelar-edicion border border-gray-500 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap"
-								>
-									Cancelar
-								</button>
-							</div>
+							<button
+								type="button"
+								class="btn-guardar border border-blue-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:border-blue-800 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
+							>
+								Guardar
+							</button>
+							<button
+								type="button"
+								class="btn-cancelar-edicion border border-gray-500 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap"
+							>
+								Cancelar
+							</button>
 						</div>
 
 						<!--
 							Estado confirmación de borrado: botones Confirmar y Cancelar.
-							Oculto por defecto (max-width: 0, opacity: 0).
-							app.js lo expande al pulsar "Eliminar hábito".
+							Oculto por defecto (opacity: 0, pointer-events: none).
+							app.js lo muestra al pulsar "Eliminar hábito".
 						-->
 						<div
-							class="btn-confirmacion-wrap overflow-hidden transition-all duration-300"
-							style="max-width: 0; opacity: 0"
+							class="btn-confirmacion-wrap absolute inset-0 flex items-center justify-end gap-2 transition-opacity duration-300"
+							style="opacity: 0; pointer-events: none"
 						>
-							<div class="flex gap-2">
-								<!--
-									Botón Confirmar: rojo, indica acción destructiva.
-								-->
-								<button
-									type="button"
-									class="btn-confirmar border border-red-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-red-600 text-white hover:bg-red-700 hover:shadow-md transition-all duration-300 dark:bg-red-700 dark:border-red-800 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 whitespace-nowrap"
-								>
-									Confirmar
-								</button>
-								<!--
-									Botón Cancelar: gris neutro, indica acción segura.
-								-->
-								<button
-									type="button"
-									class="btn-cancelar border border-gray-500 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap"
-								>
-									Cancelar
-								</button>
-							</div>
+							<button
+								type="button"
+								class="btn-confirmar border border-red-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-red-600 text-white hover:bg-red-700 hover:shadow-md transition-all duration-300 dark:bg-red-700 dark:border-red-800 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 whitespace-nowrap"
+							>
+								Confirmar
+							</button>
+							<button
+								type="button"
+								class="btn-cancelar border border-gray-500 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap"
+							>
+								Cancelar
+							</button>
 						</div>
 					</div>
 				</div>
