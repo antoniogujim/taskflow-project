@@ -261,6 +261,14 @@ let habitos = cargarHabitos() ?? HABITOS_EJEMPLO;
  */
 let avisoPersistenciaVisible = false;
 
+/*
+ * Referencia a la función salirModo* de la tarjeta que está en un estado alterado
+ * (edición o confirmación de borrado). Solo puede haber una activa en cada momento.
+ * Al entrar en cualquier modo, se llama primero a esta función para cerrar
+ * el estado anterior antes de abrir el nuevo.
+ */
+let cerrarEstadoActivo = null;
+
 function guardarHabitos() {
 	try {
 		localStorage.setItem(STORAGE_KEY_HABITOS, JSON.stringify(habitos));
@@ -443,12 +451,16 @@ function actualizarEstadoVacio() {
 /**
  * Crea una tarjeta de hábito clonando el <template id="habito-template"> del HTML,
  * rellena sus campos con los datos del hábito recibido, registra los eventos
- * de completar y eliminar, y añade el elemento al <ul> de la página.
+ * de completar, editar y eliminar, y añade el elemento al <ul> de la página.
  *
- * El botón "Eliminar hábito" no borra directamente: primero entra en un modo
- * de confirmación que cambia el color de la tarjeta a amarillo y muestra dos
- * botones ("Confirmar" y "Cancelar"). Si el usuario no decide en 10 segundos,
- * la tarjeta vuelve a su estado normal automáticamente.
+ * La tarjeta tiene tres estados excluyentes entre sí:
+ *
+ *   Normal       → fondo verde, botones Editar + Eliminar visibles.
+ *   Edición      → fondo azul, inputs pre-rellenos, botones Guardar + Cancelar.
+ *   Confirmación → fondo amarillo, botones Confirmar + Cancelar para borrado.
+ *
+ * Las transiciones entre estados se realizan animando max-width y opacity
+ * sobre los wrappers de botones mediante inline styles.
  *
  * @param {{ habito: string, tiempo: string, completado: boolean, id: string, createdAt: string }} habito
  *   Objeto con los datos del hábito a renderizar.
@@ -458,13 +470,31 @@ function crearHabito(habito) {
 	const clon = TEMPLATE_HABITO.content.cloneNode(true);
 	const li = clon.querySelector("li");
 	const cardDiv = li.querySelector("div");
+
+	// ─ Elementos de estado normal ──────────────────────────────────────────────
+	const nombreLabel = clon.querySelector(".nombre-label");
 	const nombreEl = clon.querySelector(".nombre");
 	const checkbox = clon.querySelector(".completado");
+	const tiempoEl = clon.querySelector(".tiempo");
 
-	// Referencias a los wrappers animados y a los tres botones de acción
-	const wrapEliminar = clon.querySelector(".btn-eliminar-wrap");
+	// ─ Elementos de estado edición ─────────────────────────────────────────────
+	const nombreEdicion = clon.querySelector(".nombre-edicion");
+	const nombreInput = clon.querySelector(".nombre-input");
+	const errorNombreEdicion = clon.querySelector(".error-nombre-edicion");
+	const tiempoEdicion = clon.querySelector(".tiempo-edicion");
+	const tiempoInput = clon.querySelector(".tiempo-input");
+	const errorTiempoEdicion = clon.querySelector(".error-tiempo-edicion");
+
+	// ─ Wrappers de botones ─────────────────────────────────────────────────────
+	const wrapAcciones = clon.querySelector(".btn-acciones-wrap");
+	const wrapEdicion = clon.querySelector(".btn-edicion-wrap");
 	const wrapConfirmacion = clon.querySelector(".btn-confirmacion-wrap");
+
+	// ─ Botones ─────────────────────────────────────────────────────────────────
+	const btnEditar = clon.querySelector(".editar");
 	const btnEliminar = clon.querySelector(".eliminar");
+	const btnGuardar = clon.querySelector(".btn-guardar");
+	const btnCancelarEdicion = clon.querySelector(".btn-cancelar-edicion");
 	const btnConfirmar = clon.querySelector(".btn-confirmar");
 	const btnCancelar = clon.querySelector(".btn-cancelar");
 
@@ -474,12 +504,14 @@ function crearHabito(habito) {
 
 	// Asigna el texto de duración y genera el aria-label con el valor real incluido,
 	// para que los lectores de pantalla anuncien "Duración: 30 minutos" y no solo "Duración:".
-	const tiempoEl = clon.querySelector(".tiempo");
 	tiempoEl.textContent = habito.tiempo;
 	tiempoEl.setAttribute("aria-label", "Duración: " + habito.tiempo);
 
 	// aria-label descriptivos para que los lectores de pantalla identifiquen el hábito afectado
+	btnEditar.setAttribute("aria-label", "Editar hábito: " + habito.habito);
 	btnEliminar.setAttribute("aria-label", "Eliminar hábito: " + habito.habito);
+	btnGuardar.setAttribute("aria-label", "Guardar cambios de: " + habito.habito);
+	btnCancelarEdicion.setAttribute("aria-label", "Cancelar edición de: " + habito.habito);
 	btnConfirmar.setAttribute("aria-label", "Confirmar eliminación de: " + habito.habito);
 	btnCancelar.setAttribute("aria-label", "Cancelar eliminación de: " + habito.habito);
 
@@ -489,21 +521,185 @@ function crearHabito(habito) {
 		nombreEl.classList.add("opacity-50");
 	}
 
-	// Timeout activo durante el modo de confirmación (se cancela al decidir o al expirar)
+	// Timeout activo durante el modo de confirmación de borrado
 	let timeoutConfirmacion = null;
 
+	// Timeout de inactividad en modo edición: se reinicia con cada tecla en los inputs
+	let timeoutEdicion = null;
+
+	// ─── Modo edición ──────────────────────────────────────────────────────────
+
 	/*
-	 * Entra en modo de confirmación:
-	 * - Cambia el fondo de la tarjeta a amarillo de alerta (con transición CSS).
-	 * - Anima la salida del botón "Eliminar" y la entrada de "Confirmar" y "Cancelar".
-	 * - Arranca un timeout de 10 segundos tras el que vuelve al estado normal.
+	 * Entra en modo edición:
+	 * - Cambia el fondo de la tarjeta a azul.
+	 * - Oculta el label con checkbox+nombre y el span de duración.
+	 * - Muestra los inputs pre-rellenos con los valores actuales.
+	 * - Anima la salida de los botones normales y la entrada de Guardar/Cancelar.
+	 * - Pone el foco en el input del nombre.
 	 *
-	 * La animación usa inline styles sobre max-width y opacity porque los valores
-	 * de animación (160px → 0, 0 → 200px) no son clases de Tailwind estándar
-	 * y así evitamos depender de la recompilación del CSS.
+	 * Los divs de edición usan "hidden" como clase inicial en el HTML.
+	 * Al mostrarlos se añade "flex" explícitamente para que el layout
+	 * en columna (flex-col) funcione correctamente sin conflicto con "hidden".
+	 */
+	function entrarModoEdicion() {
+		if (cerrarEstadoActivo) cerrarEstadoActivo();
+
+		cardDiv.classList.add("bg-blue-100", "border-blue-400", "dark:bg-blue-900/20", "dark:border-blue-600");
+		cardDiv.classList.remove(
+			"bg-base-claro",
+			"border-black",
+			"dark:bg-dark-tarjeta",
+			"dark:border-gray-500",
+			"hover:bg-base",
+			"hover:-translate-y-0.5",
+			"dark:hover:bg-base-oscuro",
+		);
+
+		// Ocultar elementos de texto, mostrar inputs
+		nombreLabel.classList.add("hidden");
+		nombreEdicion.classList.remove("hidden");
+		nombreEdicion.classList.add("flex");
+		tiempoEl.classList.add("hidden");
+		tiempoEdicion.classList.remove("hidden");
+		tiempoEdicion.classList.add("flex");
+
+		// Pre-rellenar inputs con los valores actuales del hábito
+		nombreInput.value = habito.habito;
+		tiempoInput.value = habito.tiempo;
+
+		// Animar botones
+		wrapAcciones.style.maxWidth = "0";
+		wrapAcciones.style.opacity = "0";
+		wrapEdicion.style.maxWidth = "200px";
+		wrapEdicion.style.opacity = "1";
+
+		nombreInput.focus();
+
+		// Arranca el contador de inactividad: 30s sin interacción cancela la edición
+		timeoutEdicion = setTimeout(salirModoEdicion, 30000);
+
+		cerrarEstadoActivo = salirModoEdicion;
+	}
+
+	/*
+	 * Sale del modo edición sin guardar cambios:
+	 * Revierte todos los cambios visuales y limpia los posibles errores de validación.
+	 * Se llama desde el botón "Cancelar" de edición.
+	 */
+	function salirModoEdicion() {
+		clearTimeout(timeoutEdicion);
+		cerrarEstadoActivo = null;
+
+		cardDiv.classList.remove("bg-blue-100", "border-blue-400", "dark:bg-blue-900/20", "dark:border-blue-600");
+		cardDiv.classList.add(
+			"bg-base-claro",
+			"border-black",
+			"dark:bg-dark-tarjeta",
+			"dark:border-gray-500",
+			"hover:bg-base",
+			"hover:-translate-y-0.5",
+			"dark:hover:bg-base-oscuro",
+		);
+
+		// Restaurar elementos de texto, ocultar inputs
+		nombreLabel.classList.remove("hidden");
+		nombreEdicion.classList.add("hidden");
+		nombreEdicion.classList.remove("flex");
+		tiempoEl.classList.remove("hidden");
+		tiempoEdicion.classList.add("hidden");
+		tiempoEdicion.classList.remove("flex");
+
+		// Limpiar cualquier error de validación que haya quedado visible
+		limpiarError(nombreInput, errorNombreEdicion);
+		limpiarError(tiempoInput, errorTiempoEdicion);
+
+		// Animar botones
+		wrapEdicion.style.maxWidth = "0";
+		wrapEdicion.style.opacity = "0";
+		wrapAcciones.style.maxWidth = "160px";
+		wrapAcciones.style.opacity = "1";
+	}
+
+	/*
+	 * Valida los inputs de edición y, si son correctos, actualiza el objeto del hábito
+	 * y los elementos del DOM sin tocar id, createdAt, completado ni ningún otro campo.
+	 * El check de duplicados excluye el propio hábito (por id) para que guardar
+	 * el mismo nombre no lance un falso error de "ya existe".
+	 */
+	function guardarEdicion() {
+		const nuevoNombre = nombreInput.value.trim();
+		const nuevaDuracion = tiempoInput.value.trim();
+		let esValido = true;
+
+		if (!nuevoNombre) {
+			mostrarError(nombreInput, errorNombreEdicion, "El nombre del hábito es obligatorio.");
+			esValido = false;
+		} else if (nuevoNombre.length > MAX_NOMBRE) {
+			mostrarError(nombreInput, errorNombreEdicion, `El nombre no puede superar los ${MAX_NOMBRE} caracteres.`);
+			esValido = false;
+		}
+
+		if (!nuevaDuracion) {
+			mostrarError(tiempoInput, errorTiempoEdicion, "La duración es obligatoria.");
+			esValido = false;
+		} else if (nuevaDuracion.length > MAX_DURACION) {
+			mostrarError(tiempoInput, errorTiempoEdicion, `La duración no puede superar los ${MAX_DURACION} caracteres.`);
+			esValido = false;
+		}
+
+		if (!esValido) return;
+
+		// Excluye el propio hábito del check para que renombrar "Meditar" → "Meditar" no falle
+		const yaExiste = habitos.some(function (h) {
+			return h.id !== habito.id && h.habito.toLowerCase() === nuevoNombre.toLowerCase();
+		});
+		if (yaExiste) {
+			mostrarError(nombreInput, errorNombreEdicion, "Ya existe un hábito con este nombre.");
+			return;
+		}
+
+		// Actualiza solo nombre y duración; el resto del objeto permanece intacto
+		habito.habito = nuevoNombre;
+		habito.tiempo = nuevaDuracion;
+
+		// Refleja los nuevos valores en el DOM
+		nombreEl.textContent = nuevoNombre;
+		tiempoEl.textContent = nuevaDuracion;
+		tiempoEl.setAttribute("aria-label", "Duración: " + nuevaDuracion);
+
+		// Actualiza los aria-label de los botones que incluyen el nombre del hábito
+		btnEditar.setAttribute("aria-label", "Editar hábito: " + nuevoNombre);
+		btnEliminar.setAttribute("aria-label", "Eliminar hábito: " + nuevoNombre);
+		btnGuardar.setAttribute("aria-label", "Guardar cambios de: " + nuevoNombre);
+		btnCancelarEdicion.setAttribute("aria-label", "Cancelar edición de: " + nuevoNombre);
+		btnConfirmar.setAttribute("aria-label", "Confirmar eliminación de: " + nuevoNombre);
+		btnCancelar.setAttribute("aria-label", "Cancelar eliminación de: " + nuevoNombre);
+
+		guardarHabitos();
+
+		// Si hay una búsqueda activa, se limpia para que el hábito renombrado
+		// siempre sea visible tras guardar, igual que al añadir un hábito nuevo.
+		if (INPUT_BUSQUEDA.value) {
+			INPUT_BUSQUEDA.value = "";
+			LISTA_HABITOS.querySelectorAll("li").forEach(function (item) {
+				item.hidden = false;
+			});
+		}
+
+		salirModoEdicion();
+	}
+
+	// ─── Modo confirmación de borrado ──────────────────────────────────────────
+
+	/*
+	 * Entra en modo de confirmación de borrado:
+	 * - Cambia el fondo de la tarjeta a amarillo de alerta.
+	 * - Anima la salida de los botones normales y la entrada de Confirmar/Cancelar.
+	 * - Arranca un timeout de 10 segundos tras el que vuelve al estado normal.
 	 */
 	function entrarModoConfirmacion() {
-		// Cambiar colores de la tarjeta
+		if (cerrarEstadoActivo) cerrarEstadoActivo();
+
 		cardDiv.classList.add("bg-yellow-100", "border-yellow-400", "dark:bg-yellow-900/20", "dark:border-yellow-600");
 		cardDiv.classList.remove(
 			"bg-base-claro",
@@ -515,16 +711,16 @@ function crearHabito(habito) {
 			"dark:hover:bg-base-oscuro",
 		);
 
-		// Animar salida del botón eliminar
-		wrapEliminar.style.maxWidth = "0";
-		wrapEliminar.style.opacity = "0";
+		nombreLabel.classList.add("hidden");
 
-		// Animar entrada de los botones de confirmación
+		wrapAcciones.style.maxWidth = "0";
+		wrapAcciones.style.opacity = "0";
 		wrapConfirmacion.style.maxWidth = "200px";
 		wrapConfirmacion.style.opacity = "1";
 
-		// Vuelve solo al estado normal si el usuario no decide en 10 segundos
 		timeoutConfirmacion = setTimeout(salirModoConfirmacion, 10000);
+
+		cerrarEstadoActivo = salirModoConfirmacion;
 	}
 
 	/*
@@ -534,8 +730,10 @@ function crearHabito(habito) {
 	 */
 	function salirModoConfirmacion() {
 		clearTimeout(timeoutConfirmacion);
+		cerrarEstadoActivo = null;
 
-		// Restaurar colores de la tarjeta
+		nombreLabel.classList.remove("hidden");
+
 		cardDiv.classList.remove(
 			"bg-yellow-100",
 			"border-yellow-400",
@@ -552,17 +750,41 @@ function crearHabito(habito) {
 			"dark:hover:bg-base-oscuro",
 		);
 
-		// Animar vuelta al botón eliminar
 		wrapConfirmacion.style.maxWidth = "0";
 		wrapConfirmacion.style.opacity = "0";
-		wrapEliminar.style.maxWidth = "160px";
-		wrapEliminar.style.opacity = "1";
+		wrapAcciones.style.maxWidth = "160px";
+		wrapAcciones.style.opacity = "1";
 	}
 
-	// El botón "Eliminar" activa el modo de confirmación, no borra directamente
-	btnEliminar.addEventListener("click", entrarModoConfirmacion);
+	// ─── Eventos de la tarjeta ─────────────────────────────────────────────────
 
-	// El botón "Cancelar" revierte al estado normal
+	btnEditar.addEventListener("click", entrarModoEdicion);
+	btnCancelarEdicion.addEventListener("click", salirModoEdicion);
+	btnGuardar.addEventListener("click", guardarEdicion);
+
+	// Enter guarda, Escape cancela desde cualquier input de edición
+	nombreInput.addEventListener("keydown", function (e) {
+		if (e.key === "Enter") { e.preventDefault(); guardarEdicion(); }
+		if (e.key === "Escape") salirModoEdicion();
+	});
+	tiempoInput.addEventListener("keydown", function (e) {
+		if (e.key === "Enter") { e.preventDefault(); guardarEdicion(); }
+		if (e.key === "Escape") salirModoEdicion();
+	});
+
+	// Limpia el error del campo en cuanto el usuario empieza a corregirlo
+	nombreInput.addEventListener("input", function () {
+		if (nombreInput.value.trim()) limpiarError(nombreInput, errorNombreEdicion);
+		clearTimeout(timeoutEdicion);
+		timeoutEdicion = setTimeout(salirModoEdicion, 30000);
+	});
+	tiempoInput.addEventListener("input", function () {
+		if (tiempoInput.value.trim()) limpiarError(tiempoInput, errorTiempoEdicion);
+		clearTimeout(timeoutEdicion);
+		timeoutEdicion = setTimeout(salirModoEdicion, 30000);
+	});
+
+	btnEliminar.addEventListener("click", entrarModoConfirmacion);
 	btnCancelar.addEventListener("click", salirModoConfirmacion);
 
 	/*

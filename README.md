@@ -1,16 +1,18 @@
 # Seguidor de Hábitos
 
-Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite añadir, eliminar, buscar y marcar hábitos como completados, con persistencia de datos en el navegador.
+Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite añadir, editar, eliminar, buscar y marcar hábitos como completados, con persistencia de datos en el navegador.
 
 ## Características
 
 - Añadir hábitos con nombre y duración
+- **Editar hábitos existentes**: cambia el nombre y la duración sin eliminar ni recrear el hábito (el `id`, `createdAt` y estado completado se preservan)
 - Eliminar hábitos con confirmación en dos pasos (sin borrados accidentales)
 - Marcar hábitos como completados con checkbox y feedback visual
 - **Reset diario automático**: al abrir la app en un nuevo día, todos los hábitos vuelven a pendiente automáticamente
+- **Un solo estado activo por tarjeta**: si una tarjeta está en modo edición o confirmación y se abre otra, la primera se cierra automáticamente
 - Panel lateral de resumen con contadores de total, completados y pendientes, accesible mediante `aria-live`
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
-- Al añadir un hábito con búsqueda activa, el filtro se limpia automáticamente para que el nuevo hábito sea visible
+- Al añadir o renombrar un hábito con búsqueda activa, el filtro se limpia automáticamente para que el hábito sea visible
 - Validación de formulario con mensajes de error por campo, incluyendo detección de nombres duplicados
 - Validación de longitud máxima en JS como segunda barrera (independiente del `maxlength` del HTML)
 - Foco automático en el campo nombre tras añadir un hábito, para facilitar añadir varios seguidos
@@ -68,12 +70,13 @@ taskflow-project/
 1. Abre `index.html` en el navegador
 2. Usa el formulario para añadir un nuevo hábito con su nombre y duración. Al añadirlo el foco vuelve al campo nombre automáticamente
 3. Marca el checkbox de un hábito para marcarlo como completado
-4. Pulsa "Eliminar hábito" para iniciar la eliminación — la tarjeta cambia a amarillo y aparecen los botones "Confirmar" y "Cancelar". Si no decides en 10 segundos, el hábito permanece
-5. Usa el campo de búsqueda para filtrar hábitos por nombre
-6. Consulta el panel lateral para ver el resumen de hábitos del día
-7. Los hábitos se guardan automáticamente y persisten al recargar la página
-8. Al abrir la app en un nuevo día, los hábitos se resetean automáticamente a pendiente
-9. Usa el botón con icono de luna/sol para alternar entre tema claro y oscuro (la preferencia se guarda)
+4. Pulsa "Editar" en una tarjeta para modificar su nombre o duración sin perder ningún otro dato
+5. Pulsa "Eliminar hábito" para iniciar la eliminación — la tarjeta cambia a amarillo y aparecen los botones "Confirmar" y "Cancelar". Si no decides en 10 segundos, el hábito permanece
+6. Usa el campo de búsqueda para filtrar hábitos por nombre
+7. Consulta el panel lateral para ver el resumen de hábitos del día
+8. Los hábitos se guardan automáticamente y persisten al recargar la página
+9. Al abrir la app en un nuevo día, los hábitos se resetean automáticamente a pendiente
+10. Usa el botón con icono de luna/sol para alternar entre tema claro y oscuro (la preferencia se guarda)
 
 ## Validación del formulario
 
@@ -91,17 +94,41 @@ El formulario valida los campos antes de añadir un hábito:
 - No se pueden añadir dos hábitos con el mismo nombre (la comparación ignora mayúsculas y minúsculas).
 - El límite de caracteres se valida también en JS, independientemente del atributo `maxlength` del HTML.
 
+## Sistema de edición de hábitos
+
+Al pulsar "Editar" en una tarjeta:
+
+1. El fondo de la tarjeta cambia a **azul** mediante una transición animada.
+2. El nombre y la duración se convierten en campos de texto editables, pre-rellenos con los valores actuales.
+3. Aparecen los botones **Guardar** y **Cancelar** en lugar de Editar/Eliminar.
+4. Si no hay interacción durante **30 segundos**, la tarjeta vuelve sola a su estado normal (igual que cancelar).
+5. Cualquier tecla en cualquiera de los dos campos reinicia el contador de inactividad.
+
+Solo se modifican `nombre` y `duración`. El `id`, `createdAt` y estado `completado` del hábito permanecen intactos, lo que garantiza compatibilidad con futuras funciones como el contador de racha.
+
+La validación al guardar sigue las mismas reglas que el formulario de creación, con una excepción: el check de duplicados excluye el propio hábito, por lo que guardar el mismo nombre sin cambios no produce error.
+
 ## Sistema de eliminación con confirmación
 
 Al pulsar "Eliminar hábito" la tarjeta no se borra directamente. En su lugar:
 
-1. El fondo de la tarjeta cambia a amarillo mediante una transición animada.
+1. El fondo de la tarjeta cambia a **amarillo** mediante una transición animada.
 2. El botón "Eliminar hábito" se oculta con animación y aparecen dos botones nuevos:
     - **Confirmar** (rojo, izquierda): borra el hábito de forma definitiva.
     - **Cancelar** (gris, derecha): descarta la acción y restaura la tarjeta.
 3. Si el usuario no pulsa ninguno en **10 segundos**, la tarjeta vuelve sola a su estado normal.
 
 El nombre y la duración del hábito permanecen visibles durante todo el proceso para que el usuario pueda verificar que está eliminando el hábito correcto.
+
+## Estados de tarjeta
+
+Cada tarjeta puede estar en uno de tres estados, visualmente distintos y mutuamente excluyentes. Al activar uno, cualquier otro estado abierto en otra tarjeta se cierra automáticamente.
+
+| Estado        | Color de tarjeta              | Descripción                              |
+| ------------- | ----------------------------- | ---------------------------------------- |
+| Normal        | Verde (`bg-base-claro`)       | Estado por defecto                       |
+| Edición       | Azul (`bg-blue-100`)          | Editando nombre o duración               |
+| Confirmación  | Amarillo (`bg-yellow-100`)    | Confirmando eliminación                  |
 
 ## Reset diario automático
 
@@ -138,6 +165,13 @@ Los avisos se muestran en una barra desplegable bajo la cabecera, con un botón 
 
 El botón siempre contrasta con la tarjeta independientemente del estado de hover de cada elemento.
 
+### Tarjetas en modo edición
+
+| Modo   | Tarjeta            | Borde               |
+| ------ | ------------------ | ------------------- |
+| Claro  | `bg-blue-100`      | `border-blue-400`   |
+| Oscuro | `bg-blue-900/20`   | `border-blue-600`   |
+
 ### Tarjetas en modo confirmación
 
 | Modo   | Tarjeta            | Borde               |
@@ -145,7 +179,7 @@ El botón siempre contrasta con la tarjeta independientemente del estado de hove
 | Claro  | `bg-yellow-100`    | `border-yellow-400` |
 | Oscuro | `bg-yellow-900/20` | `border-yellow-600` |
 
-Los efectos hover de color verde se desactivan mientras la tarjeta está en modo confirmación para no generar confusión visual.
+Los efectos hover de color verde se desactivan mientras la tarjeta está en modo edición o confirmación para no generar confusión visual.
 
 ## Tecnologías
 
@@ -169,6 +203,5 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 
 ## Próximas actualizaciones
 
-- Editar hábito existente sin necesidad de eliminarlo y volver a añadirlo
 - Barra de progreso diaria en el panel de resumen
 - Contador de racha (días consecutivos completando cada hábito)

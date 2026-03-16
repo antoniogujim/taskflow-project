@@ -331,17 +331,19 @@
 					Tarjeta del hábito.
 					hover:-translate-y-0.5: ligero desplazamiento vertical al pasar el cursor.
 					dark:bg-dark-tarjeta: fondo verde oscuro personalizado en modo oscuro.
-					app.js cambia el fondo a amarillo (bg-yellow-100) cuando el usuario
-					pulsa "Eliminar" y la tarjeta entra en modo de confirmación.
+					app.js cambia el fondo según el estado activo:
+					  - Amarillo (bg-yellow-100) al entrar en modo de confirmación de borrado.
+					  - Azul (bg-blue-100) al entrar en modo de edición.
 				-->
 				<div
 					class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:-translate-y-0.5 dark:bg-dark-tarjeta dark:border-gray-500 dark:hover:bg-base-oscuro"
 				>
 					<!--
-						El <label> envuelve el checkbox y el nombre del hábito para ampliar
-						el área clicable: hacer clic en el nombre también activa el checkbox.
+						Estado normal: label que envuelve el checkbox y el nombre del hábito
+						para ampliar el área clicable: hacer clic en el nombre activa el checkbox.
+						app.js oculta este elemento al entrar en modo edición y lo restaura al salir.
 					-->
-					<label class="flex items-center gap-3 cursor-pointer">
+					<label class="nombre-label flex items-center gap-3 cursor-pointer">
 						<!--
 							Checkbox de completado.
 							app.js lee y escribe su estado en el array de hábitos
@@ -357,44 +359,105 @@
 					</label>
 
 					<!--
+						Estado edición: inputs para modificar el nombre del hábito.
+						Oculto por defecto. app.js lo muestra al entrar en modo edición,
+						pre-rellena el input con el valor actual y lo oculta al salir.
+					-->
+					<div class="nombre-edicion hidden flex-col gap-1 flex-1">
+						<input
+							type="text"
+							class="nombre-input text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+							maxlength="50"
+							aria-label="Nombre del hábito"
+						/>
+						<p class="error-nombre-edicion hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
+					</div>
+
+					<!--
 						Duración del hábito.
 						app.js asigna su textContent y su aria-label al clonar la plantilla.
 						El aria-label se genera dinámicamente con el valor real ("Duración: 30 minutos")
 						para que los lectores de pantalla anuncien el dato completo y no solo la etiqueta.
+						app.js oculta este elemento al entrar en modo edición y lo restaura al salir.
 					-->
 					<span class="tiempo font-semibold"></span>
 
 					<!--
-						Área de acciones: agrupa el botón eliminar y los botones de confirmación.
-						Solo uno de los dos grupos es visible en cada momento; app.js los
-						anima intercambiándolos con transiciones de max-width y opacity
-						mediante inline styles, lo que garantiza que el CSS de Tailwind
-						no necesita recompilarse para los valores de animación.
+						Estado edición: input para modificar la duración del hábito.
+						Oculto por defecto. Mismo comportamiento que nombre-edicion.
+					-->
+					<div class="tiempo-edicion hidden flex-col gap-1 flex-1">
+						<input
+							type="text"
+							class="tiempo-input text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+							maxlength="30"
+							aria-label="Duración del hábito"
+						/>
+						<p class="error-tiempo-edicion hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
+					</div>
+
+					<!--
+						Área de acciones: agrupa los tres estados de botones posibles.
+						Solo uno de los tres grupos es visible en cada momento; app.js los
+						anima intercambiándolos con transiciones de max-width y opacity.
 					-->
 					<div class="flex items-center shrink-0">
 						<!--
-							Wrapper del botón eliminar.
+							Estado normal: botones Editar y Eliminar apilados en columna.
 							Visible por defecto (max-width: 160px, opacity: 1).
-							app.js lo contrae a max-width: 0 al entrar en modo confirmación.
+							app.js lo contrae a max-width: 0 al entrar en cualquier otro modo.
 						-->
 						<div
-							class="btn-eliminar-wrap overflow-hidden transition-all duration-300"
+							class="btn-acciones-wrap overflow-hidden transition-all duration-300"
 							style="max-width: 160px; opacity: 1"
 						>
-							<button
-								type="button"
-								class="eliminar border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base-oscuro text-white hover:bg-dark-tarjeta hover:shadow-md transition-all duration-300 dark:bg-base dark:hover:bg-base-claro dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro whitespace-nowrap"
-							>
-								Eliminar hábito
-							</button>
+							<div class="flex flex-col gap-2">
+								<button
+									type="button"
+									class="editar border border-blue-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:hover:bg-blue-800 dark:border-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
+								>
+									Editar
+								</button>
+								<button
+									type="button"
+									class="eliminar border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base-oscuro text-white hover:bg-dark-tarjeta hover:shadow-md transition-all duration-300 dark:bg-base dark:hover:bg-base-claro dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro whitespace-nowrap"
+								>
+									Eliminar hábito
+								</button>
+							</div>
 						</div>
 
 						<!--
-							Wrapper de los botones de confirmación.
+							Estado edición: botones Guardar y Cancelar.
 							Oculto por defecto (max-width: 0, opacity: 0).
-							app.js lo expande a max-width: 200px al entrar en modo confirmación.
-							El div interior mantiene el gap entre los dos botones sin afectar
-							a la animación del wrapper exterior.
+							app.js lo expande al entrar en modo edición.
+							Mismos colores que el estado de confirmación de borrado
+							para coherencia visual: azul (acción principal) y gris (cancelar).
+						-->
+						<div
+							class="btn-edicion-wrap overflow-hidden transition-all duration-300"
+							style="max-width: 0; opacity: 0"
+						>
+							<div class="flex gap-2">
+								<button
+									type="button"
+									class="btn-guardar border border-blue-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:border-blue-800 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
+								>
+									Guardar
+								</button>
+								<button
+									type="button"
+									class="btn-cancelar-edicion border border-gray-500 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap"
+								>
+									Cancelar
+								</button>
+							</div>
+						</div>
+
+						<!--
+							Estado confirmación de borrado: botones Confirmar y Cancelar.
+							Oculto por defecto (max-width: 0, opacity: 0).
+							app.js lo expande al pulsar "Eliminar hábito".
 						-->
 						<div
 							class="btn-confirmacion-wrap overflow-hidden transition-all duration-300"
@@ -403,7 +466,6 @@
 							<div class="flex gap-2">
 								<!--
 									Botón Confirmar: rojo, indica acción destructiva.
-									Misma estructura base que el botón Eliminar original.
 								-->
 								<button
 									type="button"
@@ -413,7 +475,6 @@
 								</button>
 								<!--
 									Botón Cancelar: gris neutro, indica acción segura.
-									Misma estructura base que el botón Eliminar original.
 								-->
 								<button
 									type="button"
