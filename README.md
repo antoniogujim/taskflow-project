@@ -9,28 +9,37 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Marcar hábitos como completados con checkbox y feedback visual
 - Panel lateral de resumen con contadores de total, completados y pendientes, accesible mediante `aria-live`
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
+- Al añadir un hábito con búsqueda activa, el filtro se limpia automáticamente para que el nuevo hábito sea visible
 - Validación de formulario con mensajes de error por campo, incluyendo detección de nombres duplicados
+- Validación de longitud máxima en JS como segunda barrera (independiente del `maxlength` del HTML)
 - Foco automático en el campo nombre tras añadir un hábito, para facilitar añadir varios seguidos
 - Persistencia de datos mediante localStorage (incluye estado de completado)
 - Recuperación robusta de datos corruptos en localStorage con avisos al usuario
 - Hábitos de ejemplo al iniciar por primera vez
 - Diseño responsive para móvil y escritorio
 - Modo oscuro con botón de alternancia e iconos SVG (luna/sol), sin parpadeo al cargar
+- Iconos de modo oscuro gestionados con clases de Tailwind (`dark:hidden` / `hidden dark:block`) sin manipulación desde JS
+- `aria-label` del botón de modo oscuro dinámico: describe la acción disponible ("Activar modo claro/oscuro")
 - Persistencia del modo oscuro entre sesiones
 - Efectos hover con contraste garantizado en tarjetas y botones en ambos modos de color
 - Sombras y esquinas redondeadas en tarjetas, inputs y botones
 - Plantilla HTML (`<template>`) para renderizar hábitos desde el DOM
-- Labels accesibles en inputs y checkbox del formulario
+- Labels accesibles en todos los inputs, incluyendo label `sr-only` en el buscador para lectores de pantalla
+- `aria-label` dinámico en la duración de cada hábito para que los lectores de pantalla anuncien el valor completo
+- `role="list"` y `role="listitem"` para garantizar la semántica de lista en Safari con VoiceOver
 - Identificadores únicos generados con `crypto.randomUUID()` para evitar colisiones
 - Claves de localStorage centralizadas en constantes para evitar errores de tipeo silenciosos
+- Favicon SVG con las iniciales "SH" en el color del tema
+- Año del copyright en el footer generado dinámicamente
 
 ## Estructura del proyecto
 
 ```
 taskflow-project/
 ├── index.html            # Estructura de la página
-├── styles.css            # Estilos y variables de tema
 ├── app.js                # Lógica de la aplicación
+├── styles.css            # Estilos y variables de tema
+├── favicon.svg           # Favicon con las iniciales SH
 ├── tailwind.config.js    # Configuración de Tailwind CSS
 ├── postcss.config.mjs    # Configuración de PostCSS
 ├── package.json          # Dependencias del proyecto
@@ -78,6 +87,7 @@ El formulario valida los campos antes de añadir un hábito:
 - El error de cada campo desaparece en cuanto el usuario empieza a escribir en él.
 - Los campos solo aceptan texto con contenido real (espacios en blanco no son válidos).
 - No se pueden añadir dos hábitos con el mismo nombre (la comparación ignora mayúsculas y minúsculas).
+- El límite de caracteres se valida también en JS, independientemente del atributo `maxlength` del HTML.
 
 ## Sistema de eliminación con confirmación
 

@@ -132,8 +132,8 @@ BANNER_CERRAR.addEventListener("click", function () {
  */
 const HABITOS_EJEMPLO = [
 	{
-		habito: "Habito",
-		tiempo: "Temporalización",
+		habito: "Meditar",
+		tiempo: "10 minutos",
 		completado: false,
 		id: crypto.randomUUID(),
 		createdAt: new Date().toISOString(),
@@ -227,12 +227,7 @@ function cargarHabitos() {
 		// Algunos elementos son inválidos: conservar los válidos y avisar de los perdidos
 		if (perdidos > 0) {
 			mostrarBanner(
-				perdidos +
-					" hábito" +
-					(perdidos > 1 ? "s no pudieron" : " no pudo") +
-					" recuperarse por estar corrupto" +
-					(perdidos > 1 ? "s" : "") +
-					". El resto se ha cargado correctamente.",
+				`${perdidos} hábito${perdidos > 1 ? "s no pudieron" : " no pudo"} recuperarse por estar corrupto${perdidos > 1 ? "s" : ""}. El resto se ha cargado correctamente.`,
 				"aviso",
 			);
 		}
@@ -312,9 +307,16 @@ function limpiarError(input, errorEl) {
 	input.classList.add("border-black", "dark:border-gray-500");
 }
 
+// Límites de caracteres: deben coincidir con los atributos maxlength del HTML
+const MAX_NOMBRE = 50;
+const MAX_DURACION = 30;
+
 /**
  * Valida todos los campos del formulario antes de añadir un hábito.
- * Comprueba que ningún campo esté vacío tras eliminar espacios en blanco.
+ * Comprueba que ningún campo esté vacío tras eliminar espacios en blanco,
+ * y que no supere el límite de caracteres definido en las constantes MAX_*.
+ * La validación de longitud máxima actúa como segunda barrera por si alguien
+ * desactiva los atributos maxlength del HTML desde las herramientas del navegador.
  * Si hay varios errores, los muestra todos a la vez sin detener la validación
  * al primer fallo.
  *
@@ -328,10 +330,16 @@ function validarFormulario() {
 	if (!nombre) {
 		mostrarError(INPUT_NOMBRE, ERROR_NOMBRE, "El nombre del hábito es obligatorio.");
 		esValido = false;
+	} else if (nombre.length > MAX_NOMBRE) {
+		mostrarError(INPUT_NOMBRE, ERROR_NOMBRE, `El nombre no puede superar los ${MAX_NOMBRE} caracteres.`);
+		esValido = false;
 	}
 
 	if (!duracion) {
 		mostrarError(INPUT_DURACION, ERROR_DURACION, "La duración es obligatoria.");
+		esValido = false;
+	} else if (duracion.length > MAX_DURACION) {
+		mostrarError(INPUT_DURACION, ERROR_DURACION, `La duración no puede superar los ${MAX_DURACION} caracteres.`);
 		esValido = false;
 	}
 
@@ -370,14 +378,41 @@ function actualizarResumen() {
 }
 
 /**
- * Muestra u oculta el mensaje de estado vacío según haya hábitos en la lista.
- * También restaura el texto original del mensaje (puede haber sido cambiado
- * por el buscador cuando no hay resultados de búsqueda).
- * Se llama tras cualquier operación que modifique el número de hábitos.
+ * Muestra u oculta el mensaje de estado vacío según el estado de la lista y la búsqueda activa.
+ * Se llama tras cualquier operación que modifique el número de hábitos (añadir, eliminar).
+ *
+ * Tres casos posibles:
+ * 1. Sin hábitos en absoluto → mensaje "Aún no tienes hábitos".
+ * 2. Hay hábitos pero ninguno coincide con la búsqueda activa → mensaje "Sin resultados".
+ * 3. Hay hábitos visibles o no hay búsqueda activa → ocultar el mensaje.
+ *
+ * Sin este chequeo, eliminar el último hábito visible con una búsqueda activa
+ * dejaba la pantalla en blanco sin ningún mensaje explicativo.
  */
 function actualizarEstadoVacio() {
-	LISTA_VACIA.textContent = MENSAJE_LISTA_VACIA_DEFAULT;
-	LISTA_VACIA.hidden = habitos.length > 0;
+	if (habitos.length === 0) {
+		// Sin hábitos: mostrar mensaje por defecto independientemente de la búsqueda
+		LISTA_VACIA.textContent = MENSAJE_LISTA_VACIA_DEFAULT;
+		LISTA_VACIA.hidden = false;
+		return;
+	}
+
+	const textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
+	if (textoBuscado) {
+		// Hay hábitos pero puede que ninguno coincida con la búsqueda activa
+		const hayVisibles = Array.from(LISTA_HABITOS.querySelectorAll("li")).some(function (item) {
+			return !item.hidden;
+		});
+		if (!hayVisibles) {
+			LISTA_VACIA.textContent = "No se encontraron hábitos que coincidan con la búsqueda.";
+			LISTA_VACIA.hidden = false;
+		} else {
+			LISTA_VACIA.hidden = true;
+		}
+	} else {
+		// Sin búsqueda activa y con hábitos: ocultar el mensaje
+		LISTA_VACIA.hidden = true;
+	}
 }
 
 /**
@@ -411,7 +446,12 @@ function crearHabito(habito) {
 	// Asigna los datos del hábito a los elementos del clon
 	li.dataset.id = habito.id;
 	nombreEl.textContent = habito.habito;
-	clon.querySelector(".tiempo").textContent = habito.tiempo;
+
+	// Asigna el texto de duración y genera el aria-label con el valor real incluido,
+	// para que los lectores de pantalla anuncien "Duración: 30 minutos" y no solo "Duración:".
+	const tiempoEl = clon.querySelector(".tiempo");
+	tiempoEl.textContent = habito.tiempo;
+	tiempoEl.setAttribute("aria-label", "Duración: " + habito.tiempo);
 
 	// aria-label descriptivos para que los lectores de pantalla identifiquen el hábito afectado
 	btnEliminar.setAttribute("aria-label", "Eliminar hábito: " + habito.habito);
@@ -580,13 +620,13 @@ FORM_HABITO.addEventListener("submit", function (evento) {
 
 	crearHabito(habitos[habitos.length - 1]);
 
-	// Si hay una búsqueda activa, aplica el filtro al nuevo hábito recién insertado.
-	// Sin esto, el nuevo <li> aparecería siempre visible aunque no coincida con la búsqueda,
-	// ya que el listener del buscador no se dispara al añadir un hábito desde el formulario.
-	const textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
-	if (textoBuscado) {
-		const nuevoLi = LISTA_HABITOS.lastElementChild;
-		nuevoLi.hidden = !nuevoLi.querySelector("h3").textContent.toLowerCase().includes(textoBuscado);
+	// Si hay una búsqueda activa, se limpia para que el nuevo hábito sea visible.
+	// Ocultar el hábito recién añadido sería confuso: el usuario pulsa "Añadir" y no ve nada.
+	if (INPUT_BUSQUEDA.value) {
+		INPUT_BUSQUEDA.value = "";
+		LISTA_HABITOS.querySelectorAll("li").forEach(function (item) {
+			item.hidden = false;
+		});
 	}
 
 	guardarHabitos();
@@ -625,7 +665,7 @@ INPUT_BUSQUEDA.addEventListener("input", function () {
 		const items = LISTA_HABITOS.querySelectorAll("li");
 
 		items.forEach(function (item) {
-			const nombreItem = item.querySelector("h3").textContent.toLowerCase();
+			const nombreItem = item.querySelector(".nombre").textContent.toLowerCase();
 			// Usar `hidden` en lugar de style.display para excluir el elemento
 			// del árbol de accesibilidad y evitar que lectores de pantalla lo lean
 			item.hidden = !nombreItem.includes(textoBuscado);
@@ -661,22 +701,29 @@ INPUT_BUSQUEDA.addEventListener("input", function () {
  * clase "dark" puede haber sido añadida por el script del <head>.
  */
 
-// Sincroniza los iconos y el aria-pressed con el estado del modo oscuro ya aplicado por el <head>
+// Sincroniza aria-pressed y aria-label con el estado del modo oscuro ya aplicado por el <head>
+// Los iconos luna/sol se gestionan con clases de Tailwind (dark:hidden / hidden dark:block)
+// directamente en el HTML, sin necesidad de manipulación desde JS.
+const BTN_DARK = document.getElementById("toggle_dark");
+
 if (document.documentElement.classList.contains("dark")) {
-	document.getElementById("icono-luna").classList.add("hidden");
-	document.getElementById("icono-sol").classList.remove("hidden");
-	document.getElementById("toggle_dark").setAttribute("aria-pressed", "true");
+	BTN_DARK.setAttribute("aria-pressed", "true");
+	BTN_DARK.setAttribute("aria-label", "Activar modo claro");
 }
 
 /**
  * Evento "click" del botón de modo oscuro:
- * Alterna la clase "dark" en <html>, intercambia los iconos de luna y sol,
- * y persiste la preferencia en localStorage para mantenerla entre sesiones.
+ * Alterna la clase "dark" en <html>, actualiza aria-pressed y aria-label
+ * para reflejar la acción disponible, y persiste la preferencia en localStorage.
  */
-document.getElementById("toggle_dark").addEventListener("click", function () {
+BTN_DARK.addEventListener("click", function () {
 	const esModoOscuro = document.documentElement.classList.toggle("dark");
-	document.getElementById("icono-luna").classList.toggle("hidden");
-	document.getElementById("icono-sol").classList.toggle("hidden");
 	this.setAttribute("aria-pressed", esModoOscuro);
+	this.setAttribute("aria-label", esModoOscuro ? "Activar modo claro" : "Activar modo oscuro");
 	localStorage.setItem(STORAGE_KEY_DARK, esModoOscuro);
 });
+
+// ─── Footer ───────────────────────────────────────────────────────────────────
+
+// Actualiza el año del copyright automáticamente para que nunca quede desactualizado
+document.getElementById("año-actual").textContent = new Date().getFullYear();

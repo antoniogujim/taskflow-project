@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content="Seguidor de hábitos diarios con modo oscuro y guardado automático." />
 		<title>Seguidor de Hábitos</title>
 		<!--
 			FOUC prevention: se ejecuta antes de que el navegador pinte nada.
@@ -15,6 +16,7 @@
 				document.documentElement.classList.add("dark");
 			}
 		</script>
+		<link rel="icon" href="favicon.svg" type="image/svg+xml" />
 		<!-- Hoja de estilos generada por Tailwind CSS v4 a partir de styles.css -->
 		<link rel="stylesheet" href="dist/styles.css" />
 	</head>
@@ -46,7 +48,7 @@
 				aria-label="Alternar modo oscuro"
 				aria-pressed="false"
 			>
-				<!-- Icono de luna: visible en modo claro. app.js lo oculta al activar el modo oscuro. -->
+				<!-- Icono de luna: visible en modo claro, oculto en modo oscuro via dark:hidden. -->
 				<svg
 					id="icono-luna"
 					xmlns="http://www.w3.org/2000/svg"
@@ -56,6 +58,7 @@
 					stroke="currentColor"
 					width="20"
 					height="20"
+					class="dark:hidden"
 				>
 					<path
 						stroke-linecap="round"
@@ -64,7 +67,7 @@
 					/>
 				</svg>
 
-				<!-- Icono de sol: oculto por defecto (clase "hidden"). app.js lo muestra en modo oscuro. -->
+				<!-- Icono de sol: oculto por defecto, visible en modo oscuro via dark:block. -->
 				<svg
 					id="icono-sol"
 					xmlns="http://www.w3.org/2000/svg"
@@ -74,7 +77,7 @@
 					stroke="currentColor"
 					width="20"
 					height="20"
-					class="hidden"
+					class="hidden dark:block"
 				>
 					<path
 						stroke-linecap="round"
@@ -138,7 +141,11 @@
 						Campo de búsqueda en tiempo real.
 						app.js escucha el evento "input" y muestra u oculta los <li>
 						cuyo nombre no coincida con el texto introducido.
+						El <label> con sr-only es visualmente invisible pero garantiza
+						que los lectores de pantalla identifiquen el campo correctamente,
+						ya que el placeholder desaparece al escribir y no es suficiente.
 					-->
+					<label for="busqueda" class="sr-only">Buscar hábito</label>
 					<input
 						type="search"
 						id="busqueda"
@@ -152,7 +159,7 @@
 						Cada elemento <li> se crea clonando el <template id="habito-template">
 						que se encuentra al final del <body>.
 					-->
-					<ul id="lista-habitos" class="list-none flex flex-col gap-2"></ul>
+					<ul id="lista-habitos" role="list" class="list-none flex flex-col gap-2"></ul>
 
 					<!--
 						Mensaje de estado vacío.
@@ -173,7 +180,7 @@
 					     novalidate: desactiva la validación nativa del navegador
 					     para controlar los mensajes de error desde app.js.
 					     ─────────────────────────────────────────────────────── -->
-					<form id="nuevo_habito" class="mt-4" novalidate>
+					<form id="nuevo_habito" class="mt-4" novalidate autocomplete="off">
 						<fieldset class="flex flex-col gap-4 border-0 p-0 m-0">
 							<legend class="text-base font-semibold mb-2">Nuevo hábito</legend>
 
@@ -192,7 +199,6 @@
 									name="nombre"
 									placeholder="Ej: Leer"
 									maxlength="50"
-									autocomplete="off"
 									aria-describedby="error-nombre"
 									class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 								/>
@@ -223,7 +229,6 @@
 									name="duracion"
 									placeholder="Ej: 30 minutos"
 									maxlength="30"
-									autocomplete="off"
 									aria-describedby="error-duracion"
 									class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 								/>
@@ -311,7 +316,7 @@
 		<footer
 			class="border-t-2 border-base p-4 text-center text-sm dark:bg-dark-fondo dark:border-gray-600 transition-colors duration-300"
 		>
-			<p>&copy; 2026 Seguidor de Hábitos</p>
+			<p>&copy; <span id="año-actual"></span> Seguidor de Hábitos</p>
 		</footer>
 
 		<!-- ═══════════════════════════════════════════════════════════════════
@@ -321,7 +326,7 @@
 		     de cada hábito antes de insertarla en el <ul>.
 		     ═══════════════════════════════════════════════════════════════════ -->
 		<template id="habito-template">
-			<li>
+			<li role="listitem">
 				<!--
 					Tarjeta del hábito.
 					hover:-translate-y-0.5: ligero desplazamiento vertical al pasar el cursor.
@@ -351,8 +356,13 @@
 						<h3 class="nombre font-semibold"></h3>
 					</label>
 
-					<!-- Duración del hábito. app.js asigna su textContent al clonar la plantilla. -->
-					<span class="tiempo font-semibold" aria-label="Duración:"></span>
+					<!--
+						Duración del hábito.
+						app.js asigna su textContent y su aria-label al clonar la plantilla.
+						El aria-label se genera dinámicamente con el valor real ("Duración: 30 minutos")
+						para que los lectores de pantalla anuncien el dato completo y no solo la etiqueta.
+					-->
+					<span class="tiempo font-semibold"></span>
 
 					<!--
 						Área de acciones: agrupa el botón eliminar y los botones de confirmación.
