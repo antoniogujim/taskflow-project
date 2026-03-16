@@ -47,12 +47,20 @@ taskflow-project/
 ├── favicon.svg           # Favicon con las iniciales SH
 ├── tailwind.config.js    # Configuración de Tailwind CSS
 ├── postcss.config.mjs    # Configuración de PostCSS
-├── package.json          # Dependencias del proyecto
-└── dist/
-    └── styles.css        # CSS compilado (generado por Tailwind)
+├── package.json          # Dependencias del frontend
+├── dist/
+│   └── styles.css        # CSS compilado (generado por Tailwind)
+└── server/               # Backend Express (Fase B)
+    ├── package.json      # Dependencias del backend
+    ├── .env              # Variables de entorno (no incluido en git)
+    └── src/
+        └── config/
+            └── env.js    # Carga y validación de variables de entorno
 ```
 
 ## Instalación
+
+### Frontend
 
 1. Instala las dependencias:
     ```bash
@@ -65,6 +73,25 @@ taskflow-project/
     O en modo watch para desarrollo:
     ```bash
     npm run watch
+    ```
+
+### Backend
+
+1. Entra en la carpeta del servidor:
+    ```bash
+    cd server
+    ```
+2. Instala las dependencias:
+    ```bash
+    npm install
+    ```
+3. Crea el archivo `.env` con las variables necesarias:
+    ```
+    PORT=3000
+    ```
+4. Arranca el servidor en modo desarrollo:
+    ```bash
+    npm run dev
     ```
 
 ## Uso
@@ -185,9 +212,15 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 
 ## Tecnologías
 
+### Frontend
 - HTML5 semántico (`header`, `main`, `aside`, `footer`, `template`)
 - Tailwind CSS v4 (utility classes, dark mode, tema personalizado con variables `@theme`)
 - JavaScript vanilla (manipulación del DOM, localStorage, template cloning, `crypto.randomUUID`)
+
+### Backend
+- Node.js con Express
+- dotenv para gestión de variables de entorno
+- nodemon para recarga automática en desarrollo
 
 ## Variables de tema (styles.css)
 
@@ -202,4 +235,3 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 | `--color-dark-superficie` | `#374151` | Superficie modo oscuro (inputs)           |
 | `--color-dark-fondo`      | `#1f2937` | Fondo modo oscuro (header, aside, footer) |
 | `--color-dark-tarjeta`    | `#2d3d2b` | Fondo tarjetas modo oscuro                |
-
