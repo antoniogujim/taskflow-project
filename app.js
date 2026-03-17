@@ -747,6 +747,9 @@ function crearHabito(habito) {
 			"dark:hover:bg-base-oscuro",
 		);
 
+		checkbox.classList.add("invisible");
+		nombreLabel.classList.add("pointer-events-none");
+
 		// Animar botones
 		wrapAcciones.style.opacity = "0";
 		wrapAcciones.style.pointerEvents = "none";
@@ -782,6 +785,9 @@ function crearHabito(habito) {
 			"hover:-translate-y-0.5",
 			"dark:hover:bg-base-oscuro",
 		);
+
+		checkbox.classList.remove("invisible");
+		nombreLabel.classList.remove("pointer-events-none");
 
 		// Animar botones
 		wrapConfirmacion.style.opacity = "0";

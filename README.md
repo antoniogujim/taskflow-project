@@ -11,7 +11,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - **Reset diario automático**: al abrir la app en un nuevo día, todos los hábitos vuelven a pendiente automáticamente
 - **Un solo estado activo por tarjeta**: si una tarjeta está en modo edición o confirmación y se abre otra, la primera se cierra automáticamente
 - **Barra de progreso diaria** en el panel lateral: muestra visualmente los hábitos completados sobre el total, con color progresivo (rojo → amarillo → verde) y contador numérico `X / Y`
-- **Contador de racha por hábito**: badge junto al nombre en escritorio (debajo en móvil) que muestra los días consecutivos completando ese hábito. Se incrementa al marcar, se decrementa al desmarcar y se rompe si no se completa el día
+- **Contador de racha por hábito**: badge a la derecha del nombre en escritorio y en móvil. El nombre siempre queda centrado en móvil mediante un grid de 3 columnas `[1fr auto 1fr]`, independientemente de si el checkbox o el badge son visibles
 - Panel lateral de resumen con contadores de total, completados y pendientes, accesible mediante `aria-live`
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Al añadir o renombrar un hábito con búsqueda activa, el filtro se limpia automáticamente para que el hábito sea visible
@@ -23,6 +23,10 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Hábitos de ejemplo al iniciar por primera vez
 - Duración centrada horizontalmente en la tarjeta en escritorio mediante posicionamiento absoluto respecto al card
 - Footer fijo al fondo de la página aunque el contenido sea escaso
+- Formulario de nuevo hábito en fila (nombre + duración + botón) en la parte superior del contenido principal
+- Cabecera de columnas (Hábito / Duración / Acciones) visible solo en escritorio, con línea separadora siempre visible
+- En modo confirmación, el checkbox se oculta visualmente (mantiene espacio) y el label se desactiva para evitar cambios accidentales
+- En móvil, los botones de acción se expanden a ancho completo (mitad cada uno)
 - Diseño responsive para móvil y escritorio
 - Modo oscuro con botón de alternancia e iconos SVG (luna/sol), sin parpadeo al cargar
 - Iconos de modo oscuro gestionados con clases de Tailwind (`dark:hidden` / `hidden dark:block`) sin manipulación desde JS

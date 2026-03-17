@@ -134,6 +134,53 @@
 			     Contiene el buscador, la lista de hábitos y el formulario.
 			     ─────────────────────────────────────────────────────────────── -->
 			<main class="flex-1">
+				<!-- ───────────────────────────────────────────────────────────────
+				     FORMULARIO DE NUEVO HÁBITO
+				     ─────────────────────────────────────────────────────────────── -->
+				<form id="nuevo_habito" class="mb-6" novalidate autocomplete="off">
+					<fieldset class="flex flex-col sm:flex-row gap-4 border-0 p-0 m-0">
+						<legend class="text-base font-semibold mb-2 sm:self-end sm:mb-0 sm:mr-2 shrink-0">Nuevo hábito</legend>
+
+						<div class="flex flex-col gap-1 flex-1">
+							<label for="nombre_habito" class="text-sm font-medium">Nombre del hábito</label>
+							<input
+								type="text"
+								id="nombre_habito"
+								name="nombre"
+								placeholder="Ej: Leer"
+								maxlength="50"
+								aria-describedby="error-nombre"
+								class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+							/>
+							<p id="error-nombre" class="hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
+						</div>
+
+						<div class="flex flex-col gap-1 flex-1">
+							<label for="duracion_habito" class="text-sm font-medium">Duración</label>
+							<input
+								type="text"
+								id="duracion_habito"
+								name="duracion"
+								placeholder="Ej: 30 minutos"
+								maxlength="30"
+								aria-describedby="error-duracion"
+								class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+							/>
+							<p id="error-duracion" class="hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
+						</div>
+
+						<div class="flex flex-col gap-1">
+							<span class="text-sm font-medium invisible">_</span>
+							<button
+								type="submit"
+								class="bg-base text-white p-2 px-8 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300 whitespace-nowrap"
+							>
+								Añadir Hábito
+							</button>
+						</div>
+					</fieldset>
+				</form>
+
 				<section>
 					<h2 class="text-xl font-semibold mb-2">Hábitos</h2>
 
@@ -159,7 +206,15 @@
 						Cada elemento <li> se crea clonando el <template id="habito-template">
 						que se encuentra al final del <body>.
 					-->
-					<ul id="lista-habitos" role="list" class="list-none flex flex-col gap-2"></ul>
+					<!-- Cabecera de columnas -->
+				<div class="relative hidden sm:flex justify-between items-center w-full pl-4 pb-2 mb-2 mt-4 text-sm font-bold text-base">
+					<span>Hábito</span>
+					<span class="absolute left-1/2 -translate-x-1/2">Duración</span>
+					<span>Acciones</span>
+				</div>
+				<hr class="border-t-2 border-base dark:border-base-claro sm:mb-2 mb-4 sm:mt-0 mt-4" />
+
+				<ul id="lista-habitos" role="list" class="list-none flex flex-col gap-2"></ul>
 
 					<!--
 						Mensaje de estado vacío.
@@ -172,87 +227,10 @@
 						id="lista-vacia"
 						class="text-center text-gray-500 bg-fondo-claro rounded-lg shadow-sm p-6 my-2 dark:bg-dark-tarjeta dark:text-gray-400 transition-colors duration-300"
 					>
-						Aún no tienes hábitos. ¡Empieza a añadirlos con el formulario de abajo!
+						Aún no tienes hábitos. ¡Empieza a añadirlos con el formulario de arriba!
 					</p>
 
-					<!-- ───────────────────────────────────────────────────────
-					     FORMULARIO DE NUEVO HÁBITO
-					     novalidate: desactiva la validación nativa del navegador
-					     para controlar los mensajes de error desde app.js.
-					     ─────────────────────────────────────────────────────── -->
-					<form id="nuevo_habito" class="mt-4" novalidate autocomplete="off">
-						<fieldset class="flex flex-col gap-4 border-0 p-0 m-0">
-							<legend class="text-base font-semibold mb-2">Nuevo hábito</legend>
-
-							<!-- Campo: nombre del hábito -->
-							<div class="flex flex-col gap-1">
-								<label for="nombre_habito" class="text-sm font-medium">Nombre del hábito</label>
-								<!--
-									maxlength="50": límite de caracteres aplicado en HTML y validado en JS.
-									autocomplete="off": evita sugerencias del navegador en este campo.
-									aria-describedby="error-nombre": enlaza el input con su mensaje de error
-									para que los lectores de pantalla lo anuncien al detectar el error.
-								-->
-								<input
-									type="text"
-									id="nombre_habito"
-									name="nombre"
-									placeholder="Ej: Leer"
-									maxlength="50"
-									aria-describedby="error-nombre"
-									class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
-								/>
-								<!--
-									Mensaje de error del campo nombre.
-									Permanece oculto (clase "hidden") hasta que app.js detecta
-									que el campo está vacío o duplicado al enviar el formulario.
-									role="alert": anuncia el mensaje automáticamente a lectores de pantalla.
-								-->
-								<p
-									id="error-nombre"
-									class="hidden text-sm text-red-700 dark:text-red-400"
-									role="alert"
-								></p>
-							</div>
-
-							<!-- Campo: duración del hábito -->
-							<div class="flex flex-col gap-1">
-								<label for="duracion_habito" class="text-sm font-medium">Duración</label>
-								<!--
-									maxlength="30": límite de caracteres aplicado en HTML y validado en JS.
-									autocomplete="off": evita sugerencias del navegador en este campo.
-									aria-describedby="error-duracion": enlaza el input con su mensaje de error.
-								-->
-								<input
-									type="text"
-									id="duracion_habito"
-									name="duracion"
-									placeholder="Ej: 30 minutos"
-									maxlength="30"
-									aria-describedby="error-duracion"
-									class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
-								/>
-								<!--
-									Mensaje de error del campo duración.
-									Mismo comportamiento que #error-nombre.
-								-->
-								<p
-									id="error-duracion"
-									class="hidden text-sm text-red-700 dark:text-red-400"
-									role="alert"
-								></p>
-							</div>
-						</fieldset>
-
-						<!-- Botón de envío. Dispara el evento "submit" que gestiona app.js. -->
-						<button
-							type="submit"
-							class="w-full mt-4 bg-base text-white p-2 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300"
-						>
-							Añadir Hábito
-						</button>
-					</form>
-				</section>
+					</section>
 			</main>
 
 			<!-- ───────────────────────────────────────────────────────────────
@@ -355,40 +333,27 @@
 					  - Azul (bg-blue-100) al entrar en modo de edición.
 				-->
 				<div
-					class="relative flex flex-col sm:flex-row gap-4 justify-between sm:items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:-translate-y-0.5 dark:bg-dark-tarjeta dark:border-gray-500 dark:hover:bg-base-oscuro"
+					class="relative flex flex-col sm:flex-row gap-4 justify-between items-center border border-black bg-base-claro p-4 rounded-lg shadow shadow-green-200 transition-all duration-300 hover:bg-base hover:shadow-md hover:-translate-y-0.5 dark:bg-dark-tarjeta dark:border-gray-500 dark:hover:bg-base-oscuro"
 				>
 					<!--
 						Estado normal: label que envuelve el checkbox y el nombre del hábito
 						para ampliar el área clicable: hacer clic en el nombre activa el checkbox.
 						app.js oculta este elemento al entrar en modo edición y lo restaura al salir.
 					-->
-					<label class="nombre-label flex items-center gap-3 cursor-pointer min-w-0">
-						<!--
-							Checkbox de completado.
-							app.js lee y escribe su estado en el array de hábitos
-							y lo persiste en localStorage al cambiar.
-							accent-green-600: colorea el tick con el verde del tema.
-						-->
+					<!--
+						En móvil: grid [1fr auto 1fr] — nombre siempre centrado
+						independientemente del checkbox (visible/invisible) o del badge.
+						En sm+: flex row normal.
+					-->
+					<label class="nombre-label flex items-center gap-3 cursor-pointer min-w-0 max-sm:grid max-sm:grid-cols-[1fr_auto_1fr] max-sm:items-center max-sm:w-full max-sm:gap-2">
 						<input
 							type="checkbox"
-							class="completado w-5 h-5 cursor-pointer accent-green-600 shrink-0 focus:outline-none focus:ring-2 focus:ring-green-600 rounded-sm"
+							class="completado w-5 h-5 cursor-pointer accent-green-600 shrink-0 focus:outline-none focus:ring-2 focus:ring-green-600 rounded-sm max-sm:justify-self-start"
 						/>
-						<!--
-							Wrapper del nombre y el badge de racha.
-							En móvil: columna (badge debajo del nombre).
-							En sm+: fila (badge a la derecha del nombre).
-						-->
-						<div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-							<!-- Nombre del hábito. app.js asigna su textContent al clonar la plantilla. -->
-							<h3 class="nombre font-semibold"></h3>
-							<!--
-								Badge de racha. Oculto por defecto.
-								app.js lo muestra y actualiza cuando streakActual > 0.
-							-->
-							<span
-								class="streak-badge hidden text-xs font-medium px-2 py-0.5 rounded-full bg-base dark:bg-base-oscuro text-orange-200 self-start sm:self-auto transition-colors duration-300"
-							></span>
-						</div>
+						<h3 class="nombre font-semibold max-sm:text-center"></h3>
+						<span
+							class="streak-badge hidden text-xs font-medium px-2 py-0.5 rounded-full bg-base dark:bg-base-oscuro text-orange-200 transition-colors duration-300 max-sm:justify-self-end"
+						></span>
 					</label>
 
 					<!--
@@ -396,7 +361,7 @@
 						Oculto por defecto. app.js lo muestra al entrar en modo edición,
 						pre-rellena el input con el valor actual y lo oculta al salir.
 					-->
-					<div class="nombre-edicion hidden flex-col gap-1 flex-1">
+					<div class="nombre-edicion hidden flex-col gap-1 flex-1 max-sm:w-full">
 						<input
 							type="text"
 							class="nombre-input text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -421,7 +386,7 @@
 						Estado edición: input para modificar la duración del hábito.
 						Oculto por defecto. Mismo comportamiento que nombre-edicion.
 					-->
-					<div class="tiempo-edicion hidden flex-col gap-1 flex-1">
+					<div class="tiempo-edicion hidden flex-col gap-1 flex-1 max-sm:w-full">
 						<input
 							type="text"
 							class="tiempo-input text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -439,7 +404,7 @@
 						Al usar grid en lugar de absolute, los botones no escapan al card div
 						(que tiene position: relative para el tiempo centrado).
 					-->
-					<div class="relative shrink-0 h-9 min-w-55">
+					<div class="relative shrink-0 h-9 min-w-55 max-sm:w-full max-sm:h-10">
 						<!--
 							Los tres grupos de botones se superponen usando position:absolute
 							con inset:0 dentro del contenedor, que tiene position:relative
@@ -452,13 +417,13 @@
 						>
 							<button
 								type="button"
-								class="editar border border-blue-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:hover:bg-blue-800 dark:border-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
+								class="editar border border-blue-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:hover:bg-blue-800 dark:border-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap max-sm:flex-1"
 							>
 								Editar
 							</button>
 							<button
 								type="button"
-								class="eliminar border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base-oscuro text-white hover:bg-dark-tarjeta hover:shadow-md transition-all duration-300 dark:bg-base dark:hover:bg-base-claro dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro whitespace-nowrap"
+								class="eliminar border border-black px-2 py-1 rounded-md shadow-sm cursor-pointer bg-base-oscuro text-white hover:bg-dark-tarjeta hover:shadow-md transition-all duration-300 dark:bg-base dark:hover:bg-base-claro dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-base-oscuro whitespace-nowrap max-sm:flex-1"
 							>
 								Eliminar hábito
 							</button>
@@ -475,13 +440,13 @@
 						>
 							<button
 								type="button"
-								class="btn-guardar border border-blue-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:border-blue-800 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
+								class="btn-guardar border border-blue-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:border-blue-800 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap max-sm:flex-1"
 							>
 								Guardar
 							</button>
 							<button
 								type="button"
-								class="btn-cancelar-edicion border border-gray-500 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap"
+								class="btn-cancelar-edicion border border-gray-500 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap max-sm:flex-1"
 							>
 								Cancelar
 							</button>
@@ -498,13 +463,13 @@
 						>
 							<button
 								type="button"
-								class="btn-confirmar border border-red-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-red-600 text-white hover:bg-red-700 hover:shadow-md transition-all duration-300 dark:bg-red-700 dark:border-red-800 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 whitespace-nowrap"
+								class="btn-confirmar border border-red-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-red-600 text-white hover:bg-red-700 hover:shadow-md transition-all duration-300 dark:bg-red-700 dark:border-red-800 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 whitespace-nowrap max-sm:flex-1"
 							>
 								Confirmar
 							</button>
 							<button
 								type="button"
-								class="btn-cancelar border border-gray-500 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap"
+								class="btn-cancelar border border-gray-500 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap max-sm:flex-1"
 							>
 								Cancelar
 							</button>
