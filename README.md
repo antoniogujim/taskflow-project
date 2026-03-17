@@ -15,6 +15,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Panel lateral de resumen con contadores de total, completados y pendientes, accesible mediante `aria-live`
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Al añadir o renombrar un hábito con búsqueda activa, el filtro se limpia automáticamente para que el hábito sea visible
+- **Botón "Completar todos" / "Desmarcar todos"**: junto al buscador, completa o desmarca todos los hábitos visibles en un clic. Si hay una búsqueda activa, solo afecta a los resultados filtrados. Se deshabilita automáticamente cuando no hay hábitos visibles
 - Validación de formulario con mensajes de error por campo, incluyendo detección de nombres duplicados
 - Validación de longitud máxima en JS como segunda barrera (independiente del `maxlength` del HTML)
 - Foco automático en el campo nombre tras añadir un hábito, para facilitar añadir varios seguidos
@@ -107,7 +108,7 @@ taskflow-project/
 3. Marca el checkbox de un hábito para marcarlo como completado
 4. Pulsa "Editar" en una tarjeta para modificar su nombre o duración sin perder ningún otro dato
 5. Pulsa "Eliminar hábito" para iniciar la eliminación — la tarjeta cambia a amarillo y aparecen los botones "Confirmar" y "Cancelar". Si no decides en 10 segundos, el hábito permanece
-6. Usa el campo de búsqueda para filtrar hábitos por nombre
+6. Usa el campo de búsqueda para filtrar hábitos por nombre. El botón "Completar todos" junto al buscador marca de golpe todos los visibles; si todos ya están completados, el botón cambia a "Desmarcar todos"
 7. Consulta el panel lateral para ver el resumen de hábitos del día
 8. Los hábitos se guardan automáticamente y persisten al recargar la página
 9. Al abrir la app en un nuevo día, los hábitos se resetean automáticamente a pendiente

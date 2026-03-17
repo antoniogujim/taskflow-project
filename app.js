@@ -6,6 +6,9 @@ const FORM_HABITO = document.getElementById("nuevo_habito");
 // Campo de búsqueda para filtrar la lista en tiempo real
 const INPUT_BUSQUEDA = document.getElementById("busqueda");
 
+// Botón para completar todos los hábitos visibles
+const BTN_COMPLETAR_TODOS = document.getElementById("completar-todos");
+
 // Plantilla HTML clonada por crearHabito() para generar cada tarjeta de hábito
 const TEMPLATE_HABITO = document.getElementById("habito-template");
 
@@ -423,6 +426,30 @@ function actualizarResumen() {
 		porcentaje >= 50   ? "bg-yellow-400" :
 		                     "bg-red-400"
 	);
+
+	actualizarBotonCompletarTodos();
+}
+
+/**
+ * Actualiza el botón "Completar todos" / "Desmarcar todos" según el estado actual.
+ * - Sin visibles → deshabilitado.
+ * - Todos completados → "Desmarcar todos" habilitado.
+ * - Hay pendientes → "Completar todos" habilitado.
+ */
+function actualizarBotonCompletarTodos() {
+	const visibles = Array.from(LISTA_HABITOS.querySelectorAll("li")).filter(function (item) {
+		return !item.hidden;
+	});
+	if (visibles.length === 0) {
+		BTN_COMPLETAR_TODOS.disabled = true;
+		BTN_COMPLETAR_TODOS.textContent = "Completar todos";
+		return;
+	}
+	const hayPendientes = visibles.some(function (item) {
+		return !item.querySelector(".completado").checked;
+	});
+	BTN_COMPLETAR_TODOS.disabled = false;
+	BTN_COMPLETAR_TODOS.textContent = hayPendientes ? "Completar todos" : "Desmarcar todos";
 }
 
 /**
@@ -1010,7 +1037,24 @@ INPUT_BUSQUEDA.addEventListener("input", function () {
 				LISTA_VACIA.hidden = true;
 			}
 		}
+
+		actualizarBotonCompletarTodos();
 	}, 200);
+});
+
+BTN_COMPLETAR_TODOS.addEventListener("click", function () {
+	const visibles = Array.from(LISTA_HABITOS.querySelectorAll("li")).filter(function (item) {
+		return !item.hidden;
+	});
+	const hayPendientes = visibles.some(function (item) {
+		return !item.querySelector(".completado").checked;
+	});
+	visibles.forEach(function (item) {
+		const checkbox = item.querySelector(".completado");
+		if (hayPendientes ? !checkbox.checked : checkbox.checked) {
+			checkbox.click();
+		}
+	});
 });
 
 // ─── Modo oscuro ──────────────────────────────────────────────────────────────

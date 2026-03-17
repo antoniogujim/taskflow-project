@@ -193,13 +193,23 @@
 						ya que el placeholder desaparece al escribir y no es suficiente.
 					-->
 					<label for="busqueda" class="sr-only">Buscar hábito</label>
-					<input
-						type="search"
-						id="busqueda"
-						placeholder="Buscar hábito"
-						autocomplete="off"
-						class="border border-black p-2 mb-2 w-full rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
-					/>
+					<div class="flex gap-2 mb-2">
+						<input
+							type="search"
+							id="busqueda"
+							placeholder="Buscar hábito"
+							autocomplete="off"
+							class="border border-black p-2 w-full rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+						/>
+						<button
+							id="completar-todos"
+							type="button"
+							disabled
+							class="bg-base text-white p-2 px-8 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300 whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:bg-gray-300 dark:disabled:bg-gray-700 dark:disabled:text-gray-500 dark:disabled:hover:bg-gray-700"
+						>
+							Completar todos
+						</button>
+					</div>
 
 					<!--
 						Lista de hábitos generada dinámicamente por app.js.
