@@ -16,6 +16,8 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Al añadir o renombrar un hábito con búsqueda activa, el filtro se limpia automáticamente para que el hábito sea visible
 - **Botón "Completar todos" / "Desmarcar todos"**: junto al buscador, completa o desmarca todos los hábitos visibles en un clic. Si hay una búsqueda activa, solo afecta a los resultados filtrados. Se deshabilita automáticamente cuando no hay hábitos visibles
+- **Selector de orden**: permite ordenar la lista por fecha de creación (reciente o antiguo primero) o por nombre (A→Z / Z→A). El orden se respeta al añadir nuevos hábitos
+- **Resaltado de hábito nuevo**: al añadir un hábito, su tarjeta aparece brevemente destacada en color lima (claro) o esmeralda (oscuro) y hace scroll hasta ella si es necesario. El color desaparece con una transición suave de 1 segundo
 - Validación de formulario con mensajes de error por campo, incluyendo detección de nombres duplicados
 - Validación de longitud máxima en JS como segunda barrera (independiente del `maxlength` del HTML)
 - Foco automático en el campo nombre tras añadir un hábito, para facilitar añadir varios seguidos
@@ -109,10 +111,11 @@ taskflow-project/
 4. Pulsa "Editar" en una tarjeta para modificar su nombre o duración sin perder ningún otro dato
 5. Pulsa "Eliminar hábito" para iniciar la eliminación — la tarjeta cambia a amarillo y aparecen los botones "Confirmar" y "Cancelar". Si no decides en 10 segundos, el hábito permanece
 6. Usa el campo de búsqueda para filtrar hábitos por nombre. El botón "Completar todos" junto al buscador marca de golpe todos los visibles; si todos ya están completados, el botón cambia a "Desmarcar todos"
-7. Consulta el panel lateral para ver el resumen de hábitos del día
-8. Los hábitos se guardan automáticamente y persisten al recargar la página
-9. Al abrir la app en un nuevo día, los hábitos se resetean automáticamente a pendiente
-10. Usa el botón con icono de luna/sol para alternar entre tema claro y oscuro (la preferencia se guarda)
+7. Usa el selector de orden para reordenar la lista por fecha o por nombre. Los nuevos hábitos se insertan respetando el orden activo
+8. Consulta el panel lateral para ver el resumen de hábitos del día
+9. Los hábitos se guardan automáticamente y persisten al recargar la página
+10. Al abrir la app en un nuevo día, los hábitos se resetean automáticamente a pendiente
+11. Usa el botón con icono de luna/sol para alternar entre tema claro y oscuro (la preferencia se guarda)
 
 ## Validación del formulario
 

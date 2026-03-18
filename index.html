@@ -138,8 +138,8 @@
 				     FORMULARIO DE NUEVO HÁBITO
 				     ─────────────────────────────────────────────────────────────── -->
 				<form id="nuevo_habito" class="mb-6" novalidate autocomplete="off">
-					<fieldset class="flex flex-col sm:flex-row gap-4 border-0 p-0 m-0">
-						<legend class="text-base font-semibold mb-2 sm:self-end sm:mb-0 sm:mr-2 shrink-0">Nuevo hábito</legend>
+					<fieldset class="flex flex-col sm:flex-row sm:items-end gap-4 border-0 p-0 m-0">
+					<legend class="text-base font-semibold mb-2 sm:self-end sm:mb-0 sm:mr-2 shrink-0">Nuevo hábito</legend>
 
 						<div class="flex flex-col gap-1 flex-1">
 							<label for="nombre_habito" class="text-sm font-medium">Nombre del hábito</label>
@@ -169,15 +169,12 @@
 							<p id="error-duracion" class="hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
 						</div>
 
-						<div class="flex flex-col gap-1">
-							<span class="text-sm font-medium invisible">_</span>
-							<button
-								type="submit"
-								class="bg-base text-white p-2 px-8 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300 whitespace-nowrap"
-							>
-								Añadir Hábito
-							</button>
-						</div>
+						<button
+							type="submit"
+							class="h-10 w-full sm:w-40 shrink-0 bg-base text-white rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300 whitespace-nowrap"
+						>
+							Añadir Hábito
+						</button>
 					</fieldset>
 				</form>
 
@@ -193,7 +190,7 @@
 						ya que el placeholder desaparece al escribir y no es suficiente.
 					-->
 					<label for="busqueda" class="sr-only">Buscar hábito</label>
-					<div class="flex gap-2 mb-2">
+					<div class="flex flex-col sm:flex-row gap-4 mb-2">
 						<input
 							type="search"
 							id="busqueda"
@@ -201,11 +198,20 @@
 							autocomplete="off"
 							class="border border-black p-2 w-full rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 						/>
+						<select
+							id="ordenar-habitos"
+							class="h-10 w-full sm:w-40 shrink-0 border border-black px-2 rounded-md shadow-sm bg-input cursor-pointer dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
+						>
+							<option value="fecha-desc">Fecha reciente ↓</option>
+							<option value="fecha-asc">Fecha antiguo ↑</option>
+							<option value="nombre-asc">Nombre A → Z</option>
+							<option value="nombre-desc">Nombre Z → A</option>
+						</select>
 						<button
 							id="completar-todos"
 							type="button"
 							disabled
-							class="bg-base text-white p-2 px-8 rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300 whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:bg-gray-300 dark:disabled:bg-gray-700 dark:disabled:text-gray-500 dark:disabled:hover:bg-gray-700"
+							class="h-10 w-full sm:w-40 shrink-0 bg-base text-white rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300 whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:bg-gray-300 dark:disabled:bg-gray-700 dark:disabled:text-gray-500 dark:disabled:hover:bg-gray-700"
 						>
 							Completar todos
 						</button>

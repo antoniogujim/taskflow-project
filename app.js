@@ -9,6 +9,9 @@ const INPUT_BUSQUEDA = document.getElementById("busqueda");
 // Botón para completar todos los hábitos visibles
 const BTN_COMPLETAR_TODOS = document.getElementById("completar-todos");
 
+// Select para ordenar la lista de hábitos
+const SELECT_ORDENAR = document.getElementById("ordenar-habitos");
+
 // Plantilla HTML clonada por crearHabito() para generar cada tarjeta de hábito
 const TEMPLATE_HABITO = document.getElementById("habito-template");
 
@@ -26,6 +29,7 @@ const INPUT_NOMBRE = document.getElementById("nombre_habito");
 const INPUT_DURACION = document.getElementById("duracion_habito");
 const ERROR_NOMBRE = document.getElementById("error-nombre");
 const ERROR_DURACION = document.getElementById("error-duracion");
+
 
 // Claves de localStorage: definidas una sola vez para evitar errores de tipeo silenciosos
 const STORAGE_KEY_HABITOS = "Lista_de_habitos";
@@ -136,34 +140,35 @@ BANNER_CERRAR.addEventListener("click", function () {
  * garantizar que no colisione con IDs de hábitos reales del usuario,
  * ya que todos los hábitos de la aplicación usan el mismo formato de ID.
  */
+const _ahora = Date.now();
 const HABITOS_EJEMPLO = [
 	{
 		habito: "Meditar",
 		tiempo: "10 minutos",
 		completado: false,
 		id: crypto.randomUUID(),
-		createdAt: new Date().toISOString(),
+		createdAt: new Date(_ahora).toISOString(),
 	},
 	{
 		habito: "Leer",
 		tiempo: "1 capítulo",
 		completado: false,
 		id: crypto.randomUUID(),
-		createdAt: new Date().toISOString(),
+		createdAt: new Date(_ahora + 1).toISOString(),
 	},
 	{
 		habito: "Correr",
 		tiempo: "30 minutos",
 		completado: false,
 		id: crypto.randomUUID(),
-		createdAt: new Date().toISOString(),
+		createdAt: new Date(_ahora + 2).toISOString(),
 	},
 	{
 		habito: "Tomar vitaminas",
 		tiempo: "Instantáneo",
 		completado: false,
 		id: crypto.randomUUID(),
-		createdAt: new Date().toISOString(),
+		createdAt: new Date(_ahora + 3).toISOString(),
 	},
 ];
 
@@ -925,7 +930,7 @@ function crearHabito(habito) {
 comprobarResetDiario();
 
 // Renderiza todos los hábitos cargados (de localStorage o de ejemplo) y actualiza el resumen
-habitos.forEach(crearHabito);
+renderizarHabitos();
 actualizarResumen();
 actualizarEstadoVacio();
 
@@ -969,7 +974,24 @@ FORM_HABITO.addEventListener("submit", function (evento) {
 		createdAt: new Date().toISOString(),
 	});
 
-	crearHabito(habitos[habitos.length - 1]);
+	renderizarHabitos();
+
+	// Resalta brevemente la tarjeta recién añadida para que el usuario la identifique
+	const tarjetaNueva = LISTA_HABITOS.querySelector("[data-id='" + id + "']");
+	if (tarjetaNueva) {
+		requestAnimationFrame(function () {
+			tarjetaNueva.scrollIntoView({ behavior: "smooth", block: "nearest" });
+		});
+		const cardDiv = tarjetaNueva.querySelector("div");
+		cardDiv.classList.add("!bg-lime-300", "dark:!bg-emerald-700/50");
+		setTimeout(function () {
+			cardDiv.classList.add("!duration-1000");
+			cardDiv.classList.remove("!bg-lime-300", "dark:!bg-emerald-700/50");
+			setTimeout(function () {
+				cardDiv.classList.remove("!duration-1000");
+			}, 1000);
+		}, 1500);
+	}
 
 	// Si hay una búsqueda activa, se limpia para que el nuevo hábito sea visible.
 	// Ocultar el hábito recién añadido sería confuso: el usuario pulsa "Añadir" y no ve nada.
@@ -1007,6 +1029,24 @@ FORM_HABITO.addEventListener("submit", function (evento) {
  * Usa debounce de 200ms: en lugar de filtrar en cada tecla, espera a que el
  * usuario pause antes de ejecutar la búsqueda, evitando consultas innecesarias al DOM.
  */
+/**
+ * Vacía la lista del DOM y vuelve a renderizar todos los hábitos
+ * respetando el orden de fecha activo (ordenFechaAsc).
+ */
+function renderizarHabitos() {
+	LISTA_HABITOS.innerHTML = "";
+	const orden = SELECT_ORDENAR.value;
+	habitos.slice().sort(function (a, b) {
+		const da = new Date(a.createdAt).getTime();
+		const db = new Date(b.createdAt).getTime();
+		if (orden === "fecha-asc")   return da - db;
+		if (orden === "nombre-asc")  return a.habito.localeCompare(b.habito);
+		if (orden === "nombre-desc") return b.habito.localeCompare(a.habito);
+		return db - da; // fecha-desc por defecto
+	}).forEach(crearHabito);
+	actualizarEstadoVacio();
+}
+
 let timeoutBusqueda = null;
 
 INPUT_BUSQUEDA.addEventListener("input", function () {
@@ -1055,6 +1095,11 @@ BTN_COMPLETAR_TODOS.addEventListener("click", function () {
 			checkbox.click();
 		}
 	});
+});
+
+SELECT_ORDENAR.addEventListener("change", function () {
+	renderizarHabitos();
+	actualizarBotonCompletarTodos();
 });
 
 // ─── Modo oscuro ──────────────────────────────────────────────────────────────
