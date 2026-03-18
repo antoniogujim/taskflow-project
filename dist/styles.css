@@ -832,6 +832,11 @@
       cursor: not-allowed;
     }
   }
+  .disabled\:border-gray-300 {
+    &:disabled {
+      border-color: var(--color-gray-300);
+    }
+  }
   .disabled\:bg-gray-300 {
     &:disabled {
       background-color: var(--color-gray-300);
@@ -1238,6 +1243,13 @@
         @media (hover: hover) {
           background-color: var(--color-red-800);
         }
+      }
+    }
+  }
+  .dark\:disabled\:border-gray-700 {
+    &:where(.dark, .dark *) {
+      &:disabled {
+        border-color: var(--color-gray-700);
       }
     }
   }

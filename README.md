@@ -1,6 +1,6 @@
 # Seguidor de Hábitos
 
-Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite añadir, editar, eliminar, buscar y marcar hábitos como completados, con persistencia de datos en el navegador.
+Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite añadir, editar, eliminar, buscar y marcar hábitos como completados. El proyecto está compuesto por un frontend en HTML, CSS y JavaScript vanilla, y un backend REST API construido con Node.js y Express.
 
 ## Características
 
@@ -16,7 +16,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Al añadir o renombrar un hábito con búsqueda activa, el filtro se limpia automáticamente para que el hábito sea visible
 - **Botón "Completar todos" / "Desmarcar todos"**: junto al buscador, completa o desmarca todos los hábitos visibles en un clic. Si hay una búsqueda activa, solo afecta a los resultados filtrados. Se deshabilita automáticamente cuando no hay hábitos visibles
-- **Selector de orden**: permite ordenar la lista por fecha de creación (reciente o antiguo primero) o por nombre (A→Z / Z→A). El orden se respeta al añadir nuevos hábitos
+- **Selector de orden**: permite ordenar la lista por fecha de creación (reciente o antiguo primero) o por nombre (A→Z / Z→A). El orden se respeta al añadir nuevos hábitos y es compatible con el filtro de búsqueda: al cambiar el orden con una búsqueda activa, los hábitos se reordenan y el filtro se reaaplica automáticamente
 - **Resaltado de hábito nuevo**: al añadir un hábito, su tarjeta aparece brevemente destacada en color lima (claro) o esmeralda (oscuro) y hace scroll hasta ella si es necesario. El color desaparece con una transición suave de 1 segundo
 - Validación de formulario con mensajes de error por campo, incluyendo detección de nombres duplicados
 - Validación de longitud máxima en JS como segunda barrera (independiente del `maxlength` del HTML)
@@ -59,12 +59,19 @@ taskflow-project/
 ├── package.json          # Dependencias del frontend
 ├── dist/
 │   └── styles.css        # CSS compilado (generado por Tailwind)
-└── server/               # Backend Express (Fase B)
+└── server/               # Backend Express
     ├── package.json      # Dependencias del backend
     ├── .env              # Variables de entorno (no incluido en git)
     └── src/
-        └── config/
-            └── env.js    # Carga y validación de variables de entorno
+        ├── index.js              # Entrada del servidor, middlewares y arranque
+        ├── config/
+        │   └── env.js            # Carga y validación de variables de entorno
+        ├── routes/
+        │   └── habito.routes.js  # Conecta verbos HTTP con los controladores
+        ├── controllers/
+        │   └── habito.controller.js  # Gestiona peticiones y respuestas HTTP
+        └── services/
+            └── habito.service.js     # Lógica de negocio pura (sin HTTP)
 ```
 
 ## Instalación
@@ -102,6 +109,36 @@ taskflow-project/
     ```bash
     npm run dev
     ```
+
+## API Endpoints
+
+El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints están bajo el prefijo `/api/v1/habitos`.
+
+| Método | Endpoint              | Descripción                  | Body (JSON)                        | Respuesta          |
+| ------ | --------------------- | ---------------------------- | ---------------------------------- | ------------------ |
+| GET    | `/api/v1/habitos`     | Devuelve todos los hábitos   | —                                  | `200` array JSON   |
+| POST   | `/api/v1/habitos`     | Crea un nuevo hábito         | `{ "habito": "Meditar", "tiempo": "10 minutos" }` | `201` objeto creado |
+| DELETE | `/api/v1/habitos/:id` | Elimina el hábito con ese ID | —                                  | `204` sin contenido |
+
+### Códigos de error
+
+| Código | Motivo                                      |
+| ------ | ------------------------------------------- |
+| `400`  | El campo `habito` es obligatorio y no se ha enviado |
+| `404`  | No existe ningún hábito con ese ID          |
+
+### Ejemplo de hábito
+
+```json
+{
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "habito": "Meditar",
+    "tiempo": "10 minutos",
+    "completado": false
+}
+```
+
+> **Nota:** los datos se almacenan en memoria. Al reiniciar el servidor, los hábitos se pierden.
 
 ## Uso
 

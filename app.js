@@ -448,8 +448,10 @@ function actualizarBotonCompletarTodos() {
 	if (visibles.length === 0) {
 		BTN_COMPLETAR_TODOS.disabled = true;
 		BTN_COMPLETAR_TODOS.textContent = "Completar todos";
+		SELECT_ORDENAR.disabled = true;
 		return;
 	}
+	SELECT_ORDENAR.disabled = false;
 	const hayPendientes = visibles.some(function (item) {
 		return !item.querySelector(".completado").checked;
 	});
@@ -1047,39 +1049,37 @@ function renderizarHabitos() {
 	actualizarEstadoVacio();
 }
 
+function aplicarFiltro() {
+	const textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
+	const items = LISTA_HABITOS.querySelectorAll("li");
+
+	items.forEach(function (item) {
+		const nombreItem = item.querySelector(".nombre").textContent.toLowerCase();
+		item.hidden = !nombreItem.includes(textoBuscado);
+	});
+
+	if (textoBuscado === "") {
+		actualizarEstadoVacio();
+	} else {
+		const hayVisibles = Array.from(items).some(function (item) {
+			return !item.hidden;
+		});
+		if (!hayVisibles && habitos.length > 0) {
+			LISTA_VACIA.textContent = "No se encontraron hábitos que coincidan con la búsqueda.";
+			LISTA_VACIA.hidden = false;
+		} else {
+			LISTA_VACIA.hidden = true;
+		}
+	}
+
+	actualizarBotonCompletarTodos();
+}
+
 let timeoutBusqueda = null;
 
 INPUT_BUSQUEDA.addEventListener("input", function () {
 	clearTimeout(timeoutBusqueda);
-	timeoutBusqueda = setTimeout(function () {
-		const textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
-		const items = LISTA_HABITOS.querySelectorAll("li");
-
-		items.forEach(function (item) {
-			const nombreItem = item.querySelector(".nombre").textContent.toLowerCase();
-			// Usar `hidden` en lugar de style.display para excluir el elemento
-			// del árbol de accesibilidad y evitar que lectores de pantalla lo lean
-			item.hidden = !nombreItem.includes(textoBuscado);
-		});
-
-		if (textoBuscado === "") {
-			// Sin búsqueda activa: restaura el mensaje original y el comportamiento normal
-			actualizarEstadoVacio();
-		} else {
-			// Con búsqueda activa: muestra feedback si ningún hábito coincide
-			const hayVisibles = Array.from(items).some(function (item) {
-				return !item.hidden;
-			});
-			if (!hayVisibles && habitos.length > 0) {
-				LISTA_VACIA.textContent = "No se encontraron hábitos que coincidan con la búsqueda.";
-				LISTA_VACIA.hidden = false;
-			} else {
-				LISTA_VACIA.hidden = true;
-			}
-		}
-
-		actualizarBotonCompletarTodos();
-	}, 200);
+	timeoutBusqueda = setTimeout(aplicarFiltro, 200);
 });
 
 BTN_COMPLETAR_TODOS.addEventListener("click", function () {
@@ -1099,7 +1099,7 @@ BTN_COMPLETAR_TODOS.addEventListener("click", function () {
 
 SELECT_ORDENAR.addEventListener("change", function () {
 	renderizarHabitos();
-	actualizarBotonCompletarTodos();
+	aplicarFiltro();
 });
 
 // ─── Modo oscuro ──────────────────────────────────────────────────────────────
