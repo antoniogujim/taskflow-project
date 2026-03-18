@@ -24,6 +24,27 @@ const habitoRouter = require('./routes/habito.routes');
 // Todas las rutas definidas en habito.routes.js serán accesibles desde aquí
 app.use('/api/v1/habitos', habitoRouter);
 
+// Middleware de manejo de errores — debe ir al final, después de todas las rutas
+// Express lo identifica por tener 4 parámetros (err, req, res, next)
+// Se activa cuando cualquier controlador llama a next(error)
+// Evalúa el mensaje del error para decidir qué código HTTP devolver:
+// - 'NOT_FOUND' → 404 (error del cliente, recurso inexistente)
+// - cualquier otro → 500 (fallo no controlado, se registra la traza completa)
+// En los 500 nunca se filtra el error real al cliente para no exponer detalles técnicos
+
+function manejadorErrores(err, req, res, next) {
+    if (err.message === 'NOT_FOUND') {
+        return res.status(404).json({ error: 'Hábito no encontrado' });
+    }
+
+    // Registramos la traza completa del error en consola para poder depurarlo
+    // pero enviamos al cliente un mensaje genérico sin detalles técnicos
+    console.error(err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+}
+
+app.use(manejadorErrores);
+
 // Arranca el servidor en el puerto definido en .env
 // El callback confirma en consola que el servidor está listo
 app.listen(process.env.PORT, () => {

@@ -21,7 +21,8 @@ function crearHabito(data) {
 }
 
 // Elimina el hábito cuyo ID coincida con el recibido
-// Si no existe, lanza un error que el controlador capturará y convertirá en 404
+// Si no existe, lanza un error que el middleware global capturará
+// El mensaje 'NOT_FOUND' es evaluado por el middleware para devolver un 404
 function eliminarHabito(id) {
     const index = habitos.findIndex((h) => h.id === id);
     if (index === -1) {

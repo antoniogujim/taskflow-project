@@ -126,6 +126,7 @@ El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints es
 | ------ | ------------------------------------------- |
 | `400`  | El campo `habito` es obligatorio y no se ha enviado |
 | `404`  | No existe ningún hábito con ese ID          |
+| `500`  | Error interno no controlado del servidor    |
 
 ### Ejemplo de hábito
 
@@ -268,6 +269,7 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 - Node.js con Express
 - dotenv para gestión de variables de entorno
 - nodemon para recarga automática en desarrollo
+- Middleware global de manejo de errores: captura cualquier excepción no controlada, mapea `NOT_FOUND` a `404` y cualquier otro fallo a `500` con mensaje genérico (sin filtrar detalles técnicos al cliente)
 
 ## Variables de tema (styles.css)
 

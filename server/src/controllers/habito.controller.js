@@ -22,7 +22,9 @@ function create(req, res) {
 }
 
 // Elimina el hábito cuyo ID llega en la URL (/api/v1/habitos/:id)
-function remove(req, res) {
+// Si el servicio lanza un error, se lo pasamos a next() para que el middleware
+// de errores lo gestione — el controlador no necesita saber qué tipo de error es
+function remove(req, res, next) {
     const { id } = req.params;
 
     try {
@@ -30,9 +32,7 @@ function remove(req, res) {
         // 204: éxito sin contenido, el hábito ya no existe
         res.status(204).send();
     } catch (error) {
-        if (error.message === 'NOT_FOUND') {
-            return res.status(404).json({ error: 'Hábito no encontrado' });
-        }
+        next(error);
     }
 }
 

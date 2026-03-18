@@ -688,6 +688,9 @@ function crearHabito(habito) {
 		wrapEdicion.style.pointerEvents = "none";
 		wrapAcciones.style.opacity = "1";
 		wrapAcciones.style.pointerEvents = "auto";
+
+		// Si hay búsqueda activa, re-aplicar el filtro para que refleje el estado real
+		if (INPUT_BUSQUEDA.value) aplicarFiltro();
 	}
 
 	/*
@@ -746,6 +749,7 @@ function crearHabito(habito) {
 		btnCancelar.setAttribute("aria-label", "Cancelar eliminación de: " + nuevoNombre);
 
 		guardarHabitos();
+		renderizarHabitos();
 
 		// Si hay una búsqueda activa, se limpia para que el hábito renombrado
 		// siempre sea visible tras guardar, igual que al añadir un hábito nuevo.
