@@ -16,7 +16,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Al añadir o renombrar un hábito con búsqueda activa, el filtro se limpia automáticamente para que el hábito sea visible
 - **Botón "Completar todos" / "Desmarcar todos"**: junto al buscador, completa o desmarca todos los hábitos visibles en un clic. Si hay una búsqueda activa, solo afecta a los resultados filtrados. Se deshabilita automáticamente cuando no hay hábitos visibles
-- **Selector de orden**: permite ordenar la lista por fecha de creación (reciente o antiguo primero) o por nombre (A→Z / Z→A). El orden se respeta al añadir nuevos hábitos y es compatible con el filtro de búsqueda: al cambiar el orden con una búsqueda activa, los hábitos se reordenan y el filtro se reaaplica automáticamente
+- **Selector de orden**: permite ordenar la lista por fecha de creación (reciente o antiguo primero) o por nombre (A→Z / Z→A). El orden se respeta al añadir nuevos hábitos y es compatible con el filtro de búsqueda: al cambiar el orden con una búsqueda activa, los hábitos se reordenan y el filtro se reaaplica automáticamente. Se deshabilita automáticamente cuando no hay hábitos visibles
 - **Resaltado de hábito nuevo**: al añadir un hábito, su tarjeta aparece brevemente destacada en color lima (claro) o esmeralda (oscuro) y hace scroll hasta ella si es necesario. El color desaparece con una transición suave de 1 segundo
 - Validación de formulario con mensajes de error por campo, incluyendo detección de nombres duplicados
 - Validación de longitud máxima en JS como segunda barrera (independiente del `maxlength` del HTML)
@@ -62,6 +62,7 @@ taskflow-project/
 └── server/               # Backend Express
     ├── package.json      # Dependencias del backend
     ├── .env              # Variables de entorno (no incluido en git)
+    ├── pruebas-integracion.md    # Registro de pruebas manuales de la API
     └── src/
         ├── index.js              # Entrada del servidor, middlewares y arranque
         ├── config/
@@ -140,6 +141,20 @@ El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints es
 ```
 
 > **Nota:** los datos se almacenan en memoria. Al reiniciar el servidor, los hábitos se pierden.
+
+## Pruebas de integración de la API
+
+Se han realizado pruebas manuales sobre los tres endpoints de la API, cubriendo 14 casos: lista vacía, lista con datos, creación con datos válidos e inválidos (campo faltante, body vacío, sin body, campo desconocido, tipos incorrectos), y eliminación con ID existente, inexistente y repetido.
+
+Los resultados están documentados en [`server/pruebas-integracion.md`](server/pruebas-integracion.md).
+
+### Resumen de resultados
+
+| Resultado | Casos |
+| --------- | ----- |
+| OK | 1, 2, 3, 4, 5, 8, 12, 13, 14 |
+| Incorrecto (a corregir) | 6 (POST sin body devuelve 500 en vez de 400), 11 (DELETE sin ID devuelve HTML en vez de JSON) |
+| Comportamiento a revisar | 7, 9, 10.1, 10.2, 10.3 (sin validación estricta de tipo ni campos desconocidos) |
 
 ## Uso
 
