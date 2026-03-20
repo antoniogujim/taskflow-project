@@ -4,7 +4,9 @@ const { randomUUID } = require('crypto');
 
 // Array en memoria que simula una base de datos
 // Cuando el servidor se reinicia, se pierde todo (intencional por ahora)
+
 let habitos = [];
+
 
 // Busca un hábito por ID y devuelve su índice en el array.
 // Si no existe, lanza NOT_FOUND para que el middleware de errores devuelva un 404.

@@ -1105,3 +1105,862 @@ El servidor valida ahora de forma estricta las entradas del cliente antes de pro
 ## 3ª fase de pruebas — nuevos endpoints
 
 A partir de aquí, los hábitos incluyen siempre los campos `streakActual` y `fechaReferenciaRacha`. Estos campos no aparecían en las fases anteriores porque el servidor no los gestionaba todavía, pero desde que se añadieron al servicio al inicio de esta fase, forman parte de todos los hábitos automáticamente desde su creación.
+
+---
+
+## PATCH `/:id` — Editar hábito
+
+### Caso 16: ID existente con datos válidos
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id
+Body: { "habito": "Estudiar", "tiempo": "15 min" }
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+{
+  "id": "...",
+  "habito": "Estudiar",
+  "tiempo": "15 min",
+  "completado": false,
+  "streakActual": 0,
+  "fechaReferenciaRacha": null,
+  "createdAt": "..."
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 200 OK
+Response:
+{
+  "id": "8a5692aa-5d9f-4692-a6ad-049735129658",
+  "habito": "Estudiar",
+  "tiempo": "15 min",
+  "completado": false,
+  "createdAt": "2026-03-20T13:19:53.203Z",
+  "streakActual": 0,
+  "fechaReferenciaRacha": null
+}
+```
+
+---
+
+### Caso 16b: Sin body
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id
+Body: —
+```
+
+**Respuesta esperada**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El nombre del hábito y la duración son obligatorios"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El nombre del hábito y la duración son obligatorios"
+}
+```
+
+---
+
+### Caso 16c: Body vacío `{}`
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id
+Body: {}
+```
+
+**Respuesta esperada**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El nombre del hábito y la duración son obligatorios"
+}
+```
+
+**Respuesta obtenida**
+```
+Status:400 Bad Request
+Response:
+{
+  "error": "El nombre del hábito y la duración son obligatorios"
+}
+```
+
+---
+
+### Caso 16d: `habito` con tipo incorrecto
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id
+Body: { "habito": 123, "tiempo": "10 min" }
+```
+
+**Respuesta esperada**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El nombre del hábito debe ser un texto"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El nombre del hábito debe ser un texto"
+}
+```
+
+---
+
+### Caso 16e: `habito` con string vacío o solo espacios
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id
+Body: { "habito": "   ", "tiempo": "10 min" }
+```
+
+**Respuesta esperada**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El nombre del hábito es obligatorio"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El nombre del hábito es obligatorio"
+}
+```
+
+---
+
+### Caso 16f: `tiempo` con tipo incorrecto
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id
+Body: { "habito": "Meditar", "tiempo": true }
+```
+
+**Respuesta esperada**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "La duración debe ser un texto"
+}
+```
+
+**Respuesta obtenida**
+```
+Status:400 Bad Request
+Response:
+{
+  "error": "La duración debe ser un texto"
+}
+```
+
+---
+
+### Caso 16g: `tiempo` con string vacío o solo espacios
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id
+Body: { "habito": "Meditar", "tiempo": "" }
+```
+
+**Respuesta esperada**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "La duración es obligatoria"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "La duración es obligatoria"
+}
+```
+
+---
+
+### Caso 17: ID inexistente
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/id-que-no-existe
+Body: { "habito": "Meditar", "tiempo": "15 min" }
+```
+
+**Respuesta esperada**
+```
+Status: 404 Not Found
+Response:
+{
+  "error": "Hábito no encontrado"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 404 Not Found
+Response:
+{
+  "error": "Hábito no encontrado"
+}
+```
+
+---
+
+### Caso 18: Nombre duplicado de otro hábito
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id
+Body: { "habito": "NombreYaUsadoPorOtro", "tiempo": "10 min" }
+// El nombre pertenece a un hábito distinto
+```
+
+**Respuesta esperada**
+```
+Status: 409 Conflict
+Response:
+{
+  "error": "Este hábito ya existe"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 409 Conflict
+Response:
+{
+  "error": "Este hábito ya existe"
+}
+```
+
+---
+
+### Caso 19: Mismo nombre sin cambios
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id
+Body: { "habito": "MismoNombreDelHabito", "tiempo": "10 min" }
+// El nombre coincide con el propio hábito que se está editando
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+{
+  "id": "...",
+  "habito": "MismoNombreDelHabito",
+  "tiempo": "10 min",
+  ...
+}
+// No debe dar error de duplicado
+```
+
+**Respuesta obtenida**
+```
+Status: 200 OK
+Response:
+{
+  "id": "8a5692aa-5d9f-4692-a6ad-049735129658",
+  "habito": "volar",
+  "tiempo": "12 min",
+  "completado": false,
+  "createdAt": "2026-03-20T13:19:53.203Z",
+  "streakActual": 0,
+  "fechaReferenciaRacha": null
+}
+```
+
+---
+
+### Caso 20: Campos extra en el body
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id
+Body: { "habito": "volar", "tiempo": "10 min", "color": "azul" }
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+{
+  "id": "...",
+  "habito": "volar",
+  "tiempo": "10 min",
+  "completado": false,
+  "streakActual": 0,
+  "fechaReferenciaRacha": null,
+  "createdAt": "..."
+}
+// El campo "color" debe descartarse
+```
+
+**Respuesta obtenida**
+```
+Status: 200 OK
+Response:
+{
+  "id": "8a5692aa-5d9f-4692-a6ad-049735129658",
+  "habito": "volar",
+  "tiempo": "10 min",
+  "completado": false,
+  "createdAt": "2026-03-20T13:19:53.203Z",
+  "streakActual": 0,
+  "fechaReferenciaRacha": null
+}
+```
+
+---
+
+## PATCH `/:id/completar` — Completar / desmarcar
+
+### Caso 21: `completado` ausente en el body
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id/completar
+Body: {}
+```
+
+**Respuesta esperada**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El valor de completado debe ser true o false"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El valor de completado debe ser true o false"
+}
+```
+
+---
+
+### Caso 22: `completado` con valor no booleano
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id/completar
+Body: { "completado": "true" }
+```
+
+**Respuesta esperada**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El valor de completado debe ser true o false"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El valor de completado debe ser true o false"
+}
+```
+
+---
+
+### Caso 23: ID inexistente
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/id-que-no-existe/completar
+Body: { "completado": true }
+```
+
+**Respuesta esperada**
+```
+Status: 404 Not Found
+Response:
+{
+  "error": "Hábito no encontrado"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 404 Not Found
+Response:
+{
+  "error": "Hábito no encontrado"
+}
+```
+
+---
+
+### Caso 24: Marcar por primera vez
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id/completar
+Body: { "completado": true }
+// El hábito tiene streakActual = 0 y fechaReferenciaRacha = null
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+{
+  ...
+  "completado": true,
+  "streakActual": 1,
+  "fechaReferenciaRacha": "fecha de hoy"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 200 OK
+Response:
+{
+  "id": "8a5692aa-5d9f-4692-a6ad-049735129658",
+  "habito": "volar",
+  "tiempo": "10 min",
+  "completado": true,
+  "createdAt": "2026-03-20T13:19:53.203Z",
+  "streakActual": 1,
+  "fechaReferenciaRacha": "2026-03-20"
+}
+```
+
+---
+
+### Caso 25: Marcar dos veces el mismo día
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id/completar
+Body: { "completado": true }
+// El hábito ya está completado con fechaReferenciaRacha = hoy
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+{
+  ...
+  "completado": true,
+  "streakActual": 1,
+  "fechaReferenciaRacha": "fecha de hoy"
+}
+// El streak no debe incrementar
+```
+
+**Respuesta obtenida**
+```
+Status: 200 OK
+Response:
+{
+  "id": "8a5692aa-5d9f-4692-a6ad-049735129658",
+  "habito": "volar",
+  "tiempo": "10 min",
+  "completado": true,
+  "createdAt": "2026-03-20T13:19:53.203Z",
+  "streakActual": 1, (no ha incrementado)
+  "fechaReferenciaRacha": "2026-03-20"
+}
+```
+
+---
+
+### Caso 26: Desmarcar con streak = 1
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id/completar
+Body: { "completado": false }
+// El hábito tiene streakActual = 1
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+{
+  ...
+  "completado": false,
+  "streakActual": 2,
+  "fechaReferenciaRacha": La de ayer 
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 200 OK
+Response:
+{
+  "id": "test-10",
+  "habito": "TEST - Límite de racha",
+  "tiempo": "10 minutos",
+  "completado": false,
+  "createdAt": "2026-03-20T14:04:15.487Z",
+  "streakActual": 0,
+  "fechaReferenciaRacha": null
+}
+```
+
+---
+
+### Caso 27: Desmarcar con streak > 1
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id/completar
+Body: { "completado": false }
+// El hábito tiene streakActual = 3
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+{
+  ...
+  "completado": false,
+  "streakActual": 2,
+  "fechaReferenciaRacha": "fecha de ayer" //prueba realizada 20/03/2026 (habito creado falsamente para la prueba)
+}
+```
+
+**Respuesta obtenida**
+```
+Status:
+Response:
+{
+  "id": "54ec9727-122e-4ba7-99e7-74c19b2332ea",
+  "habito": "TEST - Hábito con racha",
+  "tiempo": "10 minutos",
+  "completado": false,
+  "createdAt": "2026-03-20T13:57:04.988Z",
+  "streakActual": 2,
+  "fechaReferenciaRacha": "2026-03-19"
+}
+```
+
+---
+
+### Caso 28: Desmarcar con streak ya en 0
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id/completar
+Body: { "completado": false }
+// El hábito tiene streakActual = 0
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+{
+  ...
+  "completado": false,
+  "streakActual": 0,
+  "fechaReferenciaRacha": null
+}
+// El streak no debe bajar a negativo
+```
+
+**Respuesta obtenida**
+```
+Status: 200 OK
+Response:
+{
+  "id": "test-10",
+  "habito": "TEST - Límite de racha",
+  "tiempo": "10 minutos",
+  "completado": false,
+  "createdAt": "2026-03-20T14:04:15.487Z",
+  "streakActual": 0,
+  "fechaReferenciaRacha": null
+}
+```
+
+---
+
+### Caso 29: Completar días consecutivos
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id/completar
+Body: { "completado": true }
+// El hábito tiene fechaReferenciaRacha = ayer y streakActual = 2
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+{
+  ...
+  "completado": true,
+  "streakActual": 3,
+  "fechaReferenciaRacha": "fecha de hoy"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 200 OK
+Response:
+{
+  "id": "test",
+  "habito": "TEST - Hábito con racha",
+  "tiempo": "10 minutos",
+  "completado": true,
+  "createdAt": "2026-03-20T14:10:01.290Z",
+  "streakActual": 3,
+  "fechaReferenciaRacha": "2026-03-20" //dia que se hizo la prueba
+}
+```
+
+---
+
+### Caso 30: Saltar un día y completar
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id/completar
+Body: { "completado": true }
+// El hábito tiene fechaReferenciaRacha = hace 2 días y streakActual = 5
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+{
+  ...
+  "completado": true,
+  "streakActual": 1,
+  "fechaReferenciaRacha": "fecha de hoy"
+}
+// Al saltar un día la racha se reinicia a 1
+```
+
+**Respuesta obtenida**
+```
+Status: 200 OK
+Response:
+{
+  "id": "test",
+  "habito": "TEST - Hábito con racha",
+  "tiempo": "10 minutos",
+  "completado": true,
+  "createdAt": "2026-03-20T14:13:04.228Z",
+  "streakActual": 1,
+  "fechaReferenciaRacha": "2026-03-20"
+}
+```
+
+---
+
+## POST `/reset` — Reset diario
+
+### Caso 31: Con hábitos completados
+
+**Petición**
+```
+POST http://localhost:3000/api/v1/habitos/reset
+// Hay hábitos con completado: true
+```
+
+**Respuesta esperada**
+```
+Status: 204 No Content
+// Todos los hábitos quedan con completado: false
+```
+
+**Respuesta obtenida**
+```
+Status:204 No Content
+//Aun asi, compruebo con get que se han modificado, y efectivamente, se han peusto en false
+```
+
+---
+
+### Caso 32: Con racha activa y fecha de ayer
+
+**Petición**
+```
+POST http://localhost:3000/api/v1/habitos/reset
+// Hay un hábito con streakActual = 3 y fechaReferenciaRacha = ayer
+```
+
+**Respuesta esperada**
+```
+Status: 204 No Content
+// El hábito queda con completado: false, streakActual = 3, fechaReferenciaRacha = ayer
+// La racha se mantiene porque el último día completado fue ayer
+```
+
+**Respuesta obtenida**
+```
+Status: 204 No Content
+//Efectivamente, la racha se mantiene pero queda en false.
+```
+
+---
+
+### Caso 33: Con racha activa y fecha antigua
+
+**Petición**
+```
+POST http://localhost:3000/api/v1/habitos/reset
+// Hay un hábito con streakActual = 5 y fechaReferenciaRacha = hace 3 días
+```
+
+**Respuesta esperada**
+```
+Status: 204 No Content
+// El hábito queda con completado: false, streakActual = 0, fechaReferenciaRacha = null
+// La racha se rompe porque se saltaron días
+```
+
+**Respuesta obtenida**
+```
+Status:204 No content
+efectivamente, al comprobar el habito, se han reiniciado ambas referencias
+```
+
+---
+
+### Caso 34: Lista vacía
+
+**Petición**
+```
+POST http://localhost:3000/api/v1/habitos/reset
+// No hay ningún hábito creado
+```
+
+**Respuesta esperada**
+```
+Status: 204 No Content
+// No hay nada que resetear pero no debe dar error
+```
+
+**Respuesta obtenida**
+```
+Status: 204 No Content
+//funciona
+```
+
+---
+
+## Nuevo caso detectado
+
+### Caso 35: PATCH /completar con `fechaReferenciaRacha` en el futuro — servidor colgado
+
+Detectado al intentar simular días consecutivos cambiando la fecha del sistema. El procedimiento fue:
+
+1. Completar el hábito con la fecha real → `streakActual = 1`, `fechaReferenciaRacha = hoy`
+2. Cambiar la fecha del sistema a **ayer** (en lugar de mañana)
+3. Volver a llamar a PATCH `/completar` con `{ "completado": true }`
+
+Al cambiar la fecha del sistema a ayer, el servidor ve que `fechaReferenciaRacha` del hábito es **mañana** (una fecha posterior a "hoy" según el sistema). Esta situación no está contemplada en la lógica del servicio, que solo compara con `ayer` y `hoy`. El resultado fue que la petición quedó colgada indefinidamente sin devolver respuesta ni error, bloqueando el servidor hasta reiniciarlo.
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/:id/completar
+Body: { "completado": true }
+// El hábito tiene fechaReferenciaRacha = fecha posterior a la fecha actual del sistema
+```
+
+**Respuesta esperada**
+```
+// Comportamiento a definir — la opción más segura sería reiniciar la racha a 1
+// En ningún caso debería colgar el servidor
+```
+
+**Respuesta obtenida**
+```
+Fue un problema falso. Ocurrio porque cambie la hora en el pc de manera falsa en lugar de crear un habito falso. Al probarlo, simplemente actualiza con racha 1
+```
+
+---
+
+## Informe de resultados — 3ª fase
+
+| Caso | Descripción | Resultado |
+|------|-------------|-----------|
+| 16 | PATCH ID existente con datos válidos | OK |
+| 16b | PATCH sin body | OK |
+| 16c | PATCH body vacío `{}` | OK |
+| 16d | PATCH `habito` con tipo incorrecto | OK |
+| 16e | PATCH `habito` con string vacío o solo espacios | OK |
+| 16f | PATCH `tiempo` con tipo incorrecto | OK |
+| 16g | PATCH `tiempo` con string vacío o solo espacios | OK |
+| 17 | PATCH ID inexistente | OK |
+| 18 | PATCH nombre duplicado de otro hábito | OK |
+| 19 | PATCH mismo nombre sin cambios | OK |
+| 20 | PATCH campos extra en el body | OK |
+| 21 | PATCH /completar sin campo `completado` | OK |
+| 22 | PATCH /completar `completado` no booleano | OK |
+| 23 | PATCH /completar ID inexistente | OK |
+| 24 | PATCH /completar marcar por primera vez | OK |
+| 25 | PATCH /completar marcar dos veces el mismo día | OK |
+| 26 | PATCH /completar desmarcar con streak = 1 | OK |
+| 27 | PATCH /completar desmarcar con streak > 1 | OK |
+| 28 | PATCH /completar desmarcar con streak = 0 | OK |
+| 29 | PATCH /completar completar días consecutivos | OK |
+| 30 | PATCH /completar saltar un día y completar | OK |
+| 31 | POST /reset con hábitos completados | OK |
+| 32 | POST /reset con racha activa y fecha de ayer | OK |
+| 33 | POST /reset con racha activa y fecha antigua | OK |
+| 34 | POST /reset lista vacía | OK |
+| 35 | PATCH /completar con `fechaReferenciaRacha` en el futuro | OK — falso positivo, no era bug |

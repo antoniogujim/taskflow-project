@@ -106,6 +106,11 @@ function update(req, res, next) {
 // Marca o desmarca un hábito como completado y actualiza su racha
 function complete(req, res, next) {
     const { id } = req.params;
+
+    if (!req.body || typeof req.body !== 'object') {
+        return res.status(400).json({ error: 'El cuerpo de la petición es obligatorio' });
+    }
+
     const { completado } = req.body;
 
     // completado debe ser exactamente true o false — no vale un string "true" ni un número.

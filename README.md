@@ -151,11 +151,11 @@ El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints es
 
 ## Pruebas de integración de la API
 
-Se han realizado pruebas manuales en varias fases sobre los endpoints de la API.
+Se han realizado pruebas manuales en tres fases sobre los endpoints de la API, con un total de 35 casos cubiertos.
 
-La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). Todos los casos de ambas fases resultaron correctos tras las correcciones. La tercera fase, actualmente en curso, cubre los nuevos endpoints de editar, completar y reset.
+La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). La tercera fase cubrió los nuevos endpoints de editar (`PATCH /:id`), completar (`PATCH /:id/completar`) y reset (`POST /reset`), incluyendo la lógica de racha. Todos los casos de las tres fases resultaron correctos.
 
-Los resultados están documentados en [`server/pruebas-integracion.md`](server/pruebas-integracion.md).
+Los resultados están documentados en [`server/Pruebas-integracion.md`](server/Pruebas-integracion.md).
 
 ### Correcciones aplicadas tras la 1ª fase
 
@@ -168,6 +168,12 @@ Los resultados están documentados en [`server/pruebas-integracion.md`](server/p
 | Tipos incorrectos (número, booleano, array) se aceptaban | Validación con `typeof` para exigir string en `habito` y `tiempo` |
 | `tiempo` no era obligatorio | Añadida validación equivalente a la de `habito` para el campo `tiempo` |
 | Se podían crear hábitos duplicados | Comprobación en el servicio con `.some()` antes de insertar; devuelve 409 si ya existe |
+
+### Correcciones aplicadas tras la 3ª fase
+
+| Problema | Solución |
+| -------- | -------- |
+| `PATCH /completar` sin body podía causar un 500 | Guarda defensiva añadida al controlador `complete`, igual que en `create` y `update` |
 
 ## Uso
 
