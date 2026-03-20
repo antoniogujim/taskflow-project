@@ -1101,3 +1101,7 @@ Todos los casos de la 2ª fase han resultado correctos. Los dos errores detectad
 Durante las pruebas se detectó además un caso no contemplado anteriormente: la posibilidad de crear hábitos duplicados. Se corrigió en esta misma fase añadiendo una comprobación en el servicio que devuelve un 409 si ya existe un hábito con el mismo nombre.
 
 El servidor valida ahora de forma estricta las entradas del cliente antes de procesar ningún dato, y todas las respuestas de error son consistentes en formato JSON.
+
+## 3ª fase de pruebas — nuevos endpoints
+
+A partir de aquí, los hábitos incluyen siempre los campos `streakActual` y `fechaReferenciaRacha`. Estos campos no aparecían en las fases anteriores porque el servidor no los gestionaba todavía, pero desde que se añadieron al servicio al inicio de esta fase, forman parte de todos los hábitos automáticamente desde su creación.

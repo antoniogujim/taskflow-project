@@ -115,17 +115,20 @@ taskflow-project/
 
 El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints están bajo el prefijo `/api/v1/habitos`.
 
-| Método | Endpoint              | Descripción                  | Body (JSON)                        | Respuesta          |
-| ------ | --------------------- | ---------------------------- | ---------------------------------- | ------------------ |
-| GET    | `/api/v1/habitos`     | Devuelve todos los hábitos   | —                                  | `200` array JSON   |
-| POST   | `/api/v1/habitos`     | Crea un nuevo hábito         | `{ "habito": "Meditar", "tiempo": "10 minutos" }` | `201` objeto creado |
-| DELETE | `/api/v1/habitos/:id` | Elimina el hábito con ese ID | —                                  | `204` sin contenido |
+| Método | Endpoint                          | Descripción                                        | Body (JSON)                                        | Respuesta           |
+| ------ | --------------------------------- | -------------------------------------------------- | -------------------------------------------------- | ------------------- |
+| GET    | `/api/v1/habitos`                 | Devuelve todos los hábitos                         | —                                                  | `200` array JSON    |
+| POST   | `/api/v1/habitos`                 | Crea un nuevo hábito                               | `{ "habito": "Meditar", "tiempo": "10 minutos" }`  | `201` objeto creado |
+| PATCH  | `/api/v1/habitos/:id`             | Edita el nombre y la duración de un hábito         | `{ "habito": "Leer", "tiempo": "30 minutos" }`     | `200` objeto actualizado |
+| PATCH  | `/api/v1/habitos/:id/completar`   | Marca o desmarca un hábito y actualiza su racha    | `{ "completado": true }`                           | `200` objeto actualizado |
+| POST   | `/api/v1/habitos/reset`           | Resetea todos los hábitos a `completado: false` y rompe rachas antiguas | —                         | `204` sin contenido |
+| DELETE | `/api/v1/habitos/:id`             | Elimina el hábito con ese ID                       | —                                                  | `204` sin contenido |
 
 ### Códigos de error
 
 | Código | Motivo                                      |
 | ------ | ------------------------------------------- |
-| `400`  | Body ausente o no válido; campos `habito` o `tiempo` faltantes, vacíos, con solo espacios, o de tipo incorrecto (se requiere string) |
+| `400`  | Body ausente o no válido; campos `habito` o `tiempo` faltantes, vacíos, con solo espacios, o de tipo incorrecto (se requiere string); `completado` no es booleano |
 | `404`  | No existe ningún hábito con ese ID, o la ruta solicitada no existe |
 | `409`  | Ya existe un hábito con el mismo nombre     |
 | `500`  | Error interno no controlado del servidor    |
@@ -138,7 +141,9 @@ El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints es
     "habito": "Meditar",
     "tiempo": "10 minutos",
     "completado": false,
-    "createdAt": "2026-03-20T10:00:00.000Z"
+    "createdAt": "2026-03-20T10:00:00.000Z",
+    "streakActual": 3,
+    "fechaReferenciaRacha": "2026-03-19"
 }
 ```
 
@@ -146,9 +151,9 @@ El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints es
 
 ## Pruebas de integración de la API
 
-Se han realizado pruebas manuales en dos fases sobre los tres endpoints de la API, cubriendo 15 casos en total.
+Se han realizado pruebas manuales en varias fases sobre los endpoints de la API.
 
-La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). Todos los casos de ambas fases resultaron correctos tras las correcciones.
+La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). Todos los casos de ambas fases resultaron correctos tras las correcciones. La tercera fase, actualmente en curso, cubre los nuevos endpoints de editar, completar y reset.
 
 Los resultados están documentados en [`server/pruebas-integracion.md`](server/pruebas-integracion.md).
 
