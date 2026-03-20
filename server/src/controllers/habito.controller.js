@@ -9,14 +9,55 @@ function getAll(req, res) {
 
 // Crea un nuevo hábito con los datos recibidos del cliente
 function create(req, res) {
-    const { habito } = req.body;
 
-    // Validación: si no hay habito, rechazamos la petición
+    // Guarda defensiva: si no hay body o no es un objeto, paramos con 400
+    // Sin esto, desestructurar req.body cuando es undefined lanzaría un TypeError
+    // que llegaría al manejador de errores como 500.
+    // El typeof cubre también el caso null: en JavaScript typeof null === 'object'
+    // (bug histórico del lenguaje), así que el !req.body es necesario para descartarlo
+
+    if (!req.body || typeof req.body !== 'object') {
+        return res.status(400).json({ error: 'El cuerpo de la petición es obligatorio' });
+    }
+
+    const { habito, tiempo } = req.body;
+
+    // Si faltan los dos campos a la vez, informamos de ambos en un solo mensaje
+    if (!habito && !tiempo) {
+        return res.status(400).json({ error: 'El nombre del hábito y la duración son obligatorios' });
+    }
+
+    // Si solo falta el nombre, informamos específicamente de ese campo
     if (!habito) {
         return res.status(400).json({ error: 'El nombre del hábito es obligatorio' });
     }
 
-    // Pasamos el body completo al servicio para no perder campos extra
+    // El nombre debe ser un texto, no un número, booleano, array u otro tipo
+    if (typeof habito !== 'string') {
+        return res.status(400).json({ error: 'El nombre del hábito debe ser un texto' });
+    }
+
+    // Un string con solo espacios se trata como vacío
+    if (habito.trim() === '') {
+        return res.status(400).json({ error: 'El nombre del hábito es obligatorio' });
+    }
+
+    // Si solo falta la duración, informamos específicamente de ese campo
+    if (!tiempo) {
+        return res.status(400).json({ error: 'La duración es obligatoria' });
+    }
+
+    // La duración debe ser un texto, no un número, booleano, array u otro tipo
+    if (typeof tiempo !== 'string') {
+        return res.status(400).json({ error: 'La duración debe ser un texto' });
+    }
+
+    // Un string con solo espacios se trata como vacío
+    if (tiempo.trim() === '') {
+        return res.status(400).json({ error: 'La duración es obligatoria' });
+    }
+
+    // El servicio extrae solo los campos permitidos; campos extra del cliente se descartan
     const nuevoHabito = habitoService.crearHabito(req.body);
     res.status(201).json(nuevoHabito);
 }

@@ -32,9 +32,22 @@ app.use('/api/v1/habitos', habitoRouter);
 // - cualquier otro → 500 (fallo no controlado, se registra la traza completa)
 // En los 500 nunca se filtra el error real al cliente para no exponer detalles técnicos
 
+// Middleware catch-all: captura cualquier petición que no haya coincidido con ninguna ruta anterior.
+// Express ejecuta los middlewares en orden; si ninguno gestionó la petición, llega aquí.
+// Sin este middleware, Express generaría y enviaría su propia respuesta HTML directamente,
+// sin pasar por el manejador de errores ni por ningún otro middleware nuestro.
+// Debe ir después de todas las rutas y antes del manejador de errores.
+app.use((req, res) => {
+    res.status(404).json({ error: 'Ruta no encontrada' });
+});
+
 function manejadorErrores(err, req, res, next) {
     if (err.message === 'NOT_FOUND') {
         return res.status(404).json({ error: 'Hábito no encontrado' });
+    }
+
+    if (err.message === 'DUPLICATE') {
+        return res.status(409).json({ error: 'Este hábito ya existe' });
     }
 
     // Registramos la traza completa del error en consola para poder depurarlo

@@ -125,8 +125,9 @@ El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints es
 
 | Código | Motivo                                      |
 | ------ | ------------------------------------------- |
-| `400`  | El campo `habito` es obligatorio y no se ha enviado |
-| `404`  | No existe ningún hábito con ese ID          |
+| `400`  | Body ausente o no válido; campos `habito` o `tiempo` faltantes, vacíos, con solo espacios, o de tipo incorrecto (se requiere string) |
+| `404`  | No existe ningún hábito con ese ID, o la ruta solicitada no existe |
+| `409`  | Ya existe un hábito con el mismo nombre     |
 | `500`  | Error interno no controlado del servidor    |
 
 ### Ejemplo de hábito
@@ -136,7 +137,8 @@ El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints es
     "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "habito": "Meditar",
     "tiempo": "10 minutos",
-    "completado": false
+    "completado": false,
+    "createdAt": "2026-03-20T10:00:00.000Z"
 }
 ```
 
@@ -144,17 +146,23 @@ El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints es
 
 ## Pruebas de integración de la API
 
-Se han realizado pruebas manuales sobre los tres endpoints de la API, cubriendo 14 casos: lista vacía, lista con datos, creación con datos válidos e inválidos (campo faltante, body vacío, sin body, campo desconocido, tipos incorrectos), y eliminación con ID existente, inexistente y repetido.
+Se han realizado pruebas manuales en dos fases sobre los tres endpoints de la API, cubriendo 15 casos en total.
+
+La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). Todos los casos de ambas fases resultaron correctos tras las correcciones.
 
 Los resultados están documentados en [`server/pruebas-integracion.md`](server/pruebas-integracion.md).
 
-### Resumen de resultados
+### Correcciones aplicadas tras la 1ª fase
 
-| Resultado | Casos |
-| --------- | ----- |
-| OK | 1, 2, 3, 4, 5, 8, 12, 13, 14 |
-| Incorrecto (a corregir) | 6 (POST sin body devuelve 500 en vez de 400), 11 (DELETE sin ID devuelve HTML en vez de JSON) |
-| Comportamiento a revisar | 7, 9, 10.1, 10.2, 10.3 (sin validación estricta de tipo ni campos desconocidos) |
+| Problema | Solución |
+| -------- | -------- |
+| POST sin body devolvía 500 | Guarda defensiva en el controlador que detecta body nulo y devuelve 400 |
+| DELETE sin ID devolvía HTML | Middleware catch-all que captura rutas no encontradas y devuelve JSON 404 |
+| Campos extra se guardaban | El servicio extrae solo `habito` y `tiempo` por nombre; el resto se descarta |
+| Espacios en blanco se aceptaban como válidos | Validación con `.trim()` antes de crear el hábito |
+| Tipos incorrectos (número, booleano, array) se aceptaban | Validación con `typeof` para exigir string en `habito` y `tiempo` |
+| `tiempo` no era obligatorio | Añadida validación equivalente a la de `habito` para el campo `tiempo` |
+| Se podían crear hábitos duplicados | Comprobación en el servicio con `.some()` antes de insertar; devuelve 409 si ya existe |
 
 ## Uso
 
@@ -284,7 +292,8 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 - Node.js con Express
 - dotenv para gestión de variables de entorno
 - nodemon para recarga automática en desarrollo
-- Middleware global de manejo de errores: captura cualquier excepción no controlada, mapea `NOT_FOUND` a `404` y cualquier otro fallo a `500` con mensaje genérico (sin filtrar detalles técnicos al cliente)
+- Middleware global de manejo de errores: captura cualquier excepción no controlada, mapea `NOT_FOUND` a `404`, `DUPLICATE` a `409`, y cualquier otro fallo a `500` con mensaje genérico (sin filtrar detalles técnicos al cliente)
+- Middleware catch-all: captura rutas no reconocidas por Express y devuelve JSON `404` en lugar de la página HTML de error por defecto
 
 ## Variables de tema (styles.css)
 

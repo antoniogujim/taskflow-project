@@ -11,11 +11,26 @@ function obtenerTodos() {
     return habitos;
 }
 
-// Crea un nuevo hábito con un ID único y los datos recibidos
-// data contiene los campos que mande el cliente (habito, tiempo, etc.)
-// Retorna el hábito creado para que el controlador pueda enviarlo al cliente
+// Crea un nuevo hábito con los campos que acepta el servidor.
+// Se extraen explícitamente solo habito y tiempo del body del cliente
+// para evitar que este inyecte campos que no le corresponden (id, createdAt, completado).
+// Con el spread anterior ({ id: randomUUID(), ...data }), si el cliente mandaba
+// un id propio en el body, sobreescribía el UUID generado aquí porque ...data iba después.
+// id y createdAt los genera el servidor (fuente de verdad); completado siempre empieza en false.
 function crearHabito(data) {
-    const habito = { id: randomUUID(), ...data };
+    // Comprueba si ya existe un hábito con el mismo nombre antes de crearlo
+    const existe = habitos.some((h) => h.habito === data.habito);
+    if (existe) {
+        throw new Error('DUPLICATE');
+    }
+
+    const habito = {
+        id: randomUUID(),
+        habito: data.habito,
+        tiempo: data.tiempo,
+        completado: false,
+        createdAt: new Date().toISOString(),
+    };
     habitos.push(habito);
     return habito;
 }
