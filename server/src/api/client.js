@@ -2,9 +2,12 @@
 // códigos HTTP semánticos correctos (400, 404, 409, 500). Con response.ok
 // podemos detectar cualquier error sin necesitar una librería externa.
 
-// Dirección base del servidor. Todas las funciones la usan como punto de partida.
-// Si el puerto o la ruta cambian, solo hay que modificarlo aquí.
-const API_URL = 'http://localhost:3000/api/v1/habitos';
+// En local el servidor corre en un puerto distinto al del frontend, así que
+// necesitamos la URL completa. En producción (Vercel) frontend y backend
+// comparten dominio, por lo que basta con una ruta relativa.
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000/api/v1/habitos'
+    : '/api/v1/habitos';
 
 // Pide al servidor la lista completa de hábitos.
 // async/await permite escribir código asíncrono como si fuera síncrono, sin callbacks.

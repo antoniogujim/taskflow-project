@@ -58,8 +58,13 @@ function manejadorErrores(err, req, res, next) {
 
 app.use(manejadorErrores);
 
-// Arranca el servidor en el puerto definido en .env
-// El callback confirma en consola que el servidor está listo
-app.listen(process.env.PORT, () => {
-    console.log(`Servidor corriendo en el puerto ${process.env.PORT}`);
-});
+// En Vercel el servidor corre como función serverless: no hay puerto ni proceso
+// continuo. Vercel importa este módulo y gestiona el ciclo HTTP por nosotros,
+// así que solo exportamos la app. En local sí arrancamos el servidor con listen().
+if (!process.env.VERCEL) {
+    app.listen(process.env.PORT, () => {
+        console.log(`Servidor corriendo en el puerto ${process.env.PORT}`);
+    });
+}
+
+module.exports = app;
