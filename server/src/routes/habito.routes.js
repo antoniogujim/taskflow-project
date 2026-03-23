@@ -16,18 +16,17 @@ router.post('/reset', habitoController.reset);
 // POST /   → crea un nuevo hábito
 router.post('/', habitoController.create);
 
-// PATCH /:id  → actualiza el nombre y la duración del hábito con ese ID
-router.patch('/:id', habitoController.update);
+// PATCH /completar-todos → marca o desmarca todos los hábitos en una sola petición.
+// Debe ir antes de /:id para que Express no interprete "completar-todos" como un ID.
+router.patch('/completar-todos', habitoController.completeAll);
 
 // PATCH /:id/completar → marca o desmarca el hábito como completado y actualiza la racha.
 // Aunque el patrón /:id se repite, Express diferencia esta ruta de PATCH /:id por ser más
 // específica (/completar al final) y del DELETE /:id por el verbo HTTP distinto.
 router.patch('/:id/completar', habitoController.complete);
 
-// TODO: añadir PATCH /completar-todos → marca o desmarca todos los hábitos visibles en una
-// sola llamada al servidor. Actualmente el frontend dispara una petición por hábito desde
-// el botón "Completar todos", lo que no escala bien con listas grandes.
-// Pendiente de implementar una vez que la app esté totalmente funcional desde el servidor.
+// PATCH /:id  → actualiza el nombre y la duración del hábito con ese ID
+router.patch('/:id', habitoController.update);
 
 // DELETE /:id → elimina el hábito con ese ID
 router.delete('/:id', habitoController.remove);

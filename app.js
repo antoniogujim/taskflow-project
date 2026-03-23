@@ -987,19 +987,23 @@ INPUT_BUSQUEDA.addEventListener("input", function () {
 	timeoutBusqueda = setTimeout(aplicarFiltro, 200);
 });
 
-BTN_COMPLETAR_TODOS.addEventListener("click", function () {
+BTN_COMPLETAR_TODOS.addEventListener("click", async function () {
 	const visibles = Array.from(LISTA_HABITOS.querySelectorAll("li")).filter(function (item) {
 		return !item.hidden;
 	});
 	const hayPendientes = visibles.some(function (item) {
 		return !item.querySelector(".completado").checked;
 	});
-	visibles.forEach(function (item) {
-		const checkbox = item.querySelector(".completado");
-		if (hayPendientes ? !checkbox.checked : checkbox.checked) {
-			checkbox.click();
-		}
-	});
+
+	try {
+		habitos = await completarTodosHabitos(hayPendientes);
+		renderizarHabitos();
+		aplicarFiltro();
+		actualizarResumen();
+		actualizarBotonCompletarTodos();
+	} catch (e) {
+		mostrarBanner("No se pudo actualizar los hábitos. Inténtalo de nuevo.", "error");
+	}
 });
 
 SELECT_ORDENAR.addEventListener("change", function () {

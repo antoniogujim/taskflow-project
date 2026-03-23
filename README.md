@@ -15,7 +15,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Panel lateral de resumen con contadores de total, completados y pendientes, accesible mediante `aria-live`
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Al añadir o renombrar un hábito con búsqueda activa, el filtro se limpia automáticamente para que el hábito sea visible
-- **Botón "Completar todos" / "Desmarcar todos"**: junto al buscador, completa o desmarca todos los hábitos visibles en un clic. Si hay una búsqueda activa, solo afecta a los resultados filtrados. Se deshabilita automáticamente cuando no hay hábitos visibles
+- **Botón "Completar todos" / "Desmarcar todos"**: junto al buscador, completa o desmarca todos los hábitos en un clic mediante una única petición al servidor (`PATCH /completar-todos`). Se deshabilita automáticamente cuando no hay hábitos visibles
 - **Selector de orden**: permite ordenar la lista por fecha de creación (reciente o antiguo primero) o por nombre (A→Z / Z→A). El orden se respeta al añadir nuevos hábitos y es compatible con el filtro de búsqueda: al cambiar el orden con una búsqueda activa, los hábitos se reordenan y el filtro se reaaplica automáticamente. Se deshabilita automáticamente cuando no hay hábitos visibles
 - **Resaltado de hábito nuevo**: al añadir un hábito, su tarjeta aparece brevemente destacada en color lima (claro) o esmeralda (oscuro) y hace scroll hasta ella si es necesario. El color desaparece con una transición suave de 1 segundo
 - **Estados de carga y error**: al iniciar la app se muestra "Cargando hábitos..." mientras se espera al servidor. Si el servidor no está disponible o falla cualquier operación, se muestra un banner de error rojo bajo la cabecera con un mensaje descriptivo
@@ -121,6 +121,7 @@ El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints es
 | ------ | --------------------------------- | -------------------------------------------------- | -------------------------------------------------- | ------------------- |
 | GET    | `/api/v1/habitos`                 | Devuelve todos los hábitos                         | —                                                  | `200` array JSON    |
 | POST   | `/api/v1/habitos`                 | Crea un nuevo hábito                               | `{ "habito": "Meditar", "tiempo": "10 minutos" }`  | `201` objeto creado |
+| PATCH  | `/api/v1/habitos/completar-todos` | Marca o desmarca todos los hábitos en una sola petición | `{ "completado": true }`                      | `200` array actualizado |
 | PATCH  | `/api/v1/habitos/:id`             | Edita el nombre y la duración de un hábito         | `{ "habito": "Leer", "tiempo": "30 minutos" }`     | `200` objeto actualizado |
 | PATCH  | `/api/v1/habitos/:id/completar`   | Marca o desmarca un hábito y actualiza su racha    | `{ "completado": true }`                           | `200` objeto actualizado |
 | POST   | `/api/v1/habitos/reset`           | Resetea todos los hábitos a `completado: false` y rompe rachas antiguas | —                         | `204` sin contenido |
@@ -153,9 +154,9 @@ El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints es
 
 ## Pruebas de integración de la API
 
-Se han realizado pruebas manuales en tres fases sobre los endpoints de la API, con un total de 35 casos cubiertos.
+Se han realizado pruebas manuales en cuatro fases sobre los endpoints de la API, con un total de 41 casos cubiertos.
 
-La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). La tercera fase cubrió los nuevos endpoints de editar (`PATCH /:id`), completar (`PATCH /:id/completar`) y reset (`POST /reset`), incluyendo la lógica de racha. Todos los casos de las tres fases resultaron correctos.
+La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). La tercera fase cubrió los nuevos endpoints de editar (`PATCH /:id`), completar (`PATCH /:id/completar`) y reset (`POST /reset`), incluyendo la lógica de racha. La cuarta fase cubrió el nuevo endpoint `PATCH /completar-todos`, donde se detectó que las rutas específicas deben registrarse antes que las rutas con parámetros dinámicos (`/:id`) en Express. Todos los casos de las cuatro fases resultaron correctos.
 
 Los resultados están documentados en [`server/Pruebas-integracion.md`](server/Pruebas-integracion.md).
 
@@ -311,5 +312,4 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 
 | Mejora | Motivo |
 | ------ | ------ |
-| Endpoint `PATCH /api/v1/habitos/completar-todos` | El botón "Completar todos" actualmente dispara una petición al servidor por cada hábito visible. Con listas grandes esto no escala. La solución es un endpoint que marque o desmarque todos en una sola llamada. |
 | Persistencia real de datos | Los hábitos se almacenan en memoria. Conectar una base de datos (SQLite, PostgreSQL, etc.) permitiría que los datos sobrevivan al reinicio del servidor. |

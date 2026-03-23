@@ -1964,3 +1964,310 @@ Fue un problema falso. Ocurrio porque cambie la hora en el pc de manera falsa en
 | 33 | POST /reset con racha activa y fecha antigua | OK |
 | 34 | POST /reset lista vacía | OK |
 | 35 | PATCH /completar con `fechaReferenciaRacha` en el futuro | OK — falso positivo, no era bug |
+
+---
+
+## 4ª fase de pruebas — nuevo endpoint completar-todos
+
+Se añade el endpoint `PATCH /completar-todos` para reemplazar las peticiones paralelas del botón "Completar todos" del frontend, que causaban 404 al ser enrutadas a instancias serverless distintas con IDs diferentes.
+
+---
+
+## PATCH `/completar-todos` — Completar o desmarcar todos a la vez
+
+### Caso 36: Sin body
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/completar-todos
+Body: —
+```
+
+**Respuesta esperada**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El cuerpo de la petición es obligatorio"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El valor de completado debe ser true o false"
+}
+```
+
+**Nota:** Express convierte la ausencia de body en `{}`, por lo que la comprobación `!req.body` no la detecta y cae en la validación del campo `completado`. El status 400 es correcto; solo difiere el mensaje. Comportamiento idéntico al de `PATCH /:id/completar`.
+
+---
+
+### Caso 37: `completado` con valor no booleano
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/completar-todos
+Body: { "completado": "true" }
+```
+
+**Respuesta esperada**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El valor de completado debe ser true o false"
+}
+```
+
+**Respuesta obtenida**
+```
+Status: 400 Bad Request
+Response:
+{
+  "error": "El valor de completado debe ser true o false"
+}
+```
+
+---
+
+### Caso 38: `completado: true` con hábitos pendientes
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/completar-todos
+Body: { "completado": true }
+// Hay hábitos con completado: false
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+[
+  { ..., "completado": true, "streakActual": 1, "fechaReferenciaRacha": "fecha de hoy" },
+  { ..., "completado": true, "streakActual": 1, "fechaReferenciaRacha": "fecha de hoy" },
+  ...
+]
+// Todos los hábitos quedan completados y con la racha actualizada
+```
+
+**Respuesta obtenida**
+```
+Status:200 OK
+Response:
+[
+  {
+    "id": "1",
+    "habito": "Meditar",
+    "tiempo": "10 minutos",
+    "completado": true,
+    "createdAt": "2026-03-23T09:59:51.980Z",
+    "streakActual": 1,
+    "fechaReferenciaRacha": "2026-03-23"
+  },
+  {
+    "id": "2",
+    "habito": "Leer",
+    "tiempo": "1 capítulo",
+    "completado": true,
+    "createdAt": "2026-03-23T09:59:51.997Z",
+    "streakActual": 1,
+    "fechaReferenciaRacha": "2026-03-23"
+  },
+  {
+    "id": "3",
+    "habito": "Correr",
+    "tiempo": "30 minutos",
+    "completado": true,
+    "createdAt": "2026-03-23T09:59:51.998Z",
+    "streakActual": 1,
+    "fechaReferenciaRacha": "2026-03-23"
+  },
+  {
+    "id": "4",
+    "habito": "Tomar vitaminas",
+    "tiempo": "Instantáneo",
+    "completado": true,
+    "createdAt": "2026-03-23T09:59:51.999Z",
+    "streakActual": 1,
+    "fechaReferenciaRacha": "2026-03-23"
+  }
+]
+```
+
+---
+
+### Caso 39: `completado: true` cuando ya están todos completados
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/completar-todos
+Body: { "completado": true }
+// Todos los hábitos ya tienen completado: true y fechaReferenciaRacha = hoy
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+[
+  { ..., "completado": true, "streakActual": 1, "fechaReferenciaRacha": "fecha de hoy" },
+  ...
+]
+// El streakActual no debe incrementar al marcar el mismo día dos veces
+```
+
+**Respuesta obtenida**
+```
+Status: 200 OK
+Response:
+[
+  {
+    "id": "1",
+    "habito": "Meditar",
+    "tiempo": "10 minutos",
+    "completado": true,
+    "createdAt": "2026-03-23T09:59:51.980Z",
+    "streakActual": 1,
+    "fechaReferenciaRacha": "2026-03-23"
+  },
+  {
+    "id": "2",
+    "habito": "Leer",
+    "tiempo": "1 capítulo",
+    "completado": true,
+    "createdAt": "2026-03-23T09:59:51.997Z",
+    "streakActual": 1,
+    "fechaReferenciaRacha": "2026-03-23"
+  },
+  {
+    "id": "3",
+    "habito": "Correr",
+    "tiempo": "30 minutos",
+    "completado": true,
+    "createdAt": "2026-03-23T09:59:51.998Z",
+    "streakActual": 1,
+    "fechaReferenciaRacha": "2026-03-23"
+  },
+  {
+    "id": "4",
+    "habito": "Tomar vitaminas",
+    "tiempo": "Instantáneo",
+    "completado": true,
+    "createdAt": "2026-03-23T09:59:51.999Z",
+    "streakActual": 1,
+    "fechaReferenciaRacha": "2026-03-23"
+  }
+]
+```
+
+---
+
+### Caso 40: `completado: false` con hábitos completados
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/completar-todos
+Body: { "completado": false }
+// Todos los hábitos tienen completado: true y streakActual > 0
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response:
+[
+  { ..., "completado": false, "streakActual": 0, "fechaReferenciaRacha": null },
+  ...
+]
+// Todos quedan desmarcados y la racha decrementada
+```
+
+**Respuesta obtenida**
+```
+Status: 200 OK
+Response:
+[
+  {
+    "id": "1",
+    "habito": "Meditar",
+    "tiempo": "10 minutos",
+    "completado": false,
+    "createdAt": "2026-03-23T09:59:51.980Z",
+    "streakActual": 0,
+    "fechaReferenciaRacha": null
+  },
+  {
+    "id": "2",
+    "habito": "Leer",
+    "tiempo": "1 capítulo",
+    "completado": false,
+    "createdAt": "2026-03-23T09:59:51.997Z",
+    "streakActual": 0,
+    "fechaReferenciaRacha": null
+  },
+  {
+    "id": "3",
+    "habito": "Correr",
+    "tiempo": "30 minutos",
+    "completado": false,
+    "createdAt": "2026-03-23T09:59:51.998Z",
+    "streakActual": 0,
+    "fechaReferenciaRacha": null
+  },
+  {
+    "id": "4",
+    "habito": "Tomar vitaminas",
+    "tiempo": "Instantáneo",
+    "completado": false,
+    "createdAt": "2026-03-23T09:59:51.999Z",
+    "streakActual": 0,
+    "fechaReferenciaRacha": null
+  }
+]
+```
+
+---
+
+### Caso 41: Lista vacía
+
+**Petición**
+```
+PATCH http://localhost:3000/api/v1/habitos/completar-todos
+Body: { "completado": true }
+// No hay ningún hábito creado
+```
+
+**Respuesta esperada**
+```
+Status: 200 OK
+Response: []
+// No hay nada que completar pero no debe dar error
+```
+
+**Respuesta obtenida**
+```
+Status:200 OK
+Response: []
+```
+
+---
+
+## Informe de resultados — 4ª fase
+
+| Caso | Descripción | Resultado |
+|------|-------------|-----------|
+| 36 | PATCH /completar-todos sin body | OK |
+| 37 | PATCH /completar-todos `completado` no booleano | OK |
+| 38 | PATCH /completar-todos con hábitos pendientes | OK |
+| 39 | PATCH /completar-todos cuando ya están todos completados | OK |
+| 40 | PATCH /completar-todos desmarcar todos | OK |
+| 41 | PATCH /completar-todos lista vacía | OK |
+
+### Observaciones
+
+**Orden de rutas en Express**
+Durante las pruebas se detectó que `PATCH /completar-todos` devolvía 400 con el mensaje "El nombre del hábito y la duración son obligatorios", que corresponde al controlador de editar. El motivo es que Express evalúa las rutas en el orden en que se registran: al estar `PATCH /:id` antes que `PATCH /completar-todos`, Express interpretaba "completar-todos" como un ID y lo enrutaba al controlador incorrecto. La solución fue registrar `/completar-todos` antes que `/:id` en el archivo de rutas. Las rutas específicas siempre deben ir antes que las rutas con parámetros dinámicos.

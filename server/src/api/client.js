@@ -92,6 +92,20 @@ async function completarHabito(id, completado) {
     return response.json();
 }
 
+// Marca o desmarca todos los hábitos en una sola petición al servidor.
+// Devuelve el array completo actualizado para sincronizar el estado local.
+async function completarTodosHabitos(completado) {
+    const response = await fetch(`${API_URL}/completar-todos`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completado }),
+    });
+
+    if (!response.ok) throw new Error('Error al completar todos los hábitos');
+
+    return response.json();
+}
+
 // Resetea todos los hábitos a completado: false y rompe rachas antiguas.
 // Se llama al detectar que es un día nuevo.
 async function resetearHabitos() {

@@ -131,6 +131,22 @@ function complete(req, res, next) {
     }
 }
 
+// Marca o desmarca todos los hábitos a la vez y devuelve el array actualizado.
+function completeAll(req, res) {
+    if (!req.body || typeof req.body !== 'object') {
+        return res.status(400).json({ error: 'El cuerpo de la petición es obligatorio' });
+    }
+
+    const { completado } = req.body;
+
+    if (typeof completado !== 'boolean') {
+        return res.status(400).json({ error: 'El valor de completado debe ser true o false' });
+    }
+
+    const habitosActualizados = habitoService.completarTodos(completado);
+    res.status(200).json(habitosActualizados);
+}
+
 // Resetea todos los hábitos a completado: false.
 // Cuando conectemos el frontend, lo llamará al detectar que es un día nuevo.
 // No necesita ID ni body — afecta a todos los hábitos a la vez.
@@ -156,4 +172,4 @@ function remove(req, res, next) {
 }
 
 // Exportamos los métodos para que el enrutador pueda asignarlos a cada verbo HTTP
-module.exports = { getAll, create, update, complete, reset, remove };
+module.exports = { getAll, create, update, complete, completeAll, reset, remove };

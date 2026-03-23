@@ -184,4 +184,13 @@ function eliminarHabito(id) {
 
 // Exportamos las funciones para que otros archivos puedan importarlas
 // Sin esto, Node trata el archivo como un módulo cerrado y nada es accesible desde fuera
-module.exports = { obtenerTodos, crearHabito, editarHabito, completarHabito, resetearHabitos, eliminarHabito };
+// Marca o desmarca todos los hábitos a la vez reutilizando la lógica de completarHabito,
+// para que las rachas se calculen igual que al completar uno a uno.
+function completarTodos(completado) {
+    habitos.forEach(function(h) {
+        completarHabito(h.id, completado);
+    });
+    return habitos;
+}
+
+module.exports = { obtenerTodos, crearHabito, editarHabito, completarHabito, completarTodos, resetearHabitos, eliminarHabito };
