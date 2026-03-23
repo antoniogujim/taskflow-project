@@ -24,6 +24,11 @@ router.patch('/:id', habitoController.update);
 // específica (/completar al final) y del DELETE /:id por el verbo HTTP distinto.
 router.patch('/:id/completar', habitoController.complete);
 
+// TODO: añadir PATCH /completar-todos → marca o desmarca todos los hábitos visibles en una
+// sola llamada al servidor. Actualmente el frontend dispara una petición por hábito desde
+// el botón "Completar todos", lo que no escala bien con listas grandes.
+// Pendiente de implementar una vez que la app esté totalmente funcional desde el servidor.
+
 // DELETE /:id → elimina el hábito con ese ID
 router.delete('/:id', habitoController.remove);
 

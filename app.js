@@ -12,7 +12,7 @@ const BTN_COMPLETAR_TODOS = document.getElementById("completar-todos");
 // Select para ordenar la lista de hábitos
 const SELECT_ORDENAR = document.getElementById("ordenar-habitos");
 
-// Plantilla HTML clonada por crearHabito() para generar cada tarjeta de hábito
+// Plantilla HTML clonada por crearTarjeta() para generar cada tarjeta de hábito
 const TEMPLATE_HABITO = document.getElementById("habito-template");
 
 // Lista <ul> donde se insertan las tarjetas de hábitos
@@ -32,7 +32,6 @@ const ERROR_DURACION = document.getElementById("error-duracion");
 
 
 // Claves de localStorage: definidas una sola vez para evitar errores de tipeo silenciosos
-const STORAGE_KEY_HABITOS = "Lista_de_habitos";
 const STORAGE_KEY_DARK = "modo-oscuro";
 const STORAGE_KEY_RESET = "ultimo-reset";
 
@@ -50,18 +49,21 @@ const RESUMEN_PROGRESO_TEXTO = document.getElementById("resumen-progreso-texto")
 
 // ─── Banner de avisos ─────────────────────────────────────────────────────────
 
-/*
- * Clases de estilo por tipo de aviso.
- * "aviso" (ámbar): situación recuperable, la app sigue funcionando con datos de ejemplo.
- * "error" (rojo):  problema persistente, los datos no se guardarán durante la sesión.
- */
+// El tipo "aviso" (ámbar) se usaba para errores recuperables de localStorage
+// (datos corruptos, elementos inválidos, fallo al guardar).
+// Tras migrar al servidor, todos los errores visibles al usuario son de red y son críticos,
+// por lo que solo se usa el tipo "error" (rojo). El bloque "aviso" se comenta
+// en lugar de eliminar por si en el futuro aparecen casos no críticos
+// (avisos informativos, conexión lenta, etc.).
 const ESTILOS_BANNER = {
+	/*
 	aviso: {
 		fondo: "bg-amber-50 dark:bg-amber-900/20",
 		borde: "border-amber-400 dark:border-amber-600",
 		texto: "text-amber-800 dark:text-amber-300",
 		ring: "focus:ring-amber-500",
 	},
+	*/
 	error: {
 		fondo: "bg-red-50 dark:bg-red-900/20",
 		borde: "border-red-400 dark:border-red-600",
@@ -119,8 +121,6 @@ function mostrarBanner(mensaje, tipo) {
 BANNER_CERRAR.addEventListener("click", function () {
 	BANNER.classList.remove("max-h-32", "opacity-100");
 	BANNER.classList.add("max-h-0", "opacity-0");
-	avisoPersistenciaVisible = false;
-
 	// Espera a que la transición de cierre termine antes de limpiar los colores
 	setTimeout(function () {
 		if (estilosActivosBanner) {
@@ -133,143 +133,9 @@ BANNER_CERRAR.addEventListener("click", function () {
 
 // ─── Datos ────────────────────────────────────────────────────────────────────
 
-/*
- * Hábitos de ejemplo usados en la primera visita o cuando los datos
- * guardados están corruptos y no se pueden recuperar.
- * Cada hábito recibe un UUID único generado con crypto.randomUUID() para
- * garantizar que no colisione con IDs de hábitos reales del usuario,
- * ya que todos los hábitos de la aplicación usan el mismo formato de ID.
- */
-const _ahora = Date.now();
-const HABITOS_EJEMPLO = [
-	{
-		habito: "Meditar",
-		tiempo: "10 minutos",
-		completado: false,
-		id: crypto.randomUUID(),
-		createdAt: new Date(_ahora).toISOString(),
-	},
-	{
-		habito: "Leer",
-		tiempo: "1 capítulo",
-		completado: false,
-		id: crypto.randomUUID(),
-		createdAt: new Date(_ahora + 1).toISOString(),
-	},
-	{
-		habito: "Correr",
-		tiempo: "30 minutos",
-		completado: false,
-		id: crypto.randomUUID(),
-		createdAt: new Date(_ahora + 2).toISOString(),
-	},
-	{
-		habito: "Tomar vitaminas",
-		tiempo: "Instantáneo",
-		completado: false,
-		id: crypto.randomUUID(),
-		createdAt: new Date(_ahora + 3).toISOString(),
-	},
-];
-
-/**
- * Comprueba que un elemento del array tenga los campos mínimos necesarios
- * para ser renderizado correctamente por crearHabito().
- * Los campos obligatorios son: habito (string no vacío), tiempo (string no vacío) e id.
- *
- * @param {*} h - Elemento a validar.
- * @returns {boolean} true si el elemento es un hábito válido.
- */
-function esHabitoValido(h) {
-	return (
-		h !== null &&
-		typeof h === "object" &&
-		!Array.isArray(h) &&
-		typeof h.habito === "string" &&
-		h.habito.trim() !== "" &&
-		typeof h.tiempo === "string" &&
-		h.tiempo.trim() !== "" &&
-		// Desde la migración a crypto.randomUUID(), los IDs son siempre strings.
-		// Se rechaza cualquier valor que no sea un string no vacío (0, false, "", NaN, etc.)
-		typeof h.id === "string" &&
-		h.id.trim() !== ""
-	);
-}
-
-/**
- * Carga los hábitos desde localStorage de forma segura.
- * Lee el valor una sola vez para evitar lecturas redundantes.
- *
- * - Si no hay datos guardados, devuelve null (primera visita → se usarán los hábitos de ejemplo).
- * - Si el array está vacío, lo devuelve tal cual (el usuario eliminó todos sus hábitos intencionalmente).
- * - Si el JSON es inválido o no es un array, muestra el banner de corrupción total y devuelve null.
- * - Si el array tiene elementos inválidos, los descarta y muestra un aviso con cuántos se perdieron.
- * - Si todos los elementos son inválidos, trata el caso como corrupción total y devuelve null.
- *
- * @returns {Array|null} Array de hábitos válidos, o null si no hay datos recuperables.
- */
-function cargarHabitos() {
-	const datos = localStorage.getItem(STORAGE_KEY_HABITOS);
-	if (datos === null) return null;
-
-	try {
-		const parsed = JSON.parse(datos);
-		// JSON válido pero no es un array: tratar igual que dato corrupto
-		if (!Array.isArray(parsed)) {
-			throw new TypeError("El dato guardado no es un array de hábitos.");
-		}
-
-		// Array vacío: el usuario eliminó todos sus hábitos intencionalmente
-		if (parsed.length === 0) return [];
-
-		const validos = parsed.filter(esHabitoValido);
-		const perdidos = parsed.length - validos.length;
-
-		// Ningún elemento es válido: corrupción total, cargar ejemplos
-		if (validos.length === 0) {
-			localStorage.removeItem(STORAGE_KEY_HABITOS);
-			mostrarBanner(
-				"Los datos guardados estaban corruptos y han sido eliminados. Se han cargado los hábitos de ejemplo.",
-				"aviso",
-			);
-			return null;
-		}
-
-		// Algunos elementos son inválidos: conservar los válidos y avisar de los perdidos
-		if (perdidos > 0) {
-			mostrarBanner(
-				`${perdidos} hábito${perdidos > 1 ? "s no pudieron" : " no pudo"} recuperarse por estar corrupto${perdidos > 1 ? "s" : ""}. El resto se ha cargado correctamente.`,
-				"aviso",
-			);
-		}
-
-		return validos;
-	} catch (e) {
-		// JSON malformado o con formato inesperado: se elimina y se avisa al usuario
-		localStorage.removeItem(STORAGE_KEY_HABITOS);
-		mostrarBanner(
-			"Los datos guardados estaban corruptos y han sido eliminados. Se han cargado los hábitos de ejemplo.",
-			"aviso",
-		);
-		return null;
-	}
-}
-
-/*
- * Fuente de datos principal de la aplicación.
- * Usa los datos de localStorage si son válidos; en caso contrario, los hábitos de ejemplo.
- * Al usar los de ejemplo tras un fallo, se sobreescribirá localStorage en el primer
- * guardado, eliminando definitivamente el dato corrupto.
- */
-let habitos = cargarHabitos() ?? HABITOS_EJEMPLO;
-
-/**
- * Persiste el array de hábitos en localStorage de forma segura.
- * Si el guardado falla (modo privado, almacenamiento lleno, etc.),
- * muestra un aviso rojo informando de que los cambios no se guardarán.
- * El aviso solo se muestra la primera vez que falla para no repetirse.
- */
-let avisoPersistenciaVisible = false;
+// Array local que refleja el estado del servidor.
+// Se rellena al arrancar con la respuesta de obtenerHabitos().
+let habitos = [];
 
 /*
  * Referencia a la función salirModo* de la tarjeta que está en un estado alterado
@@ -278,20 +144,6 @@ let avisoPersistenciaVisible = false;
  * el estado anterior antes de abrir el nuevo.
  */
 let cerrarEstadoActivo = null;
-
-function guardarHabitos() {
-	try {
-		localStorage.setItem(STORAGE_KEY_HABITOS, JSON.stringify(habitos));
-	} catch (e) {
-		if (!avisoPersistenciaVisible) {
-			mostrarBanner(
-				"No es posible guardar los datos en este navegador. Los cambios se perderán al recargar la página.",
-				"error",
-			);
-			avisoPersistenciaVisible = true;
-		}
-	}
-}
 
 /**
  * Comprueba si el día actual (en hora local) es distinto al del último reset registrado.
@@ -302,18 +154,26 @@ function guardarHabitos() {
  * en formato YYYY-MM-DD. Esto evita el problema de toISOString(), que devuelve
  * la fecha en UTC y puede adelantar el día a partir de las 23:00 en España.
  */
-function comprobarResetDiario() {
+async function comprobarResetDiario() {
 	const hoy = new Date().toLocaleDateString("sv");
+
+	// Guardamos la fecha del último reset en localStorage — no los hábitos.
+	// Es el único dato que el frontend necesita recordar entre sesiones para saber
+	// si es un día nuevo sin tener que preguntarle al servidor cada vez que se abre la app.
+	// Sin esto, resetearHabitos() se llamaría en cada visita, borrando completados
+	// y rachas que el usuario ya marcó ese mismo día.
 	const ultimoReset = localStorage.getItem(STORAGE_KEY_RESET);
 
 	if (ultimoReset === hoy) return;
 
-	// Es un día nuevo: resetear todos los hábitos y guardar la fecha de hoy
-	habitos.forEach(function (h) {
-		h.completado = false;
-	});
+	// Es un día nuevo: el servidor resetea completado a false y rompe rachas antiguas
+	await resetearHabitos();
 
-	guardarHabitos();
+	// Re-sincronizamos el array local con el servidor tras el reset.
+	// Sin esto, renderizarHabitos() mostraría los datos de ayer porque el array
+	// local se cargó antes del reset y no refleja los cambios del servidor.
+	habitos = await obtenerHabitos();
+
 	localStorage.setItem(STORAGE_KEY_RESET, hoy);
 }
 
@@ -329,7 +189,10 @@ function comprobarResetDiario() {
  */
 function mostrarError(input, errorEl, mensaje) {
 	errorEl.textContent = mensaje;
-	errorEl.classList.remove("hidden");
+	// Usamos invisible en lugar de hidden para que el <p> siempre ocupe su espacio
+	// en el layout. Con hidden (display:none) el elemento desaparece y al aparecer
+	// empuja todo el contenido hacia abajo causando un salto visual.
+	errorEl.classList.remove("invisible");
 	// Sustituye el borde estándar por el borde de error
 	input.classList.add("border-red-600", "dark:border-red-400");
 	input.classList.remove("border-black", "dark:border-gray-500");
@@ -344,7 +207,7 @@ function mostrarError(input, errorEl, mensaje) {
  */
 function limpiarError(input, errorEl) {
 	errorEl.textContent = "";
-	errorEl.classList.add("hidden");
+	errorEl.classList.add("invisible");
 	// Restaura el borde estándar
 	input.classList.remove("border-red-600", "dark:border-red-400");
 	input.classList.add("border-black", "dark:border-gray-500");
@@ -516,7 +379,7 @@ function actualizarEstadoVacio() {
  * @param {{ habito: string, tiempo: string, completado: boolean, id: string, createdAt: string }} habito
  *   Objeto con los datos del hábito a renderizar.
  */
-function crearHabito(habito) {
+function crearTarjeta(habito) {
 	// Clona el template con todos sus nodos hijo (true = clonado profundo)
 	const clon = TEMPLATE_HABITO.content.cloneNode(true);
 	const li = clon.querySelector("li");
@@ -699,7 +562,7 @@ function crearHabito(habito) {
 	 * El check de duplicados excluye el propio hábito (por id) para que guardar
 	 * el mismo nombre no lance un falso error de "ya existe".
 	 */
-	function guardarEdicion() {
+	async function guardarEdicion() {
 		const nuevoNombre = nombreInput.value.trim();
 		const nuevaDuracion = tiempoInput.value.trim();
 		let esValido = true;
@@ -731,36 +594,44 @@ function crearHabito(habito) {
 			return;
 		}
 
-		// Actualiza solo nombre y duración; el resto del objeto permanece intacto
-		habito.habito = nuevoNombre;
-		habito.tiempo = nuevaDuracion;
+		try {
+			// El servidor actualiza el hábito y devuelve el objeto completo ya modificado.
+			// Usamos los datos devueltos para actualizar el objeto local — así el frontend
+			// siempre refleja exactamente lo que tiene el servidor.
+			const habitoActualizado = await editarHabito(habito.id, nuevoNombre, nuevaDuracion);
+			habito.habito = habitoActualizado.habito;
+			habito.tiempo = habitoActualizado.tiempo;
 
-		// Refleja los nuevos valores en el DOM
-		nombreEl.textContent = nuevoNombre;
-		tiempoEl.textContent = nuevaDuracion;
-		tiempoEl.setAttribute("aria-label", "Duración: " + nuevaDuracion);
+			// Refleja los nuevos valores en el DOM
+			nombreEl.textContent = nuevoNombre;
+			tiempoEl.textContent = nuevaDuracion;
+			tiempoEl.setAttribute("aria-label", "Duración: " + nuevaDuracion);
 
-		// Actualiza los aria-label de los botones que incluyen el nombre del hábito
-		btnEditar.setAttribute("aria-label", "Editar hábito: " + nuevoNombre);
-		btnEliminar.setAttribute("aria-label", "Eliminar hábito: " + nuevoNombre);
-		btnGuardar.setAttribute("aria-label", "Guardar cambios de: " + nuevoNombre);
-		btnCancelarEdicion.setAttribute("aria-label", "Cancelar edición de: " + nuevoNombre);
-		btnConfirmar.setAttribute("aria-label", "Confirmar eliminación de: " + nuevoNombre);
-		btnCancelar.setAttribute("aria-label", "Cancelar eliminación de: " + nuevoNombre);
+			// Actualiza los aria-label de los botones que incluyen el nombre del hábito
+			btnEditar.setAttribute("aria-label", "Editar hábito: " + nuevoNombre);
+			btnEliminar.setAttribute("aria-label", "Eliminar hábito: " + nuevoNombre);
+			btnGuardar.setAttribute("aria-label", "Guardar cambios de: " + nuevoNombre);
+			btnCancelarEdicion.setAttribute("aria-label", "Cancelar edición de: " + nuevoNombre);
+			btnConfirmar.setAttribute("aria-label", "Confirmar eliminación de: " + nuevoNombre);
+			btnCancelar.setAttribute("aria-label", "Cancelar eliminación de: " + nuevoNombre);
 
-		guardarHabitos();
-		renderizarHabitos();
+			renderizarHabitos();
 
-		// Si hay una búsqueda activa, se limpia para que el hábito renombrado
-		// siempre sea visible tras guardar, igual que al añadir un hábito nuevo.
-		if (INPUT_BUSQUEDA.value) {
-			INPUT_BUSQUEDA.value = "";
-			LISTA_HABITOS.querySelectorAll("li").forEach(function (item) {
-				item.hidden = false;
-			});
+			// Si hay una búsqueda activa, se limpia para que el hábito renombrado
+			// siempre sea visible tras guardar, igual que al añadir un hábito nuevo.
+			if (INPUT_BUSQUEDA.value) {
+				INPUT_BUSQUEDA.value = "";
+				LISTA_HABITOS.querySelectorAll("li").forEach(function (item) {
+					item.hidden = false;
+				});
+			}
+
+			salirModoEdicion();
+		} catch (e) {
+			// Si el servidor falla, la tarjeta se queda en modo edición para que
+			// el usuario pueda reintentar sin perder los cambios que escribió.
+			mostrarBanner("No se pudo guardar el hábito. Inténtalo de nuevo.", "error");
 		}
-
-		salirModoEdicion();
 	}
 
 	// ─── Modo confirmación de borrado ──────────────────────────────────────────
@@ -870,15 +741,27 @@ function crearHabito(habito) {
 	 * Cancela el timeout, elimina el <li> del DOM y filtra el hábito
 	 * del array, luego persiste y recalcula el resumen.
 	 */
-	btnConfirmar.addEventListener("click", function () {
+	btnConfirmar.addEventListener("click", async function () {
 		clearTimeout(timeoutConfirmacion);
-		li.remove();
-		habitos = habitos.filter(function (h) {
-			return h.id !== habito.id;
-		});
-		guardarHabitos();
-		actualizarResumen();
-		actualizarEstadoVacio();
+
+		try {
+			// Primero le decimos al servidor que elimine el hábito.
+			// Solo si responde con éxito actualizamos el DOM y el array local.
+			// Así evitamos que la tarjeta desaparezca visualmente si el servidor falla.
+			await eliminarHabito(habito.id);
+
+			li.remove();
+			habitos = habitos.filter(function (h) {
+				return h.id !== habito.id;
+			});
+			actualizarResumen();
+			actualizarEstadoVacio();
+		} catch (e) {
+			// Si el servidor falla, devolvemos la tarjeta a su estado normal
+			// para que el usuario pueda reintentar cuando el servidor esté disponible.
+			salirModoConfirmacion();
+			mostrarBanner("No se pudo eliminar el hábito. Inténtalo de nuevo.", "error");
+		}
 	});
 
 	/*
@@ -897,34 +780,30 @@ function crearHabito(habito) {
 	 *     hoy, la racha se recupere correctamente. Si no se vuelve a marcar,
 	 *     el día siguiente la racha se romperá al verificar la fecha.
 	 */
-	checkbox.addEventListener("change", function () {
-		const hoy = new Date().toLocaleDateString("sv");
-		const ayer = new Date();
-		ayer.setDate(ayer.getDate() - 1);
-		const fechaAyer = ayer.toLocaleDateString("sv");
+	checkbox.addEventListener("change", async function () {
+		// Guardamos el estado anterior por si el servidor falla y hay que revertir.
+		// En ese momento checkbox.checked ya tiene el nuevo valor (el navegador lo cambió),
+		// así que el estado previo es el contrario.
+		const estadoPrevio = !checkbox.checked;
 
-		if (checkbox.checked) {
-			if (habito.fechaUltimaCompletacion !== hoy) {
-				if (habito.fechaUltimaCompletacion === fechaAyer) {
-					habito.streakActual = (habito.streakActual || 0) + 1;
-				} else {
-					habito.streakActual = 1;
-				}
-				habito.fechaUltimaCompletacion = hoy;
-			}
-		} else {
-			if (habito.fechaUltimaCompletacion === hoy) {
-				habito.streakActual = Math.max(0, (habito.streakActual || 0) - 1);
-				habito.fechaUltimaCompletacion = habito.streakActual === 0 ? null : fechaAyer;
-			}
+		try {
+			// El servidor calcula la racha y devuelve el hábito completo actualizado.
+			const habitoActualizado = await completarHabito(habito.id, checkbox.checked);
+
+			habito.completado = habitoActualizado.completado;
+			habito.streakActual = habitoActualizado.streakActual;
+			habito.fechaReferenciaRacha = habitoActualizado.fechaReferenciaRacha;
+
+			nombreEl.classList.toggle("opacity-50", checkbox.checked);
+			nombreEl.classList.toggle("line-through", checkbox.checked);
+			actualizarStreakBadge();
+			actualizarResumen();
+		} catch (err) {
+			// Si el servidor falla, revertimos el checkbox al estado anterior
+			// para que la UI refleje la realidad del servidor.
+			checkbox.checked = estadoPrevio;
+			mostrarBanner("No se pudo actualizar el hábito. Inténtalo de nuevo.", "error");
 		}
-
-		habito.completado = checkbox.checked;
-		nombreEl.classList.toggle("opacity-50", checkbox.checked);
-		nombreEl.classList.toggle("line-through", checkbox.checked);
-		actualizarStreakBadge();
-		guardarHabitos();
-		actualizarResumen();
 	});
 
 	LISTA_HABITOS.appendChild(clon);
@@ -932,13 +811,32 @@ function crearHabito(habito) {
 
 // ─── Inicialización ───────────────────────────────────────────────────────────
 
-// Resetea los hábitos si es un día nuevo (hora local) antes de renderizar
-comprobarResetDiario();
+// Carga los hábitos del servidor, comprueba el reset diario y renderiza la lista.
+// Es async porque obtenerHabitos() hace una petición de red — hay que esperar
+// la respuesta antes de renderizar, de lo contrario la lista aparecería vacía.
+async function inicializar() {
+	// Muestra "Cargando..." mientras espera la respuesta del servidor.
+	// actualizarEstadoVacio() lo sobreescribirá con el mensaje correcto al terminar.
+	LISTA_VACIA.textContent = "Cargando hábitos...";
+	LISTA_VACIA.hidden = false;
 
-// Renderiza todos los hábitos cargados (de localStorage o de ejemplo) y actualiza el resumen
-renderizarHabitos();
-actualizarResumen();
-actualizarEstadoVacio();
+	try {
+		habitos = await obtenerHabitos();
+		await comprobarResetDiario();
+		renderizarHabitos();
+		actualizarResumen();
+		// Restaura el mensaje por defecto si la lista está vacía,
+		// o lo oculta si hay hábitos — sobreescribe el "Cargando..." inicial
+		actualizarEstadoVacio();
+	} catch (e) {
+		// Si el servidor no responde, informa al usuario en dos sitios:
+		// en la lista (donde esperaba ver los hábitos) y en el banner superior
+		LISTA_VACIA.textContent = "No se pudo conectar con el servidor. Comprueba que está arrancado.";
+		mostrarBanner("Error al cargar los hábitos. El servidor no está disponible.", "error");
+	}
+}
+
+inicializar();
 
 // ─── Eventos ──────────────────────────────────────────────────────────────────
 
@@ -951,7 +849,7 @@ actualizarEstadoVacio();
  *
  * @param {SubmitEvent} evento - Evento de envío del formulario.
  */
-FORM_HABITO.addEventListener("submit", function (evento) {
+FORM_HABITO.addEventListener("submit", async function (evento) {
 	evento.preventDefault();
 
 	// Detiene la ejecución si algún campo no supera la validación
@@ -960,8 +858,9 @@ FORM_HABITO.addEventListener("submit", function (evento) {
 	const nombre = INPUT_NOMBRE.value.trim();
 	const duracion = INPUT_DURACION.value.trim();
 
-	// Comprueba que no exista ya un hábito con el mismo nombre (case-insensitive).
-	// Evita duplicados que confundirían al usuario y ensuciarían la lista.
+	// Primera barrera: comprobación local de duplicados para feedback inmediato.
+	// El servidor también lo valida y devuelve 409, pero esta comprobación evita
+	// un viaje de red innecesario y muestra el error sin esperar respuesta.
 	const yaExiste = habitos.some(function (h) {
 		return h.habito.toLowerCase() === nombre.toLowerCase();
 	});
@@ -970,53 +869,55 @@ FORM_HABITO.addEventListener("submit", function (evento) {
 		return;
 	}
 
-	const id = crypto.randomUUID(); // Identificador único e irrepetible
+	try {
+		// El servidor crea el hábito y devuelve el objeto completo con id, createdAt,
+		// streakActual y fechaReferenciaRacha ya generados. Lo añadimos al array local
+		// para que renderizarHabitos() lo muestre sin necesidad de otro GET.
+		const nuevoHabito = await crearHabito(nombre, duracion);
+		const id = nuevoHabito.id;
+		habitos.push(nuevoHabito);
 
-	habitos.push({
-		habito: nombre,
-		tiempo: duracion,
-		completado: false,
-		id: id,
-		createdAt: new Date().toISOString(),
-	});
+		renderizarHabitos();
 
-	renderizarHabitos();
-
-	// Resalta brevemente la tarjeta recién añadida para que el usuario la identifique
-	const tarjetaNueva = LISTA_HABITOS.querySelector("[data-id='" + id + "']");
-	if (tarjetaNueva) {
-		requestAnimationFrame(function () {
-			tarjetaNueva.scrollIntoView({ behavior: "smooth", block: "nearest" });
-		});
-		const cardDiv = tarjetaNueva.querySelector("div");
-		cardDiv.classList.add("!bg-lime-300", "dark:!bg-emerald-700/50");
-		setTimeout(function () {
-			cardDiv.classList.add("!duration-1000");
-			cardDiv.classList.remove("!bg-lime-300", "dark:!bg-emerald-700/50");
+		// Resalta brevemente la tarjeta recién añadida para que el usuario la identifique
+		const tarjetaNueva = LISTA_HABITOS.querySelector("[data-id='" + id + "']");
+		if (tarjetaNueva) {
+			requestAnimationFrame(function () {
+				tarjetaNueva.scrollIntoView({ behavior: "smooth", block: "nearest" });
+			});
+			const cardDiv = tarjetaNueva.querySelector("div");
+			cardDiv.classList.add("!bg-lime-300", "dark:!bg-emerald-700/50");
 			setTimeout(function () {
-				cardDiv.classList.remove("!duration-1000");
-			}, 1000);
-		}, 1500);
+				cardDiv.classList.add("!duration-1000");
+				cardDiv.classList.remove("!bg-lime-300", "dark:!bg-emerald-700/50");
+				setTimeout(function () {
+					cardDiv.classList.remove("!duration-1000");
+				}, 1000);
+			}, 1500);
+		}
+
+		// Si hay una búsqueda activa, se limpia para que el nuevo hábito sea visible.
+		// Ocultar el hábito recién añadido sería confuso: el usuario pulsa "Añadir" y no ve nada.
+		if (INPUT_BUSQUEDA.value) {
+			INPUT_BUSQUEDA.value = "";
+			LISTA_HABITOS.querySelectorAll("li").forEach(function (item) {
+				item.hidden = false;
+			});
+		}
+
+		actualizarResumen();
+		actualizarEstadoVacio();
+
+		// Limpia todos los campos del formulario de una sola vez
+		FORM_HABITO.reset();
+		// Elimina los posibles estados de error visuales que pudieran quedar tras el reset
+		limpiarError(INPUT_NOMBRE, ERROR_NOMBRE);
+		limpiarError(INPUT_DURACION, ERROR_DURACION);
+	} catch (e) {
+		// Si el servidor falla, el formulario se queda relleno para que el usuario pueda reintentar
+		mostrarBanner("No se pudo crear el hábito. Inténtalo de nuevo.", "error");
+		return;
 	}
-
-	// Si hay una búsqueda activa, se limpia para que el nuevo hábito sea visible.
-	// Ocultar el hábito recién añadido sería confuso: el usuario pulsa "Añadir" y no ve nada.
-	if (INPUT_BUSQUEDA.value) {
-		INPUT_BUSQUEDA.value = "";
-		LISTA_HABITOS.querySelectorAll("li").forEach(function (item) {
-			item.hidden = false;
-		});
-	}
-
-	guardarHabitos();
-	actualizarResumen();
-	actualizarEstadoVacio();
-
-	// Limpia todos los campos del formulario de una sola vez
-	FORM_HABITO.reset();
-	// Elimina los posibles estados de error visuales que pudieran quedar tras el reset
-	limpiarError(INPUT_NOMBRE, ERROR_NOMBRE);
-	limpiarError(INPUT_DURACION, ERROR_DURACION);
 
 	// Devuelve el foco al primer campo para facilitar añadir varios hábitos seguidos
 	INPUT_NOMBRE.focus();
@@ -1049,7 +950,7 @@ function renderizarHabitos() {
 		if (orden === "nombre-asc")  return a.habito.localeCompare(b.habito);
 		if (orden === "nombre-desc") return b.habito.localeCompare(a.habito);
 		return db - da; // fecha-desc por defecto
-	}).forEach(crearHabito);
+	}).forEach(crearTarjeta);
 	actualizarEstadoVacio();
 }
 

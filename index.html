@@ -152,7 +152,7 @@
 								aria-describedby="error-nombre"
 								class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 							/>
-							<p id="error-nombre" class="hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
+							<p id="error-nombre" class="invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400" role="alert"></p>
 						</div>
 
 						<div class="flex flex-col gap-1 flex-1">
@@ -166,15 +166,22 @@
 								aria-describedby="error-duracion"
 								class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 							/>
-							<p id="error-duracion" class="hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
+							<p id="error-duracion" class="invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400" role="alert"></p>
 						</div>
 
-						<button
-							type="submit"
-							class="h-10 w-full sm:w-40 shrink-0 bg-base text-white rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300 whitespace-nowrap"
-						>
-							Añadir Hábito
-						</button>
+						<!-- El div envuelve el botón y añade un espaciador invisible debajo.
+							 Esto iguala la altura de esta columna con las de los inputs (que tienen
+							 el espacio reservado para los mensajes de error), para que items-end
+							 alinee el botón con los inputs y no con el fondo de los errores. -->
+						<div class="shrink-0 flex flex-col gap-1">
+							<button
+								type="submit"
+								class="h-10 w-full sm:w-40 bg-base text-white rounded-md shadow-sm cursor-pointer hover:bg-base-oscuro hover:shadow-md dark:bg-base-oscuro dark:hover:bg-base focus:outline-none focus:ring-2 focus:ring-base-oscuro transition-all duration-300 whitespace-nowrap"
+							>
+								Añadir Hábito
+							</button>
+							<span class="sm:min-h-5" aria-hidden="true"></span>
+						</div>
 					</fieldset>
 				</form>
 
@@ -384,7 +391,7 @@
 							maxlength="50"
 							aria-label="Nombre del hábito"
 						/>
-						<p class="error-nombre-edicion hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
+						<p class="error-nombre-edicion invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400" role="alert"></p>
 					</div>
 
 					<!--
@@ -409,7 +416,7 @@
 							maxlength="30"
 							aria-label="Duración del hábito"
 						/>
-						<p class="error-tiempo-edicion hidden text-sm text-red-700 dark:text-red-400" role="alert"></p>
+						<p class="error-tiempo-edicion invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400" role="alert"></p>
 					</div>
 
 					<!--
@@ -420,7 +427,7 @@
 						Al usar grid en lugar de absolute, los botones no escapan al card div
 						(que tiene position: relative para el tiempo centrado).
 					-->
-					<div class="relative shrink-0 h-9 min-w-55 max-sm:w-full max-sm:h-10">
+					<div class="relative shrink-0 h-10 min-w-55 max-sm:w-full sm:self-start">
 						<!--
 							Los tres grupos de botones se superponen usando position:absolute
 							con inset:0 dentro del contenedor, que tiene position:relative
@@ -456,13 +463,13 @@
 						>
 							<button
 								type="button"
-								class="btn-guardar border border-blue-700 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:border-blue-800 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap max-sm:flex-1"
+								class="btn-guardar border border-blue-700 px-2 py-2 rounded-md shadow-sm cursor-pointer bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-300 dark:bg-blue-700 dark:border-blue-800 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap max-sm:flex-1"
 							>
 								Guardar
 							</button>
 							<button
 								type="button"
-								class="btn-cancelar-edicion border border-gray-500 px-2 py-1 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap max-sm:flex-1"
+								class="btn-cancelar-edicion border border-gray-500 px-2 py-2 rounded-md shadow-sm cursor-pointer bg-gray-500 text-white hover:bg-gray-600 hover:shadow-md transition-all duration-300 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 whitespace-nowrap max-sm:flex-1"
 							>
 								Cancelar
 							</button>
@@ -497,6 +504,7 @@
 
 		<!-- Lógica de la aplicación. Se carga al final del body para garantizar
 		    que el DOM esté disponible antes de que el script se ejecute. -->
+		<script src="server/src/api/client.js"></script>
 		<script src="app.js"></script>
 	</body>
 </html>

@@ -5,7 +5,44 @@ const { randomUUID } = require('crypto');
 // Array en memoria que simula una base de datos
 // Cuando el servidor se reinicia, se pierde todo (intencional por ahora)
 
-let habitos = [];
+let habitos = [
+    {
+        id: randomUUID(),
+        habito: 'Meditar',
+        tiempo: '10 minutos',
+        completado: false,
+        createdAt: new Date(Date.now()).toISOString(),
+        streakActual: 0,
+        fechaReferenciaRacha: null,
+    },
+    {
+        id: randomUUID(),
+        habito: 'Leer',
+        tiempo: '1 capítulo',
+        completado: false,
+        createdAt: new Date(Date.now() + 1).toISOString(),
+        streakActual: 0,
+        fechaReferenciaRacha: null,
+    },
+    {
+        id: randomUUID(),
+        habito: 'Correr',
+        tiempo: '30 minutos',
+        completado: false,
+        createdAt: new Date(Date.now() + 2).toISOString(),
+        streakActual: 0,
+        fechaReferenciaRacha: null,
+    },
+    {
+        id: randomUUID(),
+        habito: 'Tomar vitaminas',
+        tiempo: 'Instantáneo',
+        completado: false,
+        createdAt: new Date(Date.now() + 3).toISOString(),
+        streakActual: 0,
+        fechaReferenciaRacha: null,
+    },
+];
 
 
 // Busca un hábito por ID y devuelve su índice en el array.
