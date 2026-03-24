@@ -94,11 +94,11 @@ async function completarHabito(id, completado) {
 
 // Marca o desmarca todos los hábitos en una sola petición al servidor.
 // Devuelve el array completo actualizado para sincronizar el estado local.
-async function completarTodosHabitos(completado) {
+async function completarTodosHabitos(completado, ids) {
     const response = await fetch(`${API_URL}/completar-todos`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completado }),
+        body: JSON.stringify({ completado, ids }),
     });
 
     if (!response.ok) throw new Error('Error al completar todos los hábitos');

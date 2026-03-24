@@ -139,7 +139,9 @@
 				     ─────────────────────────────────────────────────────────────── -->
 				<form id="nuevo_habito" class="mb-6" novalidate autocomplete="off">
 					<fieldset class="flex flex-col sm:flex-row sm:items-end gap-4 border-0 p-0 m-0">
-					<legend class="text-base font-semibold mb-2 sm:self-end sm:mb-0 sm:mr-2 shrink-0">Nuevo hábito</legend>
+						<legend class="text-base font-semibold mb-2 sm:self-end sm:mb-0 sm:mr-2 shrink-0">
+							Nuevo hábito
+						</legend>
 
 						<div class="flex flex-col gap-1 flex-1">
 							<label for="nombre_habito" class="text-sm font-medium">Nombre del hábito</label>
@@ -152,7 +154,11 @@
 								aria-describedby="error-nombre"
 								class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 							/>
-							<p id="error-nombre" class="invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400" role="alert"></p>
+							<p
+								id="error-nombre"
+								class="invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400"
+								role="alert"
+							></p>
 						</div>
 
 						<div class="flex flex-col gap-1 flex-1">
@@ -166,7 +172,11 @@
 								aria-describedby="error-duracion"
 								class="text-base border border-black p-2 rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 							/>
-							<p id="error-duracion" class="invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400" role="alert"></p>
+							<p
+								id="error-duracion"
+								class="invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400"
+								role="alert"
+							></p>
 						</div>
 
 						<!-- El div envuelve el botón y añade un espaciador invisible debajo.
@@ -230,14 +240,16 @@
 						que se encuentra al final del <body>.
 					-->
 					<!-- Cabecera de columnas -->
-				<div class="relative hidden sm:flex justify-between items-center w-full pl-4 pb-2 mb-2 mt-4 text-sm font-bold text-base">
-					<span>Hábito</span>
-					<span class="absolute left-1/2 -translate-x-1/2">Duración</span>
-					<span>Acciones</span>
-				</div>
-				<hr class="border-t-2 border-base dark:border-base-claro sm:mb-2 mb-4 sm:mt-0 mt-4" />
+					<div
+						class="relative hidden sm:flex justify-between items-center w-full pl-4 pb-2 mb-2 mt-4 text-sm font-bold text-base"
+					>
+						<span>Hábito</span>
+						<span class="absolute left-1/2 -translate-x-1/2">Duración</span>
+						<span>Acciones</span>
+					</div>
+					<hr class="border-t-2 border-base dark:border-base-claro sm:mb-2 mb-4 sm:mt-0 mt-4" />
 
-				<ul id="lista-habitos" role="list" class="list-none flex flex-col gap-2"></ul>
+					<ul id="lista-habitos" role="list" class="list-none flex flex-col gap-2"></ul>
 
 					<!--
 						Mensaje de estado vacío.
@@ -252,8 +264,7 @@
 					>
 						Aún no tienes hábitos. ¡Empieza a añadirlos con el formulario de arriba!
 					</p>
-
-					</section>
+				</section>
 			</main>
 
 			<!-- ───────────────────────────────────────────────────────────────
@@ -368,7 +379,9 @@
 						independientemente del checkbox (visible/invisible) o del badge.
 						En sm+: flex row normal.
 					-->
-					<label class="nombre-label flex items-center gap-3 cursor-pointer min-w-0 max-sm:grid max-sm:grid-cols-[1fr_auto_1fr] max-sm:items-center max-sm:w-full max-sm:gap-2">
+					<label
+						class="nombre-label flex items-center gap-3 cursor-pointer min-w-0 max-sm:grid max-sm:grid-cols-[1fr_auto_1fr] max-sm:items-center max-sm:w-full max-sm:gap-2"
+					>
 						<input
 							type="checkbox"
 							class="completado w-5 h-5 cursor-pointer accent-green-600 shrink-0 focus:outline-none focus:ring-2 focus:ring-green-600 rounded-sm max-sm:justify-self-start"
@@ -391,7 +404,10 @@
 							maxlength="50"
 							aria-label="Nombre del hábito"
 						/>
-						<p class="error-nombre-edicion invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400" role="alert"></p>
+						<p
+							class="error-nombre-edicion invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400"
+							role="alert"
+						></p>
 					</div>
 
 					<!--
@@ -416,7 +432,10 @@
 							maxlength="30"
 							aria-label="Duración del hábito"
 						/>
-						<p class="error-tiempo-edicion invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400" role="alert"></p>
+						<p
+							class="error-tiempo-edicion invisible sm:min-h-5 text-sm text-red-700 dark:text-red-400"
+							role="alert"
+						></p>
 					</div>
 
 					<!--

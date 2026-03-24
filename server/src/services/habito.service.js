@@ -182,15 +182,16 @@ function eliminarHabito(id) {
     habitos.splice(index, 1);
 }
 
-// Exportamos las funciones para que otros archivos puedan importarlas
-// Sin esto, Node trata el archivo como un módulo cerrado y nada es accesible desde fuera
-// Marca o desmarca todos los hábitos a la vez reutilizando la lógica de completarHabito,
-// para que las rachas se calculen igual que al completar uno a uno.
-function completarTodos(completado) {
-    habitos.forEach(function(h) {
-        completarHabito(h.id, completado);
+// Marca o desmarca solo los hábitos cuyos IDs se reciben.
+// Si algún ID no existe lanza NOT_FOUND antes de modificar nada.
+function completarTodos(completado, ids) {
+    ids.forEach(function(id) {
+        encontrarIndicePorId(id);
     });
-    return habitos;
+
+    return ids.map(function(id) {
+        return completarHabito(id, completado);
+    });
 }
 
 module.exports = { obtenerTodos, crearHabito, editarHabito, completarHabito, completarTodos, resetearHabitos, eliminarHabito };

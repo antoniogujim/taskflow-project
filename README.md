@@ -15,7 +15,7 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Panel lateral de resumen con contadores de total, completados y pendientes, accesible mediante `aria-live`
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Al añadir o renombrar un hábito con búsqueda activa, el filtro se limpia automáticamente para que el hábito sea visible
-- **Botón "Completar todos" / "Desmarcar todos"**: junto al buscador, completa o desmarca todos los hábitos en un clic mediante una única petición al servidor (`PATCH /completar-todos`). Se deshabilita automáticamente cuando no hay hábitos visibles
+- **Botón "Completar todos" / "Desmarcar todos"**: junto al buscador, completa o desmarca en un clic los hábitos visibles mediante una única petición al servidor (`PATCH /completar-todos`). Sin búsqueda activa completa todos; con búsqueda activa, solo los que coinciden con el filtro. Se deshabilita automáticamente cuando no hay hábitos visibles
 - **Selector de orden**: permite ordenar la lista por fecha de creación (reciente o antiguo primero) o por nombre (A→Z / Z→A). El orden se respeta al añadir nuevos hábitos y es compatible con el filtro de búsqueda: al cambiar el orden con una búsqueda activa, los hábitos se reordenan y el filtro se reaaplica automáticamente. Se deshabilita automáticamente cuando no hay hábitos visibles
 - **Resaltado de hábito nuevo**: al añadir un hábito, su tarjeta aparece brevemente destacada en color lima (claro) o esmeralda (oscuro) y hace scroll hasta ella si es necesario. El color desaparece con una transición suave de 1 segundo
 - **Estados de carga y error**: al iniciar la app se muestra "Cargando hábitos..." mientras se espera al servidor. Si el servidor no está disponible o falla cualquier operación, se muestra un banner de error rojo bajo la cabecera con un mensaje descriptivo
@@ -117,36 +117,36 @@ taskflow-project/
 
 El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints están bajo el prefijo `/api/v1/habitos`.
 
-| Método | Endpoint                          | Descripción                                        | Body (JSON)                                        | Respuesta           |
-| ------ | --------------------------------- | -------------------------------------------------- | -------------------------------------------------- | ------------------- |
-| GET    | `/api/v1/habitos`                 | Devuelve todos los hábitos                         | —                                                  | `200` array JSON    |
-| POST   | `/api/v1/habitos`                 | Crea un nuevo hábito                               | `{ "habito": "Meditar", "tiempo": "10 minutos" }`  | `201` objeto creado |
-| PATCH  | `/api/v1/habitos/completar-todos` | Marca o desmarca todos los hábitos en una sola petición | `{ "completado": true }`                      | `200` array actualizado |
-| PATCH  | `/api/v1/habitos/:id`             | Edita el nombre y la duración de un hábito         | `{ "habito": "Leer", "tiempo": "30 minutos" }`     | `200` objeto actualizado |
-| PATCH  | `/api/v1/habitos/:id/completar`   | Marca o desmarca un hábito y actualiza su racha    | `{ "completado": true }`                           | `200` objeto actualizado |
-| POST   | `/api/v1/habitos/reset`           | Resetea todos los hábitos a `completado: false` y rompe rachas antiguas | —                         | `204` sin contenido |
-| DELETE | `/api/v1/habitos/:id`             | Elimina el hábito con ese ID                       | —                                                  | `204` sin contenido |
+| Método | Endpoint                          | Descripción                                                             | Body (JSON)                                       | Respuesta                               |
+| ------ | --------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------- | --------------------------------------- |
+| GET    | `/api/v1/habitos`                 | Devuelve todos los hábitos                                              | —                                                 | `200` array JSON                        |
+| POST   | `/api/v1/habitos`                 | Crea un nuevo hábito                                                    | `{ "habito": "Meditar", "tiempo": "10 minutos" }` | `201` objeto creado                     |
+| PATCH  | `/api/v1/habitos/completar-todos` | Marca o desmarca los hábitos cuyos IDs se reciben                       | `{ "completado": true, "ids": ["id1", "id2"] }`   | `200` array con los hábitos modificados |
+| PATCH  | `/api/v1/habitos/:id`             | Edita el nombre y la duración de un hábito                              | `{ "habito": "Leer", "tiempo": "30 minutos" }`    | `200` objeto actualizado                |
+| PATCH  | `/api/v1/habitos/:id/completar`   | Marca o desmarca un hábito y actualiza su racha                         | `{ "completado": true }`                          | `200` objeto actualizado                |
+| POST   | `/api/v1/habitos/reset`           | Resetea todos los hábitos a `completado: false` y rompe rachas antiguas | —                                                 | `204` sin contenido                     |
+| DELETE | `/api/v1/habitos/:id`             | Elimina el hábito con ese ID                                            | —                                                 | `204` sin contenido                     |
 
 ### Códigos de error
 
-| Código | Motivo                                      |
-| ------ | ------------------------------------------- |
-| `400`  | Body ausente o no válido; campos `habito` o `tiempo` faltantes, vacíos, con solo espacios, o de tipo incorrecto (se requiere string); `completado` no es booleano |
-| `404`  | No existe ningún hábito con ese ID, o la ruta solicitada no existe |
-| `409`  | Ya existe un hábito con el mismo nombre     |
-| `500`  | Error interno no controlado del servidor    |
+| Código | Motivo                                                                                                                                                                                            |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `400`  | Body ausente o no válido; campos `habito` o `tiempo` faltantes, vacíos, con solo espacios, o de tipo incorrecto (se requiere string); `completado` no es booleano; `ids` ausente o no es un array |
+| `404`  | No existe ningún hábito con ese ID, o la ruta solicitada no existe                                                                                                                                |
+| `409`  | Ya existe un hábito con el mismo nombre                                                                                                                                                           |
+| `500`  | Error interno no controlado del servidor                                                                                                                                                          |
 
 ### Ejemplo de hábito
 
 ```json
 {
-    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "habito": "Meditar",
-    "tiempo": "10 minutos",
-    "completado": false,
-    "createdAt": "2026-03-20T10:00:00.000Z",
-    "streakActual": 3,
-    "fechaReferenciaRacha": "2026-03-19"
+	"id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+	"habito": "Meditar",
+	"tiempo": "10 minutos",
+	"completado": false,
+	"createdAt": "2026-03-20T10:00:00.000Z",
+	"streakActual": 3,
+	"fechaReferenciaRacha": "2026-03-19"
 }
 ```
 
@@ -154,28 +154,28 @@ El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints es
 
 ## Pruebas de integración de la API
 
-Se han realizado pruebas manuales en cuatro fases sobre los endpoints de la API, con un total de 41 casos cubiertos.
+Se han realizado pruebas manuales en cinco fases sobre los endpoints de la API, con un total de 52 casos cubiertos.
 
-La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). La tercera fase cubrió los nuevos endpoints de editar (`PATCH /:id`), completar (`PATCH /:id/completar`) y reset (`POST /reset`), incluyendo la lógica de racha. La cuarta fase cubrió el nuevo endpoint `PATCH /completar-todos`, donde se detectó que las rutas específicas deben registrarse antes que las rutas con parámetros dinámicos (`/:id`) en Express. Todos los casos de las cuatro fases resultaron correctos.
+La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). La tercera fase cubrió los nuevos endpoints de editar (`PATCH /:id`), completar (`PATCH /:id/completar`) y reset (`POST /reset`), incluyendo la lógica de racha. La cuarta fase cubrió el nuevo endpoint `PATCH /completar-todos`, donde se detectó que las rutas específicas deben registrarse antes que las rutas con parámetros dinámicos (`/:id`) en Express. La quinta fase revalidó el endpoint `PATCH /completar-todos` tras reestructurarlo para que acepte un array `ids` obligatorio y opere solo sobre los hábitos indicados; este cambio permite integrar el botón "Completar todos" con el filtro de búsqueda activo, de forma que solo se completan los hábitos visibles en pantalla. Todos los casos de las cinco fases resultaron correctos.
 
 Los resultados están documentados en [`server/Pruebas-integracion.md`](server/Pruebas-integracion.md).
 
 ### Correcciones aplicadas tras la 1ª fase
 
-| Problema | Solución |
-| -------- | -------- |
-| POST sin body devolvía 500 | Guarda defensiva en el controlador que detecta body nulo y devuelve 400 |
-| DELETE sin ID devolvía HTML | Middleware catch-all que captura rutas no encontradas y devuelve JSON 404 |
-| Campos extra se guardaban | El servicio extrae solo `habito` y `tiempo` por nombre; el resto se descarta |
-| Espacios en blanco se aceptaban como válidos | Validación con `.trim()` antes de crear el hábito |
-| Tipos incorrectos (número, booleano, array) se aceptaban | Validación con `typeof` para exigir string en `habito` y `tiempo` |
-| `tiempo` no era obligatorio | Añadida validación equivalente a la de `habito` para el campo `tiempo` |
-| Se podían crear hábitos duplicados | Comprobación en el servicio con `.some()` antes de insertar; devuelve 409 si ya existe |
+| Problema                                                 | Solución                                                                               |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| POST sin body devolvía 500                               | Guarda defensiva en el controlador que detecta body nulo y devuelve 400                |
+| DELETE sin ID devolvía HTML                              | Middleware catch-all que captura rutas no encontradas y devuelve JSON 404              |
+| Campos extra se guardaban                                | El servicio extrae solo `habito` y `tiempo` por nombre; el resto se descarta           |
+| Espacios en blanco se aceptaban como válidos             | Validación con `.trim()` antes de crear el hábito                                      |
+| Tipos incorrectos (número, booleano, array) se aceptaban | Validación con `typeof` para exigir string en `habito` y `tiempo`                      |
+| `tiempo` no era obligatorio                              | Añadida validación equivalente a la de `habito` para el campo `tiempo`                 |
+| Se podían crear hábitos duplicados                       | Comprobación en el servicio con `.some()` antes de insertar; devuelve 409 si ya existe |
 
 ### Correcciones aplicadas tras la 3ª fase
 
-| Problema | Solución |
-| -------- | -------- |
+| Problema                                        | Solución                                                                             |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------ |
 | `PATCH /completar` sin body podía causar un 500 | Guarda defensiva añadida al controlador `complete`, igual que en `create` y `update` |
 
 ## Uso
@@ -238,11 +238,11 @@ El nombre y la duración del hábito permanecen visibles durante todo el proceso
 
 Cada tarjeta puede estar en uno de tres estados, visualmente distintos y mutuamente excluyentes. Al activar uno, cualquier otro estado abierto en otra tarjeta se cierra automáticamente.
 
-| Estado        | Color de tarjeta              | Descripción                              |
-| ------------- | ----------------------------- | ---------------------------------------- |
-| Normal        | Verde (`bg-base-claro`)       | Estado por defecto                       |
-| Edición       | Azul (`bg-blue-100`)          | Editando nombre o duración               |
-| Confirmación  | Amarillo (`bg-yellow-100`)    | Confirmando eliminación                  |
+| Estado       | Color de tarjeta           | Descripción                |
+| ------------ | -------------------------- | -------------------------- |
+| Normal       | Verde (`bg-base-claro`)    | Estado por defecto         |
+| Edición      | Azul (`bg-blue-100`)       | Editando nombre o duración |
+| Confirmación | Amarillo (`bg-yellow-100`) | Confirmando eliminación    |
 
 ## Reset diario automático
 
@@ -266,10 +266,10 @@ El botón siempre contrasta con la tarjeta independientemente del estado de hove
 
 ### Tarjetas en modo edición
 
-| Modo   | Tarjeta            | Borde               |
-| ------ | ------------------ | ------------------- |
-| Claro  | `bg-blue-100`      | `border-blue-400`   |
-| Oscuro | `bg-blue-900/20`   | `border-blue-600`   |
+| Modo   | Tarjeta          | Borde             |
+| ------ | ---------------- | ----------------- |
+| Claro  | `bg-blue-100`    | `border-blue-400` |
+| Oscuro | `bg-blue-900/20` | `border-blue-600` |
 
 ### Tarjetas en modo confirmación
 
@@ -283,11 +283,13 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 ## Tecnologías
 
 ### Frontend
+
 - HTML5 semántico (`header`, `main`, `aside`, `footer`, `template`)
 - Tailwind CSS v4 (utility classes, dark mode, tema personalizado con variables `@theme`)
 - JavaScript vanilla (manipulación del DOM, Fetch API, template cloning)
 
 ### Backend
+
 - Node.js con Express
 - dotenv para gestión de variables de entorno
 - nodemon para recarga automática en desarrollo
@@ -310,6 +312,6 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 
 ## Próximas actualizaciones
 
-| Mejora | Motivo |
-| ------ | ------ |
+| Mejora                     | Motivo                                                                                                                                                   |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Persistencia real de datos | Los hábitos se almacenan en memoria. Conectar una base de datos (SQLite, PostgreSQL, etc.) permitiría que los datos sobrevivan al reinicio del servidor. |

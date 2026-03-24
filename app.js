@@ -1,3 +1,17 @@
+// ─── Limpieza de datos obsoletos ──────────────────────────────────────────────
+
+// Elimina la clave "Lista_de_habitos" que se usaba para persistir los hábitos
+// en localStorage antes de migrar al backend. Si el navegador la tiene como
+// basura de versiones anteriores, la borramos para no dejar datos huérfanos.
+(function limpiarDatosObsoletos() {
+	const CLAVES_OBSOLETAS = ["Lista_de_habitos"];
+	CLAVES_OBSOLETAS.forEach(function (clave) {
+		if (localStorage.getItem(clave) !== null) {
+			localStorage.removeItem(clave);
+		}
+	});
+})();
+
 // ─── Referencias al DOM ───────────────────────────────────────────────────────
 
 // Formulario principal para añadir nuevos hábitos
@@ -29,7 +43,6 @@ const INPUT_NOMBRE = document.getElementById("nombre_habito");
 const INPUT_DURACION = document.getElementById("duracion_habito");
 const ERROR_NOMBRE = document.getElementById("error-nombre");
 const ERROR_DURACION = document.getElementById("error-duracion");
-
 
 // Claves de localStorage: definidas una sola vez para evitar errores de tipeo silenciosos
 const STORAGE_KEY_DARK = "modo-oscuro";
@@ -288,12 +301,15 @@ function actualizarResumen() {
 	RESUMEN_PROGRESO_TEXTO.textContent = completados + " / " + total;
 
 	// Color progresivo: gris (sin hábitos) → rojo → amarillo → verde
-	RESUMEN_BARRA.className = "h-3 rounded-full transition-all duration-300 " + (
-		total === 0        ? "bg-gray-400" :
-		porcentaje === 100 ? "bg-green-500" :
-		porcentaje >= 50   ? "bg-yellow-400" :
-		                     "bg-red-400"
-	);
+	RESUMEN_BARRA.className =
+		"h-3 rounded-full transition-all duration-300 " +
+		(total === 0
+			? "bg-gray-400"
+			: porcentaje === 100
+				? "bg-green-500"
+				: porcentaje >= 50
+					? "bg-yellow-400"
+					: "bg-red-400");
 
 	actualizarBotonCompletarTodos();
 }
@@ -579,7 +595,11 @@ function crearTarjeta(habito) {
 			mostrarError(tiempoInput, errorTiempoEdicion, "La duración es obligatoria.");
 			esValido = false;
 		} else if (nuevaDuracion.length > MAX_DURACION) {
-			mostrarError(tiempoInput, errorTiempoEdicion, `La duración no puede superar los ${MAX_DURACION} caracteres.`);
+			mostrarError(
+				tiempoInput,
+				errorTiempoEdicion,
+				`La duración no puede superar los ${MAX_DURACION} caracteres.`,
+			);
 			esValido = false;
 		}
 
@@ -713,11 +733,17 @@ function crearTarjeta(habito) {
 
 	// Enter guarda, Escape cancela desde cualquier input de edición
 	nombreInput.addEventListener("keydown", function (e) {
-		if (e.key === "Enter") { e.preventDefault(); guardarEdicion(); }
+		if (e.key === "Enter") {
+			e.preventDefault();
+			guardarEdicion();
+		}
 		if (e.key === "Escape") salirModoEdicion();
 	});
 	tiempoInput.addEventListener("keydown", function (e) {
-		if (e.key === "Enter") { e.preventDefault(); guardarEdicion(); }
+		if (e.key === "Enter") {
+			e.preventDefault();
+			guardarEdicion();
+		}
 		if (e.key === "Escape") salirModoEdicion();
 	});
 
@@ -943,14 +969,17 @@ FORM_HABITO.addEventListener("submit", async function (evento) {
 function renderizarHabitos() {
 	LISTA_HABITOS.innerHTML = "";
 	const orden = SELECT_ORDENAR.value;
-	habitos.slice().sort(function (a, b) {
-		const da = new Date(a.createdAt).getTime();
-		const db = new Date(b.createdAt).getTime();
-		if (orden === "fecha-asc")   return da - db;
-		if (orden === "nombre-asc")  return a.habito.localeCompare(b.habito);
-		if (orden === "nombre-desc") return b.habito.localeCompare(a.habito);
-		return db - da; // fecha-desc por defecto
-	}).forEach(crearTarjeta);
+	habitos
+		.slice()
+		.sort(function (a, b) {
+			const da = new Date(a.createdAt).getTime();
+			const db = new Date(b.createdAt).getTime();
+			if (orden === "fecha-asc") return da - db;
+			if (orden === "nombre-asc") return a.habito.localeCompare(b.habito);
+			if (orden === "nombre-desc") return b.habito.localeCompare(a.habito);
+			return db - da; // fecha-desc por defecto
+		})
+		.forEach(crearTarjeta);
 	actualizarEstadoVacio();
 }
 
@@ -995,8 +1024,19 @@ BTN_COMPLETAR_TODOS.addEventListener("click", async function () {
 		return !item.querySelector(".completado").checked;
 	});
 
+	const ids = visibles.map(function (item) {
+		return item.dataset.id;
+	});
+
 	try {
-		habitos = await completarTodosHabitos(hayPendientes);
+		const actualizados = await completarTodosHabitos(hayPendientes, ids);
+		// El servidor devuelve solo los hábitos modificados (los visibles).
+		// Actualizamos cada uno en el array local en lugar de reemplazarlo entero,
+		// para no perder los hábitos que no estaban visibles por el filtro de búsqueda.
+		actualizados.forEach(function (actualizado) {
+			const index = habitos.findIndex(function (h) { return h.id === actualizado.id; });
+			if (index !== -1) habitos[index] = actualizado;
+		});
 		renderizarHabitos();
 		aplicarFiltro();
 		actualizarResumen();

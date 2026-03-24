@@ -131,20 +131,30 @@ function complete(req, res, next) {
     }
 }
 
-// Marca o desmarca todos los hábitos a la vez y devuelve el array actualizado.
-function completeAll(req, res) {
-    if (!req.body || typeof req.body !== 'object') {
-        return res.status(400).json({ error: 'El cuerpo de la petición es obligatorio' });
-    }
+// Marca o desmarca los hábitos cuyos IDs llegan en el body y devuelve solo los actualizados.
+// Recibe un array ids con los hábitos visibles en el frontend (respetando el filtro de búsqueda activo),
+// de forma que solo se actualizan los que el usuario ve en pantalla, no todos.
+function completeAll(req, res, next) {
+    const { completado, ids } = req.body || {};
 
-    const { completado } = req.body;
+    if (!Array.isArray(ids)) {
+        return res.status(400).json({ error: 'El campo ids es obligatorio y debe ser un array' });
+    }
 
     if (typeof completado !== 'boolean') {
-        return res.status(400).json({ error: 'El valor de completado debe ser true o false' });
+        return res.status(400).json({ error: 'El campo completado debe ser un booleano' });
     }
 
-    const habitosActualizados = habitoService.completarTodos(completado);
-    res.status(200).json(habitosActualizados);
+    if (ids.length === 0) {
+        return res.status(200).json([]);
+    }
+
+    try {
+        const habitosActualizados = habitoService.completarTodos(completado, ids);
+        res.status(200).json(habitosActualizados);
+    } catch (error) {
+        next(error);
+    }
 }
 
 // Resetea todos los hábitos a completado: false.
