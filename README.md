@@ -18,7 +18,8 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - **Botón "Completar todos" / "Desmarcar todos"**: junto al buscador, completa o desmarca en un clic los hábitos visibles mediante una única petición al servidor (`PATCH /completar-todos`). Sin búsqueda activa completa todos; con búsqueda activa, solo los que coinciden con el filtro. Se deshabilita automáticamente cuando no hay hábitos visibles
 - **Selector de orden**: permite ordenar la lista por fecha de creación (reciente o antiguo primero) o por nombre (A→Z / Z→A). El orden se respeta al añadir nuevos hábitos y es compatible con el filtro de búsqueda: al cambiar el orden con una búsqueda activa, los hábitos se reordenan y el filtro se reaaplica automáticamente. Se deshabilita automáticamente cuando no hay hábitos visibles
 - **Resaltado de hábito nuevo**: al añadir un hábito, su tarjeta aparece brevemente destacada en color lima (claro) o esmeralda (oscuro) y hace scroll hasta ella si es necesario. El color desaparece con una transición suave de 1 segundo
-- **Estados de carga y error**: al iniciar la app se muestra "Cargando hábitos..." mientras se espera al servidor. Si el servidor no está disponible o falla cualquier operación, se muestra un banner de error rojo bajo la cabecera con un mensaje descriptivo
+- **Estados de red en UI**: todas las operaciones contra el servidor tienen feedback visual mientras la petición está en curso: el botón "Añadir Hábito" cambia a "Añadiendo...", "Confirmar" cambia a "Eliminando...", "Guardar" cambia a "Guardando...", "Completar todos" / "Desmarcar todos" cambia a "Completando..." / "Desmarcando..." (con todos los checkboxes visibles bloqueados para evitar peticiones simultáneas), y el checkbox individual se deshabilita mientras se procesa. Al iniciar la app se muestra "Cargando hábitos..." mientras se espera al servidor. Si el servidor no está disponible o falla cualquier operación, se muestra un banner de error rojo bajo la cabecera con un mensaje descriptivo
+- **Banner de reset diario**: al detectar que es un día nuevo (y no es la primera visita), se muestra un banner verde informativo que se cierra automáticamente tras 6 segundos. El usuario también puede cerrarlo manualmente antes de que expire
 - Validación de formulario con mensajes de error por campo, sin salto de layout (el espacio para el error se reserva siempre con `visibility:hidden`)
 - Los errores de validación incluyen detección de nombres duplicados (validada también en el servidor)
 - Validación de longitud máxima en JS como segunda barrera (independiente del `maxlength` del HTML)
@@ -54,6 +55,8 @@ taskflow-project/
 │   ├── app.js            # Lógica de la aplicación
 │   ├── client.js         # Funciones fetch del frontend (una por endpoint)
 │   ├── favicon.svg       # Favicon con las iniciales SH
+│   ├── api-docs/
+│   │   └── api-docs.html # Swagger UI estático (carga desde CDN, pide spec a /api/swagger-spec)
 │   └── dist/
 │       └── styles.css    # CSS compilado (generado por Tailwind)
 ├── api/                  # Backend Express (detectado automáticamente por Vercel)
@@ -241,6 +244,7 @@ Al abrir la app, se comprueba si el día actual (en hora local del usuario) es d
 - La fecha del último reset se guarda en localStorage bajo la clave `ultimo-reset` para evitar llamadas innecesarias al servidor en cada recarga del mismo día.
 - La fecha se calcula en **hora local** para evitar resets prematuros en zonas horarias con UTC+.
 - El reset ocurre antes del renderizado, por lo que el usuario nunca ve el estado del día anterior.
+- Tras el reset se muestra un banner verde informativo que se cierra solo tras 6 segundos. En la primera visita (localStorage vacío) no se muestra porque no hay nada que haya sido reseteado.
 
 ## Sistema de colores
 
@@ -282,7 +286,7 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 - Node.js con Express
 - dotenv para gestión de variables de entorno
 - nodemon para recarga automática en desarrollo
-- swagger-jsdoc + swagger-ui-express para documentación interactiva de la API en `/api-docs`
+- swagger-jsdoc para generar el spec OpenAPI a partir de comentarios JSDoc; se expone como JSON en `GET /api/swagger-spec`. La UI de Swagger se sirve como página estática en `public/api-docs/api-docs.html`, cargando la librería desde CDN — este enfoque evita los problemas de routing de Vercel con `swagger-ui-express`
 - Middleware global de manejo de errores: captura cualquier excepción no controlada, mapea `NOT_FOUND` a `404`, `DUPLICATE` a `409`, y cualquier otro fallo a `500` con mensaje genérico (sin filtrar detalles técnicos al cliente)
 - Middleware catch-all: captura rutas no reconocidas por Express y devuelve JSON `404` en lugar de la página HTML de error por defecto
 

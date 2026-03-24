@@ -44,6 +44,10 @@ const INPUT_DURACION = document.getElementById("duracion_habito");
 const ERROR_NOMBRE = document.getElementById("error-nombre");
 const ERROR_DURACION = document.getElementById("error-duracion");
 
+// Botón de envío del formulario: se deshabilita durante la petición al servidor
+// para evitar envíos duplicados si el usuario pulsa varias veces mientras espera.
+const BTN_ANADIR = FORM_HABITO.querySelector('[type="submit"]');
+
 // Claves de localStorage: definidas una sola vez para evitar errores de tipeo silenciosos
 const STORAGE_KEY_DARK = "modo-oscuro";
 const STORAGE_KEY_RESET = "ultimo-reset";
@@ -83,22 +87,37 @@ const ESTILOS_BANNER = {
 		texto: "text-red-700 dark:text-red-400",
 		ring: "focus:ring-red-500",
 	},
+	// Usado para avisos informativos que no requieren acción del usuario,
+	// como el reset diario automático. Se cierra solo tras 6 segundos.
+	exito: {
+		fondo: "bg-green-50 dark:bg-green-900/20",
+		borde: "border-green-400 dark:border-green-600",
+		texto: "text-green-700 dark:text-green-400",
+		ring: "focus:ring-green-500",
+	},
 };
 
 // Referencia a los estilos del tipo activo, necesaria para limpiarlos al cerrar
 let estilosActivosBanner = null;
 
+// Referencia al timeout de auto-cierre del banner: se guarda para poder
+// cancelarlo si el usuario cierra el banner manualmente antes de que expire.
+let timeoutAutoCierreBanner = null;
+
 /**
  * Muestra la barra de aviso debajo del header con el mensaje y el estilo
- * correspondiente al tipo de error producido.
+ * correspondiente al tipo producido.
  * La animación de despliegue se consigue transitando max-h-0 → max-h-32
  * y opacity-0 → opacity-100, evitando así el uso de display:none que bloquea CSS transitions.
  *
- * @param {string} mensaje        - Texto descriptivo del problema ocurrido.
- * @param {"aviso"|"error"} tipo  - "aviso" para problemas recuperables (ámbar),
- *                                  "error" para problemas persistentes (rojo).
+ * @param {string} mensaje          - Texto descriptivo del problema ocurrido.
+ * @param {"error"|"exito"} tipo    - "error" para problemas (rojo), "exito" para avisos informativos (verde).
+ * @param {boolean} [autoCerrar]    - Si es true, el banner se cierra automáticamente tras 6 segundos.
  */
-function mostrarBanner(mensaje, tipo) {
+function mostrarBanner(mensaje, tipo, autoCerrar = false) {
+	// Cancela cualquier auto-cierre pendiente de un banner anterior
+	clearTimeout(timeoutAutoCierreBanner);
+
 	// Si había un tipo anterior activo, limpia sus clases de color antes de aplicar las nuevas
 	if (estilosActivosBanner) {
 		BANNER.classList.remove(...estilosActivosBanner.fondo.split(" "), ...estilosActivosBanner.borde.split(" "));
@@ -123,6 +142,14 @@ function mostrarBanner(mensaje, tipo) {
 	].join(" ");
 
 	BANNER_TEXTO.textContent = mensaje;
+
+	// Si se pide auto-cierre, lanza un timeout de 6 segundos.
+	// La referencia se guarda para cancelarlo si el usuario cierra el banner antes.
+	if (autoCerrar) {
+		timeoutAutoCierreBanner = setTimeout(function () {
+			BANNER_CERRAR.click();
+		}, 6000);
+	}
 }
 
 /*
@@ -132,6 +159,9 @@ function mostrarBanner(mensaje, tipo) {
  * para dejar el elemento en su estado inicial limpio.
  */
 BANNER_CERRAR.addEventListener("click", function () {
+	// Cancela el auto-cierre si el usuario pulsa la ✕ antes de que expire
+	clearTimeout(timeoutAutoCierreBanner);
+
 	BANNER.classList.remove("max-h-32", "opacity-100");
 	BANNER.classList.add("max-h-0", "opacity-0");
 	// Espera a que la transición de cierre termine antes de limpiar los colores
@@ -188,6 +218,13 @@ async function comprobarResetDiario() {
 	habitos = await obtenerHabitos();
 
 	localStorage.setItem(STORAGE_KEY_RESET, hoy);
+
+	// Solo muestra el banner si el usuario ya había entrado antes (ultimoReset !== null).
+	// En la primera visita no hay nada que haya sido reseteado, así que el aviso
+	// sería incorrecto y confuso.
+	if (ultimoReset !== null) {
+		mostrarBanner("Nuevo día, hábitos reseteados. ¡A por ello!", "exito", true);
+	}
 }
 
 // ─── Validación ───────────────────────────────────────────────────────────────
@@ -614,6 +651,9 @@ function crearTarjeta(habito) {
 			return;
 		}
 
+		// Informa al usuario de que la petición está en curso.
+		btnGuardar.textContent = "Guardando...";
+
 		try {
 			// El servidor actualiza el hábito y devuelve el objeto completo ya modificado.
 			// Usamos los datos devueltos para actualizar el objeto local — así el frontend
@@ -651,6 +691,11 @@ function crearTarjeta(habito) {
 			// Si el servidor falla, la tarjeta se queda en modo edición para que
 			// el usuario pueda reintentar sin perder los cambios que escribió.
 			mostrarBanner("No se pudo guardar el hábito. Inténtalo de nuevo.", "error");
+		} finally {
+			// Se ejecuta siempre: en éxito el botón vuelve a quedar oculto tras salirModoEdicion(),
+			// en error se queda visible para que el usuario pueda reintentar. En ambos casos
+			// el texto debe estar restaurado para la próxima vez que entre en modo edición.
+			btnGuardar.textContent = "Guardar";
 		}
 	}
 
@@ -770,6 +815,9 @@ function crearTarjeta(habito) {
 	btnConfirmar.addEventListener("click", async function () {
 		clearTimeout(timeoutConfirmacion);
 
+		// Informa al usuario de que la petición está en curso.
+		btnConfirmar.textContent = "Eliminando...";
+
 		try {
 			// Primero le decimos al servidor que elimine el hábito.
 			// Solo si responde con éxito actualizamos el DOM y el array local.
@@ -783,8 +831,9 @@ function crearTarjeta(habito) {
 			actualizarResumen();
 			actualizarEstadoVacio();
 		} catch (e) {
-			// Si el servidor falla, devolvemos la tarjeta a su estado normal
-			// para que el usuario pueda reintentar cuando el servidor esté disponible.
+			// Si el servidor falla, restauramos el texto del botón y devolvemos
+			// la tarjeta a su estado normal para que el usuario pueda reintentar.
+			btnConfirmar.textContent = "Confirmar";
 			salirModoConfirmacion();
 			mostrarBanner("No se pudo eliminar el hábito. Inténtalo de nuevo.", "error");
 		}
@@ -812,6 +861,10 @@ function crearTarjeta(habito) {
 		// así que el estado previo es el contrario.
 		const estadoPrevio = !checkbox.checked;
 
+		// Bloquea el checkbox mientras dura la petición para evitar clicks simultáneos
+		// que enviarían peticiones contradictorias al servidor antes de recibir respuesta.
+		checkbox.disabled = true;
+
 		try {
 			// El servidor calcula la racha y devuelve el hábito completo actualizado.
 			const habitoActualizado = await completarHabito(habito.id, checkbox.checked);
@@ -829,6 +882,10 @@ function crearTarjeta(habito) {
 			// para que la UI refleje la realidad del servidor.
 			checkbox.checked = estadoPrevio;
 			mostrarBanner("No se pudo actualizar el hábito. Inténtalo de nuevo.", "error");
+		} finally {
+			// Se ejecuta siempre: el checkbox sigue en el DOM tanto en éxito como en error,
+			// así que siempre hay que desbloquearlo para que el usuario pueda volver a usarlo.
+			checkbox.disabled = false;
 		}
 	});
 
@@ -895,6 +952,11 @@ FORM_HABITO.addEventListener("submit", async function (evento) {
 		return;
 	}
 
+	// Bloquea el botón mientras dura la petición para evitar envíos duplicados.
+	// El texto cambia para que el usuario sepa que algo está ocurriendo.
+	BTN_ANADIR.disabled = true;
+	BTN_ANADIR.textContent = "Añadiendo...";
+
 	try {
 		// El servidor crea el hábito y devuelve el objeto completo con id, createdAt,
 		// streakActual y fechaReferenciaRacha ya generados. Lo añadimos al array local
@@ -943,6 +1005,11 @@ FORM_HABITO.addEventListener("submit", async function (evento) {
 		// Si el servidor falla, el formulario se queda relleno para que el usuario pueda reintentar
 		mostrarBanner("No se pudo crear el hábito. Inténtalo de nuevo.", "error");
 		return;
+	} finally {
+		// Se ejecuta siempre, tanto si la petición tuvo éxito como si falló.
+		// Restaura el botón para que el usuario pueda volver a intentarlo.
+		BTN_ANADIR.disabled = false;
+		BTN_ANADIR.textContent = "Añadir Hábito";
 	}
 
 	// Devuelve el foco al primer campo para facilitar añadir varios hábitos seguidos
@@ -1028,6 +1095,18 @@ BTN_COMPLETAR_TODOS.addEventListener("click", async function () {
 		return item.dataset.id;
 	});
 
+	// Informa al usuario de que la petición está en curso con el texto correcto
+	// según la acción: completar o desmarcar todos los hábitos visibles.
+	BTN_COMPLETAR_TODOS.disabled = true;
+	BTN_COMPLETAR_TODOS.textContent = hayPendientes ? "Completando..." : "Desmarcando...";
+
+	// Deshabilita los checkboxes individuales para evitar peticiones simultáneas
+	// que colisionarían con el PATCH de completar-todos mientras está en curso.
+	const checkboxesVisibles = visibles.map(function (item) {
+		return item.querySelector(".completado");
+	});
+	checkboxesVisibles.forEach(function (cb) { cb.disabled = true; });
+
 	try {
 		const actualizados = await completarTodosHabitos(hayPendientes, ids);
 		// El servidor devuelve solo los hábitos modificados (los visibles).
@@ -1040,9 +1119,15 @@ BTN_COMPLETAR_TODOS.addEventListener("click", async function () {
 		renderizarHabitos();
 		aplicarFiltro();
 		actualizarResumen();
-		actualizarBotonCompletarTodos();
 	} catch (e) {
+		// En error los checkboxes siguen en el DOM — hay que rehabilitarlos
+		// para que el usuario pueda seguir interactuando con ellos.
+		checkboxesVisibles.forEach(function (cb) { cb.disabled = false; });
 		mostrarBanner("No se pudo actualizar los hábitos. Inténtalo de nuevo.", "error");
+	} finally {
+		// Se ejecuta siempre. actualizarBotonCompletarTodos() recalcula el texto
+		// y el estado correcto del botón tanto en éxito como en error.
+		actualizarBotonCompletarTodos();
 	}
 });
 

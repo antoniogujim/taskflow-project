@@ -4,6 +4,9 @@ require('./config/env');
 // Express es el framework que crea y gestiona el servidor HTTP
 const express = require('express');
 
+// path permite construir rutas de archivo compatibles con cualquier sistema operativo
+const path = require('path');
+
 // Cors permite que el front (distinto puerto) pueda comunicarse con el backend
 // Sin esto el navegador bloquearía las peticiones por política de seguridad
 const cors = require('cors');
@@ -19,6 +22,12 @@ app.use(express.json());
 
 // Importamos el router de hábitos con todas sus rutas definidas
 const habitoRouter = require('./routes/habito.routes');
+
+// Sirve los archivos estáticos de public/ (solo en local; en Vercel lo hace la plataforma)
+if (!process.env.VERCEL) {
+    app.use(express.static(path.join(__dirname, '../public')));
+    app.get('/api-docs', (_req, res) => res.redirect('/api-docs/api-docs.html'));
+}
 
 // Swagger: sirve el spec JSON para que la página estática de documentación lo consuma
 const swaggerSpec = require('./config/swagger');
