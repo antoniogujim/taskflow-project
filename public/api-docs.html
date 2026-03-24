@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seguidor de Hábitos - API Docs</title>
+
+  <!--
+    Cargamos los estilos de Swagger UI desde un CDN (unpkg).
+    No usamos swagger-ui-express porque en Vercel los rewrites se aplican
+    DESPUÉS del fallback estático, así que /api-docs siempre mostraba el
+    frontend. Al ser este un archivo estático real en public/api-docs/index.html,
+    Vercel lo sirve directamente sin necesidad de ningún rewrite.
+  -->
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+</head>
+<body>
+
+  <!-- Contenedor donde Swagger UI renderizará la interfaz -->
+  <div id="swagger-ui"></div>
+
+  <!--
+    SDK de Swagger UI desde CDN. SwaggerUIBundle es la función principal
+    que inicializa la interfaz y la monta en el div de arriba.
+  -->
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+
+  <script>
+    SwaggerUIBundle({
+      // URL del spec JSON generado por swagger-jsdoc en Express.
+      // Esta ruta sí pasa por el rewrite /api/:path* de vercel.json
+      // y llega correctamente al servidor Express.
+      url: '/api/swagger-spec',
+      dom_id: '#swagger-ui',
+      presets: [
+        SwaggerUIBundle.presets.apis,
+        SwaggerUIBundle.SwaggerUIStandalonePreset
+      ],
+      layout: 'BaseLayout',
+      // Permite enlazar directamente a una operación concreta con la URL
+      deepLinking: true
+    });
+  </script>
+
+</body>
+</html>

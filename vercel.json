@@ -1,9 +1,7 @@
 {
   "outputDirectory": "public",
+  "cleanUrls": true,
   "rewrites": [
-    { "source": "/api-docs", "destination": "/api/index.js" },
-    { "source": "/api-docs/:path*", "destination": "/api/index.js" },
-    { "source": "/api-docs.json", "destination": "/api/index.js" },
     { "source": "/api/:path*", "destination": "/api/index.js" }
   ]
 }
