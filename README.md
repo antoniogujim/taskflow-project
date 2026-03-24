@@ -56,10 +56,11 @@ taskflow-project/
 │   ├── favicon.svg       # Favicon con las iniciales SH
 │   └── dist/
 │       └── styles.css    # CSS compilado (generado por Tailwind)
-├── src/                  # Backend Express (detectado automáticamente por Vercel)
+├── api/                  # Backend Express (detectado automáticamente por Vercel)
 │   ├── index.js          # Entrada del servidor, middlewares y arranque
 │   ├── config/
-│   │   └── env.js        # Carga y validación de variables de entorno
+│   │   ├── env.js        # Carga y validación de variables de entorno
+│   │   └── swagger.js    # Configuración de swagger-jsdoc (spec base, schemas)
 │   ├── routes/
 │   │   └── habito.routes.js      # Conecta verbos HTTP con los controladores
 │   ├── controllers/
@@ -74,7 +75,7 @@ taskflow-project/
 └── .env                  # Variables de entorno (no incluido en git)
 ```
 
-> **Nota — Cambio de estructura (marzo 2026):** el proyecto se ha migrado a la estructura recomendada por la [documentación oficial de Vercel para Express](https://vercel.com/docs/frameworks/backend/express). Anteriormente el backend vivía en una carpeta `server/` con su propio `package.json`, y los archivos estáticos del frontend estaban en la raíz del proyecto. Con el nuevo enfoque: los assets estáticos se sirven desde `public/` (recogidos automáticamente por el CDN de Vercel), el servidor Express se coloca en `src/`, y todas las dependencias se unifican en un único `package.json` en la raíz. Se incluye `vercel.json` para definir explícitamente el build de Node y las reglas de reescritura que redirigen las peticiones `/api/*` al servidor Express.
+> **Nota — Cambio de estructura (marzo 2026):** el proyecto se ha migrado a la estructura recomendada por la [documentación oficial de Vercel para Express](https://vercel.com/docs/frameworks/backend/express). Anteriormente el backend vivía en una carpeta `server/` con su propio `package.json`, y los archivos estáticos del frontend estaban en la raíz del proyecto. Con el nuevo enfoque: los assets estáticos se sirven desde `public/` (recogidos automáticamente por el CDN de Vercel), el servidor Express se coloca en `api/` (carpeta detectada automáticamente por Vercel como funciones serverless), y todas las dependencias se unifican en un único `package.json` en la raíz. El `vercel.json` define el `outputDirectory` para que Vercel sirva `public/` como raíz web, y un rewrite que redirige las peticiones `/api/*` al servidor Express.
 
 ## Instalación
 
@@ -100,6 +101,10 @@ taskflow-project/
 ## API Endpoints
 
 El servidor corre por defecto en `http://localhost:3000`. Todos los endpoints están bajo el prefijo `/api/v1/habitos`.
+
+La documentación interactiva está disponible en `/api-docs` (Swagger UI). Permite explorar y probar todos los endpoints directamente desde el navegador:
+- **Local:** `http://localhost:3000/api-docs`
+- **Producción:** `https://taskflow-project-rust.vercel.app/api-docs`
 
 | Método | Endpoint                          | Descripción                                                             | Body (JSON)                                       | Respuesta                               |
 | ------ | --------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------- | --------------------------------------- |
@@ -277,6 +282,7 @@ Los efectos hover de color verde se desactivan mientras la tarjeta está en modo
 - Node.js con Express
 - dotenv para gestión de variables de entorno
 - nodemon para recarga automática en desarrollo
+- swagger-jsdoc + swagger-ui-express para documentación interactiva de la API en `/api-docs`
 - Middleware global de manejo de errores: captura cualquier excepción no controlada, mapea `NOT_FOUND` a `404`, `DUPLICATE` a `409`, y cualquier otro fallo a `500` con mensaje genérico (sin filtrar detalles técnicos al cliente)
 - Middleware catch-all: captura rutas no reconocidas por Express y devuelve JSON `404` en lugar de la página HTML de error por defecto
 

@@ -20,6 +20,13 @@ app.use(express.json());
 // Importamos el router de hábitos con todas sus rutas definidas
 const habitoRouter = require('./routes/habito.routes');
 
+// Swagger: genera la spec a partir de los comentarios JSDoc de las rutas
+// y monta la interfaz visual en /api-docs
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api-docs.json', (req, res) => res.json(swaggerSpec));
+
 // Montamos el router bajo el prefijo /api/v1/habitos
 // Todas las rutas definidas en habito.routes.js serán accesibles desde aquí
 app.use('/api/v1/habitos', habitoRouter);
