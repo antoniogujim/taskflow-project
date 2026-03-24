@@ -70,10 +70,11 @@ taskflow-project/
 ├── tailwind.config.js    # Configuración de Tailwind CSS
 ├── postcss.config.mjs    # Configuración de PostCSS
 ├── package.json          # Dependencias unificadas (frontend y backend)
+├── vercel.json           # Configuración de builds y rewrites para Vercel
 └── .env                  # Variables de entorno (no incluido en git)
 ```
 
-> **Nota — Cambio de estructura (marzo 2026):** el proyecto se ha migrado a la estructura recomendada por la [documentación oficial de Vercel para Express](https://vercel.com/docs/frameworks/backend/express). Anteriormente el backend vivía en una carpeta `server/` con su propio `package.json`, y los archivos estáticos del frontend estaban en la raíz del proyecto. Con el nuevo enfoque: los assets estáticos se sirven desde `public/` (recogidos automáticamente por el CDN de Vercel), el servidor Express se coloca en `src/` (ruta detectada automáticamente por Vercel sin necesidad de `vercel.json`), y todas las dependencias se unifican en un único `package.json` en la raíz.
+> **Nota — Cambio de estructura (marzo 2026):** el proyecto se ha migrado a la estructura recomendada por la [documentación oficial de Vercel para Express](https://vercel.com/docs/frameworks/backend/express). Anteriormente el backend vivía en una carpeta `server/` con su propio `package.json`, y los archivos estáticos del frontend estaban en la raíz del proyecto. Con el nuevo enfoque: los assets estáticos se sirven desde `public/` (recogidos automáticamente por el CDN de Vercel), el servidor Express se coloca en `src/`, y todas las dependencias se unifican en un único `package.json` en la raíz. Se incluye `vercel.json` para definir explícitamente el build de Node y las reglas de reescritura que redirigen las peticiones `/api/*` al servidor Express.
 
 ## Instalación
 
