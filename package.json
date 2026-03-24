@@ -1,16 +1,22 @@
 {
-
 	"name": "taskflow-project",
 	"version": "1.0.0",
 	"description": "Seguidor de hábitos en HTML, JS y Tailwind CSS",
 	"scripts": {
-		"build": "postcss styles.css -o dist/styles.css",
-		"watch": "postcss styles.css -o dist/styles.css --watch"
+		"dev": "nodemon src/index.js",
+		"build": "postcss styles.css -o public/dist/styles.css",
+		"watch": "postcss styles.css -o public/dist/styles.css --watch"
 	},
 	"dependencies": {
 		"@tailwindcss/postcss": "^4.2.1",
+		"cors": "^2.8.6",
+		"dotenv": "^17.3.1",
+		"express": "^5.2.1",
 		"postcss": "^8.5.8",
 		"postcss-cli": "^11.0.1",
 		"tailwindcss": "^4.2.1"
+	},
+	"devDependencies": {
+		"nodemon": "^3.1.14"
 	}
 }

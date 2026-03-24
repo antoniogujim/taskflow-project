@@ -49,69 +49,52 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 
 ```
 taskflow-project/
-├── index.html            # Estructura de la página
-├── app.js                # Lógica de la aplicación
-├── styles.css            # Estilos y variables de tema
-├── favicon.svg           # Favicon con las iniciales SH
+├── public/               # Assets estáticos servidos por CDN en Vercel
+│   ├── index.html        # Estructura de la página
+│   ├── app.js            # Lógica de la aplicación
+│   ├── client.js         # Funciones fetch del frontend (una por endpoint)
+│   ├── favicon.svg       # Favicon con las iniciales SH
+│   └── dist/
+│       └── styles.css    # CSS compilado (generado por Tailwind)
+├── src/                  # Backend Express (detectado automáticamente por Vercel)
+│   ├── index.js          # Entrada del servidor, middlewares y arranque
+│   ├── config/
+│   │   └── env.js        # Carga y validación de variables de entorno
+│   ├── routes/
+│   │   └── habito.routes.js      # Conecta verbos HTTP con los controladores
+│   ├── controllers/
+│   │   └── habito.controller.js  # Gestiona peticiones y respuestas HTTP
+│   └── services/
+│       └── habito.service.js     # Lógica de negocio pura (sin HTTP)
+├── styles.css            # Estilos fuente de Tailwind CSS
 ├── tailwind.config.js    # Configuración de Tailwind CSS
 ├── postcss.config.mjs    # Configuración de PostCSS
-├── package.json          # Dependencias del frontend
-├── dist/
-│   └── styles.css        # CSS compilado (generado por Tailwind)
-└── server/               # Backend Express
-    ├── package.json      # Dependencias del backend
-    ├── .env              # Variables de entorno (no incluido en git)
-    ├── pruebas-integracion.md    # Registro de pruebas manuales de la API
-    └── src/
-        ├── index.js              # Entrada del servidor, middlewares y arranque
-        ├── api/
-        │   └── client.js         # Funciones fetch del frontend (una por endpoint)
-        ├── config/
-        │   └── env.js            # Carga y validación de variables de entorno
-        ├── routes/
-        │   └── habito.routes.js  # Conecta verbos HTTP con los controladores
-        ├── controllers/
-        │   └── habito.controller.js  # Gestiona peticiones y respuestas HTTP
-        └── services/
-            └── habito.service.js     # Lógica de negocio pura (sin HTTP)
+├── package.json          # Dependencias unificadas (frontend y backend)
+└── .env                  # Variables de entorno (no incluido en git)
 ```
 
+> **Nota — Cambio de estructura (marzo 2026):** el proyecto se ha migrado a la estructura recomendada por la [documentación oficial de Vercel para Express](https://vercel.com/docs/frameworks/backend/express). Anteriormente el backend vivía en una carpeta `server/` con su propio `package.json`, y los archivos estáticos del frontend estaban en la raíz del proyecto. Con el nuevo enfoque: los assets estáticos se sirven desde `public/` (recogidos automáticamente por el CDN de Vercel), el servidor Express se coloca en `src/` (ruta detectada automáticamente por Vercel sin necesidad de `vercel.json`), y todas las dependencias se unifican en un único `package.json` en la raíz.
+
 ## Instalación
-
-### Backend
-
-1. Entra en la carpeta del servidor:
-    ```bash
-    cd server
-    ```
-2. Instala las dependencias:
-    ```bash
-    npm install
-    ```
-3. Crea el archivo `.env` con las variables necesarias:
-    ```
-    PORT=3000
-    ```
-4. Arranca el servidor en modo desarrollo:
-    ```bash
-    npm run dev
-    ```
-
-### Frontend
 
 1. Instala las dependencias:
     ```bash
     npm install
     ```
-2. Compila los estilos:
+2. Crea el archivo `.env` en la raíz con las variables necesarias:
+    ```
+    PORT=3000
+    ```
+3. Arranca el servidor en modo desarrollo:
+    ```bash
+    npm run dev
+    ```
+4. Compila los estilos (o usa modo watch para desarrollo):
     ```bash
     npm run build
-    ```
-    O en modo watch para desarrollo:
-    ```bash
     npm run watch
     ```
-3. Abre `index.html` con un servidor local (como Live Server en VS Code). El servidor backend debe estar corriendo antes de abrir el frontend.
+5. Abre `public/index.html` con un servidor local (como Live Server en VS Code). El servidor backend debe estar corriendo antes de abrir el frontend.
 
 ## API Endpoints
 
@@ -158,7 +141,7 @@ Se han realizado pruebas manuales en cinco fases sobre los endpoints de la API, 
 
 La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). La tercera fase cubrió los nuevos endpoints de editar (`PATCH /:id`), completar (`PATCH /:id/completar`) y reset (`POST /reset`), incluyendo la lógica de racha. La cuarta fase cubrió el nuevo endpoint `PATCH /completar-todos`, donde se detectó que las rutas específicas deben registrarse antes que las rutas con parámetros dinámicos (`/:id`) en Express. La quinta fase revalidó el endpoint `PATCH /completar-todos` tras reestructurarlo para que acepte un array `ids` obligatorio y opere solo sobre los hábitos indicados; este cambio permite integrar el botón "Completar todos" con el filtro de búsqueda activo, de forma que solo se completan los hábitos visibles en pantalla. Todos los casos de las cinco fases resultaron correctos.
 
-Los resultados están documentados en [`server/Pruebas-integracion.md`](server/Pruebas-integracion.md).
+Los resultados están documentados en [`docs/pruebas-integracion.md`](docs/pruebas-integracion.md).
 
 ### Correcciones aplicadas tras la 1ª fase
 
@@ -180,8 +163,8 @@ Los resultados están documentados en [`server/Pruebas-integracion.md`](server/P
 
 ## Uso
 
-1. Arranca el servidor backend (`npm run dev` dentro de `/server`)
-2. Abre `index.html` con un servidor local. La app carga los hábitos desde el servidor al iniciar
+1. Arranca el servidor backend (`npm run dev` desde la raíz del proyecto)
+2. Abre `public/index.html` con un servidor local. La app carga los hábitos desde el servidor al iniciar
 3. Usa el formulario para añadir un nuevo hábito con su nombre y duración. Al añadirlo el foco vuelve al campo nombre automáticamente
 4. Marca el checkbox de un hábito para marcarlo como completado
 5. Pulsa "Editar" en una tarjeta para modificar su nombre o duración sin perder ningún otro dato

@@ -1,4 +1,4 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-	content: ["./*.html", "./app.js"],
+	content: ["./public/*.html", "./public/app.js"],
 };
