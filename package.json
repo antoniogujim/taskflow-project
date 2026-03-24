@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"description": "Seguidor de hábitos en HTML, JS y Tailwind CSS",
 	"scripts": {
-		"dev": "nodemon src/index.js",
+		"dev": "nodemon api/index.js",
 		"build": "postcss styles.css -o public/dist/styles.css",
 		"watch": "postcss styles.css -o public/dist/styles.css --watch"
 	},
