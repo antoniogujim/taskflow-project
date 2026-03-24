@@ -7,10 +7,9 @@
 
   <!--
     Cargamos los estilos de Swagger UI desde un CDN (unpkg).
-    No usamos swagger-ui-express porque en Vercel los rewrites se aplican
-    DESPUÉS del fallback estático, así que /api-docs siempre mostraba el
-    frontend. Al ser este un archivo estático real en public/api-docs/index.html,
-    Vercel lo sirve directamente sin necesidad de ningún rewrite.
+    Este archivo vive en public/static-docs/ para mantener el código ordenado
+    y evitar confusión con el index.html principal del frontend.
+    Vercel lo sirve en /api-docs gracias al rewrite configurado en vercel.json.
   -->
   <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
 </head>
@@ -28,7 +27,7 @@
   <script>
     SwaggerUIBundle({
       // URL del spec JSON generado por swagger-jsdoc en Express.
-      // Esta ruta sí pasa por el rewrite /api/:path* de vercel.json
+      // Esta ruta pasa por el rewrite /api/:path* de vercel.json
       // y llega correctamente al servidor Express.
       url: '/api/swagger-spec',
       dom_id: '#swagger-ui',
