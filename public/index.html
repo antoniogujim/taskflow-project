@@ -51,6 +51,7 @@
 				<!-- Icono de luna: visible en modo claro, oculto en modo oscuro via dark:hidden. -->
 				<svg
 					id="icono-luna"
+					aria-hidden="true"
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"
@@ -70,6 +71,7 @@
 				<!-- Icono de sol: oculto por defecto, visible en modo oscuro via dark:block. -->
 				<svg
 					id="icono-sol"
+					aria-hidden="true"
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"
@@ -195,8 +197,8 @@
 					</fieldset>
 				</form>
 
-				<section>
-					<h2 class="text-xl font-semibold mb-2">Hábitos</h2>
+				<section aria-labelledby="titulo-habitos">
+					<h2 id="titulo-habitos" class="text-xl font-semibold mb-2">Hábitos</h2>
 
 					<!--
 						Campo de búsqueda en tiempo real.
@@ -216,7 +218,8 @@
 							class="border border-black p-2 w-full rounded-md shadow-sm bg-input dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base"
 						/>
 						<select
-							id="ordenar-habitos"
+							aria-label="Ordenar hábitos"
+						id="ordenar-habitos"
 							class="h-10 w-full sm:w-40 shrink-0 border border-black px-2 rounded-md shadow-sm bg-input cursor-pointer dark:bg-dark-superficie dark:border-gray-500 dark:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-base focus:border-base disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-300 dark:disabled:bg-gray-700 dark:disabled:text-gray-500 dark:disabled:border-gray-700"
 						>
 							<option value="fecha-desc">Fecha reciente ↓</option>
@@ -241,6 +244,7 @@
 					-->
 					<!-- Cabecera de columnas -->
 					<div
+						aria-hidden="true"
 						class="relative hidden sm:flex justify-between items-center w-full pl-4 pb-2 mb-2 mt-4 text-sm font-bold text-base"
 					>
 						<span>Hábito</span>
@@ -260,6 +264,7 @@
 					-->
 					<p
 						id="lista-vacia"
+						aria-live="polite"
 						class="text-center text-gray-500 bg-fondo-claro rounded-lg shadow-sm p-6 my-2 dark:bg-dark-tarjeta dark:text-gray-400 transition-colors duration-300"
 					>
 						Aún no tienes hábitos. ¡Empieza a añadirlos con el formulario de arriba!
@@ -274,9 +279,9 @@
 			     ─────────────────────────────────────────────────────────────── -->
 			<aside
 				class="w-full md:w-64 md:shrink-0 bg-fondo-claro rounded-lg p-4 shadow-sm dark:bg-dark-fondo transition-colors duration-300"
-				aria-label="Resumen"
+				aria-labelledby="titulo-resumen"
 			>
-				<h2 class="text-xl font-semibold mb-4">Resumen</h2>
+				<h2 id="titulo-resumen" class="text-xl font-semibold mb-4">Resumen</h2>
 
 				<!-- Barra de progreso diaria -->
 				<div class="mb-4">
@@ -289,6 +294,11 @@
 					>
 						<div
 							id="resumen-barra"
+							role="progressbar"
+							aria-valuemin="0"
+							aria-valuemax="100"
+							aria-valuenow="0"
+							aria-label="Progreso del día"
 							class="h-3 rounded-full transition-all duration-300"
 							style="width: 0%"
 						></div>
@@ -299,7 +309,7 @@
 					<dl> (definition list): estructura semántica adecuada para pares etiqueta/valor.
 					Cada <dt> es la etiqueta del contador y cada <dd> el valor numérico.
 				-->
-				<dl aria-live="polite" aria-atomic="true" class="flex flex-col gap-3">
+				<dl role="status" aria-live="polite" aria-atomic="true" class="flex flex-col gap-3">
 					<!-- Contador: total de hábitos en la lista -->
 					<div class="bg-white dark:bg-dark-tarjeta rounded-lg p-3 shadow-sm transition-colors duration-300">
 						<dt class="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">Total</dt>
@@ -365,6 +375,10 @@
 		<div
 			id="modal-vaciar"
 			hidden
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="modal-vaciar-titulo"
+			aria-describedby="modal-vaciar-descripcion"
 			class="fixed inset-0 z-50 flex items-center justify-center p-4"
 		>
 			<!-- Fondo semitransparente que oscurece el contenido detrás del modal -->
@@ -374,10 +388,10 @@
 			<div class="relative w-full max-w-sm bg-fondo-claro dark:bg-dark-tarjeta rounded-xl shadow-xl p-6 flex flex-col gap-4 transition-colors duration-300">
 
 				<!-- Título -->
-				<h3 class="text-lg font-bold text-gray-900 dark:text-white">¿Vaciar la lista de hábitos?</h3>
+				<h3 id="modal-vaciar-titulo" class="text-lg font-bold text-gray-900 dark:text-white">¿Vaciar la lista de hábitos?</h3>
 
 				<!-- Descripción -->
-				<p class="text-sm text-gray-600 dark:text-gray-400">
+				<p id="modal-vaciar-descripcion" class="text-sm text-gray-600 dark:text-gray-400">
 					Se eliminarán <strong>todos</strong> los hábitos permanentemente, incluso si hay una búsqueda activa. Esta acción no se puede deshacer.
 				</p>
 
@@ -417,7 +431,7 @@
 		     de cada hábito antes de insertarla en el <ul>.
 		     ═══════════════════════════════════════════════════════════════════ -->
 		<template id="habito-template">
-			<li role="listitem">
+			<li>
 				<!--
 					Tarjeta del hábito.
 					relative: necesario para que el span .tiempo con sm:absolute
@@ -448,7 +462,7 @@
 							type="checkbox"
 							class="completado w-5 h-5 cursor-pointer accent-green-600 shrink-0 focus:outline-none focus:ring-2 focus:ring-green-600 rounded-sm max-sm:justify-self-start"
 						/>
-						<h3 class="nombre font-semibold max-sm:text-center"></h3>
+						<span class="nombre font-semibold max-sm:text-center"></span>
 						<span
 							class="streak-badge hidden text-xs font-medium px-2 py-0.5 rounded-full bg-base dark:bg-base-oscuro text-orange-200 transition-colors duration-300 max-sm:justify-self-end"
 						></span>
@@ -585,6 +599,11 @@
 
 		<!-- Lógica de la aplicación. Se carga al final del body para garantizar
 		    que el DOM esté disponible antes de que el script se ejecute. -->
+		<!-- Región de anuncios para lectores de pantalla. Visualmente oculta.
+		     app.js escribe aquí mensajes breves para confirmar acciones como
+		     eliminar un hábito, sin interrumpir el flujo visual de la página. -->
+		<div id="anuncio-aria" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
 		<script src="client.js"></script>
 		<script src="app.js"></script>
 	</body>

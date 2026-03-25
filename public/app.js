@@ -35,6 +35,9 @@ const TEMPLATE_HABITO = document.getElementById("habito-template");
 // Lista <ul> donde se insertan las tarjetas de hábitos
 const LISTA_HABITOS = document.getElementById("lista-habitos");
 
+// Región de anuncios para lectores de pantalla
+const ANUNCIO_ARIA = document.getElementById("anuncio-aria");
+
 // Párrafo de estado vacío: visible cuando no hay hábitos o la búsqueda no da resultados
 const LISTA_VACIA = document.getElementById("lista-vacia");
 
@@ -347,6 +350,7 @@ function actualizarResumen() {
 	// Barra de progreso
 	const porcentaje = total === 0 ? 0 : Math.round((completados / total) * 100);
 	RESUMEN_BARRA.style.width = porcentaje + "%";
+	RESUMEN_BARRA.setAttribute("aria-valuenow", porcentaje);
 	RESUMEN_PROGRESO_TEXTO.textContent = completados + " / " + total;
 
 	// Color progresivo: gris (sin hábitos) → rojo → amarillo → verde
@@ -497,6 +501,12 @@ function crearTarjeta(habito) {
 	tiempoEl.textContent = habito.tiempo;
 	tiempoEl.setAttribute("aria-label", "Duración: " + habito.tiempo);
 
+	// IDs únicos para los párrafos de error de edición, necesarios para aria-describedby
+	errorNombreEdicion.id = "error-nombre-edicion-" + habito.id;
+	errorTiempoEdicion.id = "error-tiempo-edicion-" + habito.id;
+	nombreInput.setAttribute("aria-describedby", errorNombreEdicion.id);
+	tiempoInput.setAttribute("aria-describedby", errorTiempoEdicion.id);
+
 	// aria-label descriptivos para que los lectores de pantalla identifiquen el hábito afectado
 	btnEditar.setAttribute("aria-label", "Editar hábito: " + habito.habito);
 	btnEliminar.setAttribute("aria-label", "Eliminar hábito: " + habito.habito);
@@ -504,6 +514,12 @@ function crearTarjeta(habito) {
 	btnCancelarEdicion.setAttribute("aria-label", "Cancelar edición de: " + habito.habito);
 	btnConfirmar.setAttribute("aria-label", "Confirmar eliminación de: " + habito.habito);
 	btnCancelar.setAttribute("aria-label", "Cancelar eliminación de: " + habito.habito);
+
+	// Los grupos de edición y confirmación empiezan ocultos: bloquear su foco por teclado
+	btnGuardar.tabIndex = -1;
+	btnCancelarEdicion.tabIndex = -1;
+	btnConfirmar.tabIndex = -1;
+	btnCancelar.tabIndex = -1;
 
 	// Restaura el estado visual del checkbox si el hábito ya estaba completado al cargar
 	checkbox.checked = habito.completado || false;
@@ -577,8 +593,12 @@ function crearTarjeta(habito) {
 		// Animar botones
 		wrapAcciones.style.opacity = "0";
 		wrapAcciones.style.pointerEvents = "none";
+		btnEditar.tabIndex = -1;
+		btnEliminar.tabIndex = -1;
 		wrapEdicion.style.opacity = "1";
 		wrapEdicion.style.pointerEvents = "auto";
+		btnGuardar.tabIndex = 0;
+		btnCancelarEdicion.tabIndex = 0;
 
 		nombreInput.focus();
 
@@ -624,8 +644,12 @@ function crearTarjeta(habito) {
 		// Animar botones
 		wrapEdicion.style.opacity = "0";
 		wrapEdicion.style.pointerEvents = "none";
+		btnGuardar.tabIndex = -1;
+		btnCancelarEdicion.tabIndex = -1;
 		wrapAcciones.style.opacity = "1";
 		wrapAcciones.style.pointerEvents = "auto";
+		btnEditar.tabIndex = 0;
+		btnEliminar.tabIndex = 0;
 
 		// Si hay búsqueda activa, re-aplicar el filtro para que refleje el estado real
 		if (INPUT_BUSQUEDA.value) aplicarFiltro();
@@ -708,6 +732,7 @@ function crearTarjeta(habito) {
 				});
 			}
 
+			ANUNCIO_ARIA.textContent = "Hábito actualizado: " + nuevoNombre + ".";
 			salirModoEdicion();
 		} catch (e) {
 			// Si el servidor falla, la tarjeta se queda en modo edición para que
@@ -749,8 +774,12 @@ function crearTarjeta(habito) {
 		// Animar botones
 		wrapAcciones.style.opacity = "0";
 		wrapAcciones.style.pointerEvents = "none";
+		btnEditar.tabIndex = -1;
+		btnEliminar.tabIndex = -1;
 		wrapConfirmacion.style.opacity = "1";
 		wrapConfirmacion.style.pointerEvents = "auto";
+		btnConfirmar.tabIndex = 0;
+		btnCancelar.tabIndex = 0;
 
 		timeoutConfirmacion = setTimeout(salirModoConfirmacion, 10000);
 
@@ -788,8 +817,12 @@ function crearTarjeta(habito) {
 		// Animar botones
 		wrapConfirmacion.style.opacity = "0";
 		wrapConfirmacion.style.pointerEvents = "none";
+		btnConfirmar.tabIndex = -1;
+		btnCancelar.tabIndex = -1;
 		wrapAcciones.style.opacity = "1";
 		wrapAcciones.style.pointerEvents = "auto";
+		btnEditar.tabIndex = 0;
+		btnEliminar.tabIndex = 0;
 	}
 
 	// ─── Eventos de la tarjeta ─────────────────────────────────────────────────
@@ -846,12 +879,23 @@ function crearTarjeta(habito) {
 			// Así evitamos que la tarjeta desaparezca visualmente si el servidor falla.
 			await eliminarHabito(habito.id);
 
+			// Mover foco al siguiente hábito, al anterior, o al buscador si no queda ninguno
+			const siguienteLi = li.nextElementSibling || li.previousElementSibling;
 			li.remove();
 			habitos = habitos.filter(function (h) {
 				return h.id !== habito.id;
 			});
 			actualizarResumen();
 			actualizarEstadoVacio();
+
+			// Anunciar la eliminación y mover el foco
+			ANUNCIO_ARIA.textContent = "Hábito \"" + habito.habito + "\" eliminado.";
+			if (siguienteLi) {
+				const btnSiguiente = siguienteLi.querySelector(".eliminar");
+				if (btnSiguiente) btnSiguiente.focus();
+			} else {
+				INPUT_BUSQUEDA.focus();
+			}
 		} catch (e) {
 			// Si el servidor falla, restauramos el texto del botón y devolvemos
 			// la tarjeta a su estado normal para que el usuario pueda reintentar.
@@ -886,6 +930,7 @@ function crearTarjeta(habito) {
 		// Bloquea el checkbox mientras dura la petición para evitar clicks simultáneos
 		// que enviarían peticiones contradictorias al servidor antes de recibir respuesta.
 		checkbox.disabled = true;
+		checkbox.setAttribute("aria-busy", "true");
 
 		try {
 			// El servidor calcula la racha y devuelve el hábito completo actualizado.
@@ -898,6 +943,9 @@ function crearTarjeta(habito) {
 			nombreEl.classList.toggle("opacity-50", checkbox.checked);
 			nombreEl.classList.toggle("line-through", checkbox.checked);
 			actualizarStreakBadge();
+			if ((habito.streakActual || 0) > 0) {
+				ANUNCIO_ARIA.textContent = "Racha actualizada: " + habito.streakActual + (habito.streakActual === 1 ? " día" : " días");
+			}
 			actualizarResumen();
 		} catch (err) {
 			// Si el servidor falla, revertimos el checkbox al estado anterior
@@ -908,6 +956,7 @@ function crearTarjeta(habito) {
 			// Se ejecuta siempre: el checkbox sigue en el DOM tanto en éxito como en error,
 			// así que siempre hay que desbloquearlo para que el usuario pueda volver a usarlo.
 			checkbox.disabled = false;
+			checkbox.removeAttribute("aria-busy");
 		}
 	});
 
@@ -977,6 +1026,7 @@ FORM_HABITO.addEventListener("submit", async function (evento) {
 	// Bloquea el botón mientras dura la petición para evitar envíos duplicados.
 	// El texto cambia para que el usuario sepa que algo está ocurriendo.
 	BTN_ANADIR.disabled = true;
+	BTN_ANADIR.setAttribute("aria-busy", "true");
 	BTN_ANADIR.textContent = "Añadiendo...";
 
 	try {
@@ -1018,6 +1068,8 @@ FORM_HABITO.addEventListener("submit", async function (evento) {
 		actualizarResumen();
 		actualizarEstadoVacio();
 
+		ANUNCIO_ARIA.textContent = "Hábito \"" + nombre + "\" añadido correctamente.";
+
 		// Limpia todos los campos del formulario de una sola vez
 		FORM_HABITO.reset();
 		// Elimina los posibles estados de error visuales que pudieran quedar tras el reset
@@ -1031,6 +1083,7 @@ FORM_HABITO.addEventListener("submit", async function (evento) {
 		// Se ejecuta siempre, tanto si la petición tuvo éxito como si falló.
 		// Restaura el botón para que el usuario pueda volver a intentarlo.
 		BTN_ANADIR.disabled = false;
+		BTN_ANADIR.removeAttribute("aria-busy");
 		BTN_ANADIR.textContent = "Añadir Hábito";
 	}
 
@@ -1081,14 +1134,19 @@ function aplicarFiltro() {
 	if (textoBuscado === "") {
 		actualizarEstadoVacio();
 	} else {
-		const hayVisibles = Array.from(items).some(function (item) {
+		const visibles = Array.from(items).filter(function (item) {
 			return !item.hidden;
 		});
-		if (!hayVisibles && habitos.length > 0) {
+		if (visibles.length === 0 && habitos.length > 0) {
 			LISTA_VACIA.textContent = "No se encontraron hábitos que coincidan con la búsqueda.";
 			LISTA_VACIA.hidden = false;
 		} else {
 			LISTA_VACIA.hidden = true;
+			if (visibles.length > 0) {
+				ANUNCIO_ARIA.textContent = visibles.length === 1
+					? "1 hábito encontrado."
+					: visibles.length + " hábitos encontrados.";
+			}
 		}
 	}
 
@@ -1130,6 +1188,7 @@ BTN_COMPLETAR_TODOS.addEventListener("click", async function () {
 	// Informa al usuario de que la petición está en curso con el texto correcto
 	// según la acción: completar o desmarcar todos los hábitos visibles.
 	BTN_COMPLETAR_TODOS.disabled = true;
+	BTN_COMPLETAR_TODOS.setAttribute("aria-busy", "true");
 	BTN_COMPLETAR_TODOS.textContent = hayPendientes ? "Completando..." : "Desmarcando...";
 
 	// Deshabilita los checkboxes individuales para evitar peticiones simultáneas
@@ -1151,6 +1210,11 @@ BTN_COMPLETAR_TODOS.addEventListener("click", async function () {
 		renderizarHabitos();
 		aplicarFiltro();
 		actualizarResumen();
+		const hayBusqueda = INPUT_BUSQUEDA.value.trim();
+		const sufijo = hayBusqueda ? "buscados" : "todos";
+		ANUNCIO_ARIA.textContent = hayPendientes
+			? "Hábitos " + sufijo + " completados."
+			: "Hábitos " + sufijo + " desmarcados.";
 	} catch (e) {
 		// En error los checkboxes siguen en el DOM — hay que rehabilitarlos
 		// para que el usuario pueda seguir interactuando con ellos.
@@ -1159,6 +1223,7 @@ BTN_COMPLETAR_TODOS.addEventListener("click", async function () {
 	} finally {
 		// Se ejecuta siempre. actualizarBotonCompletarTodos() recalcula el texto
 		// y el estado correcto del botón tanto en éxito como en error.
+		BTN_COMPLETAR_TODOS.removeAttribute("aria-busy");
 		actualizarBotonCompletarTodos();
 	}
 });
@@ -1168,15 +1233,42 @@ BTN_COMPLETAR_TODOS.addEventListener("click", async function () {
 // Abre el modal de confirmación al pulsar "Vaciar lista"
 BTN_VACIAR.addEventListener("click", function () {
 	MODAL_VACIAR.hidden = false;
+	// Mueve el foco al botón cancelar al abrir (acción segura por defecto)
+	MODAL_VACIAR_CANCELAR.focus();
 });
 
 // Cierra el modal sin hacer nada al pulsar "Cancelar" o el backdrop
 function cerrarModalVaciar() {
 	MODAL_VACIAR.hidden = true;
+	// Devuelve el foco al botón que abrió el modal
+	BTN_VACIAR.focus();
 }
 MODAL_VACIAR_CANCELAR.addEventListener("click", cerrarModalVaciar);
 // Pulsar fuera del cuadro (en el backdrop) también cancela
 MODAL_VACIAR_BACKDROP.addEventListener("click", cerrarModalVaciar);
+
+// Escape cierra el modal
+document.addEventListener("keydown", function (e) {
+	if (e.key === "Escape" && !MODAL_VACIAR.hidden) cerrarModalVaciar();
+});
+
+// Focus trap: mantiene el foco dentro del modal mientras está abierto
+MODAL_VACIAR.addEventListener("keydown", function (e) {
+	if (e.key !== "Tab") return;
+	const focusables = [MODAL_VACIAR_CANCELAR, MODAL_VACIAR_CONFIRMAR].filter(function (btn) {
+		return !btn.disabled;
+	});
+	if (focusables.length === 0) return;
+	const primero = focusables[0];
+	const ultimo = focusables[focusables.length - 1];
+	if (e.shiftKey && document.activeElement === primero) {
+		e.preventDefault();
+		ultimo.focus();
+	} else if (!e.shiftKey && document.activeElement === ultimo) {
+		e.preventDefault();
+		primero.focus();
+	}
+});
 
 /**
  * Confirma el vaciado: llama al servidor, limpia el estado local y cierra el modal.
@@ -1186,6 +1278,7 @@ MODAL_VACIAR_CONFIRMAR.addEventListener("click", async function () {
 	// Bloqueamos ambos botones mientras dura la petición para evitar
 	// que el usuario pulse varias veces o cancele a mitad
 	MODAL_VACIAR_CONFIRMAR.disabled = true;
+	MODAL_VACIAR_CONFIRMAR.setAttribute("aria-busy", "true");
 	MODAL_VACIAR_CONFIRMAR.textContent = "Vaciando...";
 	MODAL_VACIAR_CANCELAR.disabled = true;
 
@@ -1211,6 +1304,7 @@ MODAL_VACIAR_CONFIRMAR.addEventListener("click", async function () {
 	} finally {
 		// Restauramos el botón confirmar para la próxima vez que se abra el modal
 		MODAL_VACIAR_CONFIRMAR.disabled = false;
+		MODAL_VACIAR_CONFIRMAR.removeAttribute("aria-busy");
 		MODAL_VACIAR_CONFIRMAR.textContent = "Sí, vaciar";
 		MODAL_VACIAR_CANCELAR.disabled = false;
 	}
@@ -1219,6 +1313,8 @@ MODAL_VACIAR_CONFIRMAR.addEventListener("click", async function () {
 SELECT_ORDENAR.addEventListener("change", function () {
 	renderizarHabitos();
 	aplicarFiltro();
+	const etiqueta = SELECT_ORDENAR.options[SELECT_ORDENAR.selectedIndex].text;
+	ANUNCIO_ARIA.textContent = "Lista ordenada por: " + etiqueta;
 });
 
 // ─── Modo oscuro ──────────────────────────────────────────────────────────────
