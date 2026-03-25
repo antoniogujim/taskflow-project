@@ -3,6 +3,9 @@
 // Elimina la clave "Lista_de_habitos" que se usaba para persistir los hábitos
 // en localStorage antes de migrar al backend. Si el navegador la tiene como
 // basura de versiones anteriores, la borramos para no dejar datos huérfanos.
+// Es una IIFE (función que se ejecuta inmediatamente): los paréntesis exteriores
+// la convierten en expresión y los () del final la invocan al momento, sin necesidad
+// de llamarla explícitamente desde ningún otro sitio.
 (function limpiarDatosObsoletos() {
 	const CLAVES_OBSOLETAS = ["Lista_de_habitos"];
 	CLAVES_OBSOLETAS.forEach(function (clave) {
@@ -56,6 +59,15 @@ const STORAGE_KEY_RESET = "ultimo-reset";
 const BANNER = document.getElementById("banner-aviso");
 const BANNER_TEXTO = document.getElementById("banner-mensaje");
 const BANNER_CERRAR = document.getElementById("banner-cerrar");
+
+// Botón del aside que abre el modal de confirmación para vaciar la lista
+const BTN_VACIAR = document.getElementById("vaciar-habitos");
+
+// Elementos del modal de confirmación de vaciado
+const MODAL_VACIAR = document.getElementById("modal-vaciar");
+const MODAL_VACIAR_BACKDROP = document.getElementById("modal-vaciar-backdrop");
+const MODAL_VACIAR_CANCELAR = document.getElementById("modal-vaciar-cancelar");
+const MODAL_VACIAR_CONFIRMAR = document.getElementById("modal-vaciar-confirmar");
 
 // Contadores del panel lateral de resumen
 const RESUMEN_TOTAL = document.getElementById("resumen-total");
@@ -348,14 +360,20 @@ function actualizarResumen() {
 					? "bg-yellow-400"
 					: "bg-red-400");
 
+	// Deshabilita "Vaciar lista" cuando no hay hábitos: la acción no tiene sentido
+	// si la lista ya está vacía, igual que "Completar todos" se deshabilita en ese caso.
+	BTN_VACIAR.disabled = total === 0;
+
 	actualizarBotonCompletarTodos();
 }
 
 /**
  * Actualiza el botón "Completar todos" / "Desmarcar todos" según el estado actual.
  * - Sin visibles → deshabilitado.
- * - Todos completados → "Desmarcar todos" habilitado.
- * - Hay pendientes → "Completar todos" habilitado.
+ * - Todos completados → "Desmarcar todos/buscados" habilitado.
+ * - Hay pendientes → "Completar todos/buscados" habilitado.
+ * Si hay una búsqueda activa, el texto refleja que la acción afecta solo
+ * a los hábitos filtrados, no a la lista entera.
  */
 function actualizarBotonCompletarTodos() {
 	const visibles = Array.from(LISTA_HABITOS.querySelectorAll("li")).filter(function (item) {
@@ -371,8 +389,12 @@ function actualizarBotonCompletarTodos() {
 	const hayPendientes = visibles.some(function (item) {
 		return !item.querySelector(".completado").checked;
 	});
+
+	// Si el campo de búsqueda tiene texto, la acción solo afecta a los resultados visibles.
+	// El sufijo "buscados" avisa al usuario de que no está actuando sobre la lista entera.
+	const sufijo = INPUT_BUSQUEDA.value.trim() ? "buscados" : "todos";
 	BTN_COMPLETAR_TODOS.disabled = false;
-	BTN_COMPLETAR_TODOS.textContent = hayPendientes ? "Completar todos" : "Desmarcar todos";
+	BTN_COMPLETAR_TODOS.textContent = hayPendientes ? "Completar " + sufijo : "Desmarcar " + sufijo;
 }
 
 /**
@@ -1017,25 +1039,14 @@ FORM_HABITO.addEventListener("submit", async function (evento) {
 });
 
 /**
- * Evento "input" del buscador:
- * Recorre todos los <li> de la lista y oculta aquellos cuyo nombre
- * no contenga el texto introducido (búsqueda sin distinción de mayúsculas).
- *
- * Cuando la búsqueda no produce resultados pero sí hay hábitos en la lista,
- * muestra el mensaje de estado vacío con un texto específico de "sin resultados",
- * distinto del mensaje de lista completamente vacía.
- * Al limpiar la búsqueda, restaura el comportamiento normal del estado vacío.
- *
- * Usa debounce de 200ms: en lugar de filtrar en cada tecla, espera a que el
- * usuario pause antes de ejecutar la búsqueda, evitando consultas innecesarias al DOM.
- */
-/**
  * Vacía la lista del DOM y vuelve a renderizar todos los hábitos
  * respetando el orden de fecha activo (ordenFechaAsc).
  */
 function renderizarHabitos() {
 	LISTA_HABITOS.innerHTML = "";
 	const orden = SELECT_ORDENAR.value;
+	// .slice() crea una copia del array para no mutar el original al ordenar.
+	// habitos siempre mantiene el orden de inserción; el orden visual solo afecta al DOM.
 	habitos
 		.slice()
 		.sort(function (a, b) {
@@ -1050,6 +1061,14 @@ function renderizarHabitos() {
 	actualizarEstadoVacio();
 }
 
+/**
+ * Filtra la lista visible según el texto actual del buscador.
+ * Oculta con `hidden` los <li> cuyo nombre no contenga el texto buscado.
+ * Si la búsqueda está vacía, delega en actualizarEstadoVacio() para mostrar
+ * el mensaje correcto. Si hay texto pero ningún resultado, muestra el mensaje
+ * de "sin coincidencias". Actualiza el botón de completar todos al final
+ * para que solo tenga en cuenta los hábitos visibles.
+ */
 function aplicarFiltro() {
 	const textoBuscado = INPUT_BUSQUEDA.value.toLowerCase();
 	const items = LISTA_HABITOS.querySelectorAll("li");
@@ -1078,6 +1097,19 @@ function aplicarFiltro() {
 
 let timeoutBusqueda = null;
 
+/**
+ * Evento "input" del buscador:
+ * Recorre todos los <li> de la lista y oculta aquellos cuyo nombre
+ * no contenga el texto introducido (búsqueda sin distinción de mayúsculas).
+ *
+ * Cuando la búsqueda no produce resultados pero sí hay hábitos en la lista,
+ * muestra el mensaje de estado vacío con un texto específico de "sin resultados",
+ * distinto del mensaje de lista completamente vacía.
+ * Al limpiar la búsqueda, restaura el comportamiento normal del estado vacío.
+ *
+ * Usa debounce de 200ms: en lugar de filtrar en cada tecla, espera a que el
+ * usuario pause antes de ejecutar la búsqueda, evitando consultas innecesarias al DOM.
+ */
 INPUT_BUSQUEDA.addEventListener("input", function () {
 	clearTimeout(timeoutBusqueda);
 	timeoutBusqueda = setTimeout(aplicarFiltro, 200);
@@ -1128,6 +1160,59 @@ BTN_COMPLETAR_TODOS.addEventListener("click", async function () {
 		// Se ejecuta siempre. actualizarBotonCompletarTodos() recalcula el texto
 		// y el estado correcto del botón tanto en éxito como en error.
 		actualizarBotonCompletarTodos();
+	}
+});
+
+// ─── Vaciar lista ─────────────────────────────────────────────────────────────
+
+// Abre el modal de confirmación al pulsar "Vaciar lista"
+BTN_VACIAR.addEventListener("click", function () {
+	MODAL_VACIAR.hidden = false;
+});
+
+// Cierra el modal sin hacer nada al pulsar "Cancelar" o el backdrop
+function cerrarModalVaciar() {
+	MODAL_VACIAR.hidden = true;
+}
+MODAL_VACIAR_CANCELAR.addEventListener("click", cerrarModalVaciar);
+// Pulsar fuera del cuadro (en el backdrop) también cancela
+MODAL_VACIAR_BACKDROP.addEventListener("click", cerrarModalVaciar);
+
+/**
+ * Confirma el vaciado: llama al servidor, limpia el estado local y cierra el modal.
+ * El botón se deshabilita durante la petición para evitar dobles clics.
+ */
+MODAL_VACIAR_CONFIRMAR.addEventListener("click", async function () {
+	// Bloqueamos ambos botones mientras dura la petición para evitar
+	// que el usuario pulse varias veces o cancele a mitad
+	MODAL_VACIAR_CONFIRMAR.disabled = true;
+	MODAL_VACIAR_CONFIRMAR.textContent = "Vaciando...";
+	MODAL_VACIAR_CANCELAR.disabled = true;
+
+	try {
+		// TODO: eliminar esta línea — solo sirve para probar el estado de carga
+		await new Promise(resolve => setTimeout(resolve, 3000));
+		await vaciarHabitos();
+
+		// Vaciamos el array local para sincronizar el frontend con el servidor
+		// sin necesidad de hacer otra petición GET.
+		// Aquí habitos = [] funcionaría igual porque nadie más guarda una referencia
+		// a este array. Usamos length = 0 por coherencia con el service del backend,
+		// donde sí importa mutar el array en lugar de reemplazarlo.
+		habitos.length = 0;
+
+		// Re-renderizamos la lista (quedará vacía) y actualizamos el resumen a 0
+		renderizarHabitos();
+		actualizarResumen();
+		cerrarModalVaciar();
+	} catch (e) {
+		mostrarBanner("No se pudo vaciar la lista. Inténtalo de nuevo.", "error");
+		cerrarModalVaciar();
+	} finally {
+		// Restauramos el botón confirmar para la próxima vez que se abra el modal
+		MODAL_VACIAR_CONFIRMAR.disabled = false;
+		MODAL_VACIAR_CONFIRMAR.textContent = "Sí, vaciar";
+		MODAL_VACIAR_CANCELAR.disabled = false;
 	}
 });
 

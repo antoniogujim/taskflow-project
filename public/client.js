@@ -106,6 +106,20 @@ async function completarTodosHabitos(completado, ids) {
     return response.json();
 }
 
+// Elimina todos los hábitos del servidor en una sola petición.
+// Se llama cuando el usuario confirma la acción desde el botón del aside.
+async function vaciarHabitos() {
+    // DELETE sin ID en la URL apunta a la colección entera, no a un elemento concreto.
+    const response = await fetch(API_URL, {
+        method: 'DELETE',
+    });
+
+    // Si el servidor devuelve un error (500...), lanzamos un error nosotros.
+    if (!response.ok) throw new Error('Error al vaciar los hábitos');
+
+    // El servidor responde con 204 No Content — no hay nada que convertir.
+}
+
 // Resetea todos los hábitos a completado: false y rompe rachas antiguas.
 // Se llama al detectar que es un día nuevo.
 async function resetearHabitos() {

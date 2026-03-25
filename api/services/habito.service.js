@@ -194,4 +194,14 @@ function completarTodos(completado, ids) {
     });
 }
 
-module.exports = { obtenerTodos, crearHabito, editarHabito, completarHabito, completarTodos, resetearHabitos, eliminarHabito };
+// Elimina todos los hábitos de golpe, dejando el array vacío.
+// No necesita ID ni parámetros: la operación afecta a la colección entera.
+// No lanza errores: si ya estaba vacío, simplemente no hace nada.
+function vaciarHabitos() {
+    // length = 0 vacía el array sin reemplazarlo por uno nuevo.
+    // Si usáramos habitos = [], la referencia del array cambiaría y las demás
+    // funciones del servicio que apuntan a este mismo array dejarían de ver los cambios.
+    habitos.length = 0;
+}
+
+module.exports = { obtenerTodos, crearHabito, editarHabito, completarHabito, completarTodos, resetearHabitos, eliminarHabito, vaciarHabitos };

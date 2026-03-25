@@ -336,7 +336,69 @@
 						</dd>
 					</div>
 				</dl>
+
+				<!--
+					Botón destructivo: vacía la lista entera de hábitos.
+					Usa colores rojos para advertir visualmente al usuario
+					de que la acción no se puede deshacer.
+					app.js gestiona el click, pide confirmación antes de actuar
+					y deshabilita el botón mientras la petición está en curso.
+				-->
+				<button
+					id="vaciar-habitos"
+					type="button"
+					disabled
+					class="mt-4 h-10 w-full bg-red-500 text-white rounded-md shadow-sm cursor-pointer hover:bg-red-700 hover:shadow-md dark:bg-red-900 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-700 transition-all duration-300 whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:bg-gray-300 dark:disabled:bg-gray-700 dark:disabled:text-gray-500 dark:disabled:hover:bg-gray-700"
+				>
+					Vaciar lista
+				</button>
 			</aside>
+		</div>
+
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     MODAL DE CONFIRMACIÓN — VACIAR LISTA
+		     Oculto por defecto (hidden). app.js lo muestra al pulsar "Vaciar lista"
+		     y gestiona los botones Confirmar y Cancelar.
+		     El fondo oscuro (backdrop) cubre toda la pantalla e impide interactuar
+		     con el resto de la UI mientras el modal está abierto.
+		     ═══════════════════════════════════════════════════════════════════ -->
+		<div
+			id="modal-vaciar"
+			hidden
+			class="fixed inset-0 z-50 flex items-center justify-center p-4"
+		>
+			<!-- Fondo semitransparente que oscurece el contenido detrás del modal -->
+			<div id="modal-vaciar-backdrop" class="absolute inset-0 bg-black/50"></div>
+
+			<!-- Caja del modal, centrada encima del backdrop -->
+			<div class="relative w-full max-w-sm bg-fondo-claro dark:bg-dark-tarjeta rounded-xl shadow-xl p-6 flex flex-col gap-4 transition-colors duration-300">
+
+				<!-- Título -->
+				<h3 class="text-lg font-bold text-gray-900 dark:text-white">¿Vaciar la lista de hábitos?</h3>
+
+				<!-- Descripción -->
+				<p class="text-sm text-gray-600 dark:text-gray-400">
+					Se eliminarán <strong>todos</strong> los hábitos permanentemente, incluso si hay una búsqueda activa. Esta acción no se puede deshacer.
+				</p>
+
+				<!-- Botones de acción -->
+				<div class="flex gap-3 justify-end">
+					<button
+						id="modal-vaciar-cancelar"
+						type="button"
+						class="h-9 px-4 rounded-md border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 bg-fondo dark:bg-dark-superficie hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-base transition-colors duration-200 cursor-pointer disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-300 dark:disabled:bg-gray-700 dark:disabled:text-gray-500 dark:disabled:border-gray-700"
+					>
+						Cancelar
+					</button>
+					<button
+						id="modal-vaciar-confirmar"
+						type="button"
+						class="h-9 px-4 rounded-md text-sm font-medium text-white bg-red-500 hover:bg-red-700 dark:bg-red-900 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-700 transition-colors duration-200 cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
+					>
+						Sí, vaciar
+					</button>
+				</div>
+			</div>
 		</div>
 
 		<!-- ═══════════════════════════════════════════════════════════════════

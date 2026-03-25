@@ -2953,3 +2953,101 @@ Response:
 | 44    | `completado` ausente del body                           | OK        |
 | 45    | Todos los IDs enviados no existen                       | OK        |
 | 46    | Mezcla de IDs válidos e inexistentes                    | OK        |
+
+---
+
+## 6ª fase de pruebas — nuevo endpoint vaciar lista
+
+---
+
+## DELETE `/` — Vaciar todos los hábitos
+
+### Caso 47: Lista con hábitos
+
+**Petición**
+
+```
+DELETE http://localhost:3000/api/v1/habitos
+```
+
+**Respuesta esperada**
+
+```
+Status: 204 No Content
+Response: (sin cuerpo)
+```
+
+**Respuesta obtenida**
+
+```
+Status:204 No Content
+Response: Nada
+
+//Compruebo con get que de verdad se han eliminado, y confirmamos. Devuelve []
+
+```
+
+---
+
+### Caso 48: Lista ya vacía
+
+**Petición**
+
+```
+DELETE http://localhost:3000/api/v1/habitos
+```
+
+**Respuesta esperada**
+
+```
+Status: 204 No Content
+Response: (sin cuerpo)
+```
+
+**Respuesta obtenida**
+
+```
+Status: 204 No Content
+Response: Nada
+
+//Compruebo con get que de verdad se han eliminado, y confirmamos. Devuelve []
+```
+
+---
+
+### Caso 49: Con body basura
+
+El endpoint no espera body. Valida que lo ignora sin error.
+
+**Petición**
+
+```
+DELETE http://localhost:3000/api/v1/habitos
+Body: { "dato": "basura" }
+```
+
+**Respuesta esperada**
+
+```
+Status: 204 No Content
+Response: (sin cuerpo)
+```
+
+**Respuesta obtenida**
+
+```
+Status: 204 No Content
+Response: Nada
+
+//Compruebo con get que de verdad se han eliminado, y confirmamos. Devuelve []
+```
+
+---
+
+## Informe de resultados — 6ª fase
+
+| Caso | Descripción                                              | Resultado |
+| ---- | -------------------------------------------------------- | --------- |
+| 47   | Vaciar lista con hábitos                                 | OK        |
+| 48   | Vaciar lista ya vacía                                    | OK        |
+| 49   | Vaciar con body basura — debe ignorarlo                  | OK        |

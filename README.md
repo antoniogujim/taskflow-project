@@ -15,7 +15,8 @@ Aplicación web para registrar y hacer seguimiento de hábitos diarios. Permite 
 - Panel lateral de resumen con contadores de total, completados y pendientes, accesible mediante `aria-live`
 - Filtro de búsqueda en tiempo real con debounce y mensaje de "sin resultados" cuando no hay coincidencias
 - Al añadir o renombrar un hábito con búsqueda activa, el filtro se limpia automáticamente para que el hábito sea visible
-- **Botón "Completar todos" / "Desmarcar todos"**: junto al buscador, completa o desmarca en un clic los hábitos visibles mediante una única petición al servidor (`PATCH /completar-todos`). Sin búsqueda activa completa todos; con búsqueda activa, solo los que coinciden con el filtro. Se deshabilita automáticamente cuando no hay hábitos visibles
+- **Botón "Completar todos" / "Desmarcar todos"**: junto al buscador, completa o desmarca en un clic los hábitos visibles mediante una única petición al servidor (`PATCH /completar-todos`). Sin búsqueda activa el texto es "Completar/Desmarcar todos"; con búsqueda activa cambia a "Completar/Desmarcar buscados" para indicar que la acción solo afecta a los resultados del filtro. Se deshabilita automáticamente cuando no hay hábitos visibles
+- **Botón "Vaciar lista"**: en el panel lateral, elimina todos los hábitos de forma permanente mediante `DELETE /api/v1/habitos`. Abre un modal de confirmación con fondo semitransparente antes de ejecutar la acción. El modal puede cerrarse pulsando "Cancelar" o haciendo clic fuera. Se deshabilita automáticamente cuando la lista está vacía
 - **Selector de orden**: permite ordenar la lista por fecha de creación (reciente o antiguo primero) o por nombre (A→Z / Z→A). El orden se respeta al añadir nuevos hábitos y es compatible con el filtro de búsqueda: al cambiar el orden con una búsqueda activa, los hábitos se reordenan y el filtro se reaaplica automáticamente. Se deshabilita automáticamente cuando no hay hábitos visibles
 - **Resaltado de hábito nuevo**: al añadir un hábito, su tarjeta aparece brevemente destacada en color lima (claro) o esmeralda (oscuro) y hace scroll hasta ella si es necesario. El color desaparece con una transición suave de 1 segundo
 - **Estados de red en UI**: todas las operaciones contra el servidor tienen feedback visual mientras la petición está en curso: el botón "Añadir Hábito" cambia a "Añadiendo...", "Confirmar" cambia a "Eliminando...", "Guardar" cambia a "Guardando...", "Completar todos" / "Desmarcar todos" cambia a "Completando..." / "Desmarcando..." (con todos los checkboxes visibles bloqueados para evitar peticiones simultáneas), y el checkbox individual se deshabilita mientras se procesa. Al iniciar la app se muestra "Cargando hábitos..." mientras se espera al servidor. Si el servidor no está disponible o falla cualquier operación, se muestra un banner de error rojo bajo la cabecera con un mensaje descriptivo
@@ -113,11 +114,12 @@ La documentación interactiva está disponible en `/api-docs` (Swagger UI). Perm
 | ------ | --------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------- | --------------------------------------- |
 | GET    | `/api/v1/habitos`                 | Devuelve todos los hábitos                                              | —                                                 | `200` array JSON                        |
 | POST   | `/api/v1/habitos`                 | Crea un nuevo hábito                                                    | `{ "habito": "Meditar", "tiempo": "10 minutos" }` | `201` objeto creado                     |
-| PATCH  | `/api/v1/habitos/completar-todos` | Marca o desmarca los hábitos cuyos IDs se reciben                       | `{ "completado": true, "ids": ["id1", "id2"] }`   | `200` array con los hábitos modificados |
-| PATCH  | `/api/v1/habitos/:id`             | Edita el nombre y la duración de un hábito                              | `{ "habito": "Leer", "tiempo": "30 minutos" }`    | `200` objeto actualizado                |
-| PATCH  | `/api/v1/habitos/:id/completar`   | Marca o desmarca un hábito y actualiza su racha                         | `{ "completado": true }`                          | `200` objeto actualizado                |
 | POST   | `/api/v1/habitos/reset`           | Resetea todos los hábitos a `completado: false` y rompe rachas antiguas | —                                                 | `204` sin contenido                     |
+| PATCH  | `/api/v1/habitos/completar-todos` | Marca o desmarca los hábitos cuyos IDs se reciben                       | `{ "completado": true, "ids": ["id1", "id2"] }`   | `200` array con los hábitos modificados |
+| PATCH  | `/api/v1/habitos/:id/completar`   | Marca o desmarca un hábito y actualiza su racha                         | `{ "completado": true }`                          | `200` objeto actualizado                |
+| PATCH  | `/api/v1/habitos/:id`             | Edita el nombre y la duración de un hábito                              | `{ "habito": "Leer", "tiempo": "30 minutos" }`    | `200` objeto actualizado                |
 | DELETE | `/api/v1/habitos/:id`             | Elimina el hábito con ese ID                                            | —                                                 | `204` sin contenido                     |
+| DELETE | `/api/v1/habitos`                 | Elimina todos los hábitos de la lista                                   | —                                                 | `204` sin contenido                     |
 
 ### Códigos de error
 
@@ -146,9 +148,9 @@ La documentación interactiva está disponible en `/api-docs` (Swagger UI). Perm
 
 ## Pruebas de integración de la API
 
-Se han realizado pruebas manuales en cinco fases sobre los endpoints de la API, con un total de 52 casos cubiertos.
+Se han realizado pruebas manuales en seis fases sobre los endpoints de la API, con un total de 49 casos cubiertos.
 
-La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). La tercera fase cubrió los nuevos endpoints de editar (`PATCH /:id`), completar (`PATCH /:id/completar`) y reset (`POST /reset`), incluyendo la lógica de racha. La cuarta fase cubrió el nuevo endpoint `PATCH /completar-todos`, donde se detectó que las rutas específicas deben registrarse antes que las rutas con parámetros dinámicos (`/:id`) en Express. La quinta fase revalidó el endpoint `PATCH /completar-todos` tras reestructurarlo para que acepte un array `ids` obligatorio y opere solo sobre los hábitos indicados; este cambio permite integrar el botón "Completar todos" con el filtro de búsqueda activo, de forma que solo se completan los hábitos visibles en pantalla. Todos los casos de las cinco fases resultaron correctos.
+La primera fase detectó 2 errores y 5 comportamientos a revisar. La segunda fase aplicó las correcciones y añadió casos nuevos derivados de los cambios (validación de `tiempo`, tipos de dato, espacios en blanco y duplicados). La tercera fase cubrió los nuevos endpoints de editar (`PATCH /:id`), completar (`PATCH /:id/completar`) y reset (`POST /reset`), incluyendo la lógica de racha. La cuarta fase cubrió el nuevo endpoint `PATCH /completar-todos`, donde se detectó que las rutas específicas deben registrarse antes que las rutas con parámetros dinámicos (`/:id`) en Express. La quinta fase revalidó el endpoint `PATCH /completar-todos` tras reestructurarlo para que acepte un array `ids` obligatorio y opere solo sobre los hábitos indicados; este cambio permite integrar el botón "Completar todos" con el filtro de búsqueda activo, de forma que solo se completan los hábitos visibles en pantalla. La sexta fase cubrió el nuevo endpoint `DELETE /habitos` para vaciar la lista completa. Todos los casos de las seis fases resultaron correctos.
 
 Los resultados están documentados en [`docs/pruebas-integracion.md`](docs/pruebas-integracion.md).
 
@@ -178,11 +180,12 @@ Los resultados están documentados en [`docs/pruebas-integracion.md`](docs/prueb
 4. Marca el checkbox de un hábito para marcarlo como completado
 5. Pulsa "Editar" en una tarjeta para modificar su nombre o duración sin perder ningún otro dato
 6. Pulsa "Eliminar hábito" para iniciar la eliminación — la tarjeta cambia a amarillo y aparecen los botones "Confirmar" y "Cancelar". Si no decides en 10 segundos, el hábito permanece
-7. Usa el campo de búsqueda para filtrar hábitos por nombre. El botón "Completar todos" junto al buscador marca de golpe todos los visibles; si todos ya están completados, el botón cambia a "Desmarcar todos"
-8. Usa el selector de orden para reordenar la lista por fecha o por nombre. Los nuevos hábitos se insertan respetando el orden activo
-9. Consulta el panel lateral para ver el resumen de hábitos del día
-10. Al abrir la app en un nuevo día, los hábitos se resetean automáticamente a pendiente
-11. Usa el botón con icono de luna/sol para alternar entre tema claro y oscuro (la preferencia se guarda)
+7. Usa el campo de búsqueda para filtrar hábitos por nombre. El botón junto al buscador marca de golpe todos los visibles ("Completar todos" / "Completar buscados"); si todos ya están completados, cambia a "Desmarcar todos" / "Desmarcar buscados"
+8. Usa el botón "Vaciar lista" en el panel lateral para eliminar todos los hábitos permanentemente. Se pedirá confirmación mediante un modal antes de ejecutar la acción
+9. Usa el selector de orden para reordenar la lista por fecha o por nombre. Los nuevos hábitos se insertan respetando el orden activo
+10. Consulta el panel lateral para ver el resumen de hábitos del día
+11. Al abrir la app en un nuevo día, los hábitos se resetean automáticamente a pendiente
+12. Usa el botón con icono de luna/sol para alternar entre tema claro y oscuro (la preferencia se guarda)
 
 ## Validación del formulario
 

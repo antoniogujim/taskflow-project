@@ -37,29 +37,6 @@ router.get('/', habitoController.getAll);
 
 /**
  * @swagger
- * /habitos/reset:
- *   post:
- *     tags:
- *       - Habitos
- *     summary: Resetea todos los hábitos a completado false y rompe rachas antiguas
- *     description: Se llama automáticamente al detectar que es un día nuevo. No requiere body.
- *     responses:
- *       204:
- *         description: Reset aplicado correctamente, sin contenido en la respuesta
- *       500:
- *         description: Error interno del servidor
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               error: Error interno del servidor
- */
-// POST /reset → resetea todos los hábitos a completado: false
-router.post('/reset', habitoController.reset);
-
-/**
- * @swagger
  * /habitos:
  *   post:
  *     tags:
@@ -115,6 +92,29 @@ router.post('/reset', habitoController.reset);
  */
 // POST /   → crea un nuevo hábito
 router.post('/', habitoController.create);
+
+/**
+ * @swagger
+ * /habitos/reset:
+ *   post:
+ *     tags:
+ *       - Habitos
+ *     summary: Resetea todos los hábitos a completado false y rompe rachas antiguas
+ *     description: Se llama automáticamente al detectar que es un día nuevo. No requiere body.
+ *     responses:
+ *       204:
+ *         description: Reset aplicado correctamente, sin contenido en la respuesta
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: Error interno del servidor
+ */
+// POST /reset → resetea todos los hábitos a completado: false
+router.post('/reset', habitoController.reset);
 
 /**
  * @swagger
@@ -344,6 +344,30 @@ router.patch('/:id', habitoController.update);
  */
 // DELETE /:id → elimina el hábito con ese ID
 router.delete('/:id', habitoController.remove);
+
+/**
+ * @swagger
+ * /habitos:
+ *   delete:
+ *     tags:
+ *       - Habitos
+ *     summary: Elimina todos los hábitos de la lista
+ *     description: Vacía la colección entera. No requiere body ni parámetros.
+ *     responses:
+ *       204:
+ *         description: Todos los hábitos eliminados correctamente, sin contenido en la respuesta
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: Error interno del servidor
+ */
+// DELETE /  → elimina todos los hábitos de la colección
+// Debe ir después de DELETE /:id para no interferir con rutas más específicas.
+router.delete('/', habitoController.vaciar);
 
 // Exportamos el router para montarlo en index.js
 module.exports = router;

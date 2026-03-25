@@ -181,5 +181,13 @@ function remove(req, res, next) {
     }
 }
 
+// Elimina todos los hábitos de la colección.
+// No necesita body ni parámetros — la operación afecta a todos sin excepción.
+function vaciar(_req, res) {
+    habitoService.vaciarHabitos();
+    // 204: éxito sin contenido — la operación se completó pero no hay nada que devolver
+    res.status(204).send();
+}
+
 // Exportamos los métodos para que el enrutador pueda asignarlos a cada verbo HTTP
-module.exports = { getAll, create, update, complete, completeAll, reset, remove };
+module.exports = { getAll, create, update, complete, completeAll, reset, remove, vaciar };
